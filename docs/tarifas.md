@@ -85,16 +85,16 @@
 
 ## 7. Desayuno
 
-- **Costo del restaurante: 12.000.**
-- **Recomendación: venderlo a 18.000 con impuesto incluido**, o a **15.000 + impuesto**. No venderlo a 15.000 con impuesto incluido: con IVA del 19 % el neto sería 12.605 y el margen quedaría en 605, casi nada.
-- **15.000 + IVA (19 %) = 17.850**, que se redondea a 18.000. Si se maneja como restaurante con impoconsumo del 8 %, 15.000 + 8 % = 16.200; también se puede dejar en 18.000.
-- Las tarifas públicas **no incluyen desayuno**. Si el huésped lo pide, se suman **15.000 × desayunos** a la tarifa, más el impuesto.
-- Las tarifas de empresa pueden **incluirlo** (no se suma, pero la tarifa negociada debe cubrir el costo de 12.000) o **no incluirlo** (se suma si se pide).
-- Cantidad: **pax × noches**. Ejemplo: 2 personas, 3 noches = 6 desayunos.
-- **Incluido y no consumido:** no se devuelve; se cobra igual y se cuenta para la cocina.
-- **Pagado y no consumido:** no se devuelve automáticamente; el admin puede anular el cargo con motivo y autorización antes del corte del día.
-- **Reporte diario para cocina:** habitación, pax, incluido o pagado, y total de desayunos del día.
-- Si se cobra, se registra como cargo al folio con centro **RESTAURANTE**.
+- **Precio: 15.000 por desayuno por persona.** Queda así por decisión del dueño; el IVA o impoconsumo queda pendiente por confirmar con el contador.
+- **Se suma al valor de la noche, por pax.** Ejemplo: 2 personas = 30.000 por noche; 3 noches = 90.000.
+- Las tarifas públicas **no incluyen desayuno**: si el huésped lo pide, se suma.
+- Si la **tarifa de empresa ya lo incluye**, **no se suma** a la noche; va dentro del convenio. La tarifa negociada debe cubrir el costo de 12.000.
+- Si la tarifa de empresa **no lo incluye**, se suma como cualquier adicional.
+- Cantidad: **pax × noches**.
+- **Incluido y no consumido:** no se devuelve.
+- **Pagado y no consumido:** no se devuelve automáticamente; el admin puede anular con motivo y autorización.
+- **Reporte diario para cocina:** habitación, pax, incluido o pagado, total.
+- `[C]` Si el 15.000 termina siendo con impuesto incluido, revisar el margen: el neto sería 12.605 y el costo 12.000. El contador debe decir si va con IVA 19 % o impoconsumo 8 %.
 
 ## 8. Habitaciones con ventilador
 
@@ -145,9 +145,8 @@ tarifa(id, tipo_habitacion_id, temporada_id, acomodacion, escenario, valor, incl
 convenio_tarifa(id, cliente_id, tipo_habitacion_id, acomodacion, valor, dias_credito, cupo, incluye_desayuno)
 reserva(..., incluye_desayuno, desayunos_pax, desayunos_total)
 configuracion(clave='desayuno_costo', valor='12000')
-configuracion(clave='desayuno_precio', valor='18000')
-configuracion(clave='desayuno_precio_neto', valor='15000')
-configuracion(clave='desayuno_impuesto', valor='19')
+configuracion(clave='desayuno_precio', valor='15000')
+configuracion(clave='desayuno_impuesto', valor='POR_CONFIRMAR')
 ```
 
 - `acomodacion`: 1 a 6.
@@ -159,9 +158,9 @@ configuracion(clave='desayuno_impuesto', valor='19')
 
 ## 13. Pendientes
 
-1. Confirmar **290.000 / 400.000** para sextuple y suite, y sus descuentos.
-2. Confirmar si el desayuno se factura con **IVA 19 %** o **impoconsumo 8 %**.
-3. Confirmar **130.000 vs 125.000** en 2 personas temporada baja.
+1. Confirmar **290.000 / 400.000** para sextuple y suite de la 105, y sus descuentos.
+2. Confirmar **IVA 19 % o impoconsumo 8 %** del desayuno de 15.000 (pendiente con el contador).
+3. Confirmar la tarifa base de **2 personas en temporada baja**: 130.000 (tabla del dueño) o 125.000 (SIMP). No tiene que ver con la 105.
 4. IVA incluido o adicional; bar impoconsumo; datos de facturación.
 5. Modelo de la **Kyocera** y tamaño de hoja.
 6. Confirmar el umbral de **15 habitaciones** y si se activa la alta para las siguientes.
