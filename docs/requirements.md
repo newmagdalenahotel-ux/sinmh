@@ -329,7 +329,7 @@ la información principal del día.
 - Se usa `design-system.md` sin cambiar la identidad visual.
 
 ### FR-38 — Reserva desde la pantalla
-**Fase:** actual · **Estado:** Parcial
+**Fase:** actual · **Estado:** Hecho
 **Descripción:** Crear y consultar reservas desde Alojamiento, no solo check-in.
 
 **Aceptación:**

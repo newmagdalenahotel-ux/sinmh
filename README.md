@@ -3,10 +3,11 @@
 Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (caja y bar), con una sola fuente de verdad para la operación del hotel.
 
 **Estado:** 1A operativa y financiera implementadas. Funcionan reservas con
-anticipo, check-in, folios, cargos, check-out, caja con traslados y cambio de
-turno, contabilidad, reportes, usuarios, bar recepción, clientes con crédito,
-cuentas por cobrar, abonos, cuenta socio, tablero de habitaciones, dashboard y
-cuadre de caja en PDF. Falta la validación manual y compras/inventario del bar.
+anticipo y edición completa, check-in, folios, cargos, check-out, caja con
+traslados y cambio de turno, contabilidad, reportes, usuarios, bar recepción,
+clientes con crédito, cuentas por cobrar, abonos, cuenta socio, tablero de
+habitaciones, dashboard y cuadre de caja en PDF. Falta la validación manual y
+compras/inventario del bar.
 
 ## Documentos
 
@@ -79,6 +80,8 @@ npm run dev
 
 ![Reservas](docs/capturas/reservas.png)
 
+![Edición de reserva](docs/capturas/reserva-edicion.png)
+
 ![Caja](docs/capturas/caja-con-cobro.png)
 
 ![Caja avanzada](docs/capturas/caja-avanzada.png)
@@ -113,6 +116,17 @@ npm run dev
 ```
 
 Levanta la API y la web al mismo tiempo con `concurrently`.
+
+## Guía rápida de prueba 1A
+
+1. Abre caja de recepción.
+2. Crea una reserva con anticipo y edítala.
+3. Haz check-in desde la reserva.
+4. Agrega un cargo y haz check-out.
+5. Crea una empresa en Clientes, reserva a su nombre y haz check-out a crédito.
+6. Abona en Cartera y revisa Cuenta socio.
+7. Abre bar terraza, traslada efectivo a recepción y haz cambio de turno.
+8. Genera el cuadre PDF y revisa Reportes.
 
 ## Siguiente paso
 

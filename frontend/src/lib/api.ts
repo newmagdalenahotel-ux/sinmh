@@ -10,6 +10,7 @@ export type Usuario = {
 export type Habitacion = {
   id: number;
   numero: string;
+  tipo_uso?: string;
   clima: 'AC' | 'VENTILADOR';
   capacidad_max: number;
   es_suite: boolean;
@@ -139,6 +140,10 @@ export function disponibilidadApi(
 ) {
   const params = new URLSearchParams({ desde, hasta, pax: String(pax) });
   return request<DisponibilidadResponse>(`/disponibilidad?${params.toString()}`, {}, token);
+}
+
+export function habitacionesApi(token: string) {
+  return request<{ habitaciones: Habitacion[] }>('/habitaciones', {}, token);
 }
 
 export type HabitacionTablero = {

@@ -92,7 +92,7 @@ diseño de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar 
 | Cuentas por cobrar y abonos | Hecho | — |
 | Cuenta socio | Hecho | — |
 | Bar recepción | Parcial | Almacenes, compras, traslados y crédito |
-| Reservas | Parcial | Crear, listar, editar fechas, cancelar, check-in y anticipo; falta formulario completo de edición |
+| Reservas | Hecho | Crear, editar, cancelar, check-in y anticipo; multi-habitación en 1B |
 | Tablero de habitaciones | Hecho | — |
 | Dashboard y navegación por módulos | Hecho | — |
 | Restaurante, eventos, DIAN | Fuera de la fase | Fases 1C, 2 y 3 |

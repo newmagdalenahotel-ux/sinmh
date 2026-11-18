@@ -9,9 +9,12 @@ import {
   cotizarApi,
   crearReservaApi,
   disponibilidadApi,
+  habitacionesApi,
+  reservaApi,
   reservasApi,
   type Cliente,
   type Habitacion,
+  type ReservaDetalle,
   type ReservaPayload,
   type ReservaResumen,
 } from '../lib/api';
@@ -74,6 +77,19 @@ export function ReservasPage() {
   const [reservas, setReservas] = useState<ReservaResumen[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
+  const [habitacionesTodas, setHabitacionesTodas] = useState<Habitacion[]>([]);
+  const [edicion, setEdicion] = useState<ReservaDetalle | null>(null);
+  const [editForm, setEditForm] = useState({
+    fecha_entrada: '',
+    fecha_salida: '',
+    habitacion_id: 0,
+    pax: 2,
+    temporada: 'BAJA' as 'BAJA' | 'ALTA',
+    escenario: 'NORMAL' as 'NORMAL' | 'A' | 'B' | 'C',
+    desayuno: 'NO' as 'NO' | 'PAGADO' | 'INCLUIDO',
+    notas: '',
+  });
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState('');
   const [buscar, setBuscar] = useState('');
   const [form, setForm] = useState<ReservaPayload>(formularioInicial);
@@ -107,15 +123,17 @@ export function ReservasPage() {
     setError('');
 
     try {
-      const [respuesta, respuestaClientes] = await Promise.all([
+      const [respuesta, respuestaClientes, respuestaHabitaciones] = await Promise.all([
         reservasApi(token, {
           estado: filtroEstado || undefined,
           buscar: buscar.trim() || undefined,
         }),
         clientesApi(token),
+        habitacionesApi(token),
       ]);
       setReservas(respuesta.reservas);
       setClientes(respuestaClientes.clientes);
+      setHabitacionesTodas(respuestaHabitaciones.habitaciones);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar las reservas');
     } finally {
@@ -275,26 +293,53 @@ export function ReservasPage() {
     }
   }
 
-  async function moverFechas(reserva: ReservaResumen) {
+  async function abrirEdicion(reserva: ReservaResumen) {
     if (!token) return;
-    const nuevaEntrada = window.prompt('Nueva fecha de entrada (YYYY-MM-DD)', reserva.fecha_entrada.slice(0, 10));
-    if (!nuevaEntrada) return;
-    const nuevaSalida = window.prompt('Nueva fecha de salida (YYYY-MM-DD)', reserva.fecha_salida.slice(0, 10));
-    if (!nuevaSalida) return;
-
     setError('');
     setExito('');
+
     try {
-      await actualizarReservaApi(token, reserva.id, {
-        fecha_entrada: nuevaEntrada,
-        fecha_salida: nuevaSalida,
-        temporada: reserva.temporada,
-        escenario: reserva.escenario,
+      const detalle = await reservaApi(token, reserva.id);
+      setEdicion(detalle.reserva);
+      setEditForm({
+        fecha_entrada: detalle.reserva.fecha_entrada.slice(0, 10),
+        fecha_salida: detalle.reserva.fecha_salida.slice(0, 10),
+        habitacion_id: detalle.reserva.habitacion_id,
+        pax: detalle.reserva.pax,
+        temporada: detalle.reserva.temporada,
+        escenario: detalle.reserva.escenario,
+        desayuno: detalle.reserva.desayuno_modo as 'NO' | 'PAGADO' | 'INCLUIDO',
+        notas: detalle.reserva.notas ?? '',
       });
-      setExito(`Fechas de ${reserva.codigo} actualizadas`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo abrir la reserva');
+    }
+  }
+
+  async function guardarEdicion() {
+    if (!token || !edicion) return;
+    setGuardandoEdicion(true);
+    setError('');
+    setExito('');
+
+    try {
+      await actualizarReservaApi(token, edicion.id, {
+        fecha_entrada: editForm.fecha_entrada,
+        fecha_salida: editForm.fecha_salida,
+        habitacion_id: editForm.habitacion_id,
+        pax: editForm.pax,
+        temporada: editForm.temporada,
+        escenario: editForm.escenario,
+        desayuno: editForm.desayuno,
+        notas: editForm.notas || undefined,
+      });
+      setExito(`Reserva ${edicion.codigo} actualizada`);
+      setEdicion(null);
       await cargar();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudieron cambiar las fechas');
+      setError(err instanceof Error ? err.message : 'No se pudo actualizar la reserva');
+    } finally {
+      setGuardandoEdicion(false);
     }
   }
 
@@ -407,9 +452,9 @@ export function ReservasPage() {
                               </button>
                               <button
                                 className="rounded-lg border border-cream-dark px-2 py-1 text-xs"
-                                onClick={() => void moverFechas(reserva)}
+                                onClick={() => void abrirEdicion(reserva)}
                               >
-                                Fechas
+                                Editar
                               </button>
                               <button
                                 className="rounded-lg border border-error/30 px-2 py-1 text-xs text-error"
@@ -435,6 +480,155 @@ export function ReservasPage() {
         </section>
 
         <div className="space-y-6">
+          {edicion && (
+            <section className="card border-gold/40">
+              <h2 className="font-display text-xl text-stone">Editar reserva {edicion.codigo}</h2>
+              <p className="mt-1 text-sm text-stone-light">
+                {edicion.cliente} · {edicion.habitacion}
+              </p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="label" htmlFor="edit_entrada">Entrada</label>
+                  <input
+                    id="edit_entrada"
+                    type="date"
+                    className="input"
+                    value={editForm.fecha_entrada}
+                    onChange={(event) =>
+                      setEditForm({ ...editForm, fecha_entrada: event.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="edit_salida">Salida</label>
+                  <input
+                    id="edit_salida"
+                    type="date"
+                    className="input"
+                    value={editForm.fecha_salida}
+                    onChange={(event) =>
+                      setEditForm({ ...editForm, fecha_salida: event.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="edit_habitacion">Habitación</label>
+                  <select
+                    id="edit_habitacion"
+                    className="input"
+                    value={editForm.habitacion_id}
+                    onChange={(event) =>
+                      setEditForm({ ...editForm, habitacion_id: Number(event.target.value) })
+                    }
+                  >
+                    {habitacionesTodas
+                      .filter((habitacion) => habitacion.tipo_uso === 'HABITACION')
+                      .map((habitacion) => (
+                        <option key={habitacion.id} value={habitacion.id}>
+                          {habitacion.numero} · {habitacion.clima} · {habitacion.capacidad_max} pax
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label" htmlFor="edit_pax">Pax</label>
+                  <input
+                    id="edit_pax"
+                    type="number"
+                    min="1"
+                    max="6"
+                    className="input"
+                    value={editForm.pax}
+                    onChange={(event) =>
+                      setEditForm({ ...editForm, pax: Number(event.target.value) })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="edit_temporada">Temporada</label>
+                  <select
+                    id="edit_temporada"
+                    className="input"
+                    value={editForm.temporada}
+                    onChange={(event) =>
+                      setEditForm({
+                        ...editForm,
+                        temporada: event.target.value as 'BAJA' | 'ALTA',
+                      })
+                    }
+                  >
+                    <option value="BAJA">Baja</option>
+                    <option value="ALTA">Alta</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="label" htmlFor="edit_escenario">Escenario</label>
+                  <select
+                    id="edit_escenario"
+                    className="input"
+                    value={editForm.escenario}
+                    onChange={(event) =>
+                      setEditForm({
+                        ...editForm,
+                        escenario: event.target.value as 'NORMAL' | 'A' | 'B' | 'C',
+                      })
+                    }
+                  >
+                    <option value="NORMAL">Normal</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label" htmlFor="edit_desayuno">Desayuno</label>
+                  <select
+                    id="edit_desayuno"
+                    className="input"
+                    value={editForm.desayuno}
+                    onChange={(event) =>
+                      setEditForm({
+                        ...editForm,
+                        desayuno: event.target.value as 'NO' | 'PAGADO' | 'INCLUIDO',
+                      })
+                    }
+                  >
+                    <option value="NO">No incluye</option>
+                    <option value="PAGADO">Pagado</option>
+                    <option value="INCLUIDO">Incluido</option>
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label" htmlFor="edit_notas">Notas</label>
+                  <input
+                    id="edit_notas"
+                    className="input"
+                    value={editForm.notas}
+                    onChange={(event) => setEditForm({ ...editForm, notas: event.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex gap-2">
+                <button
+                  className="btn-primary flex-1"
+                  onClick={() => void guardarEdicion()}
+                  disabled={guardandoEdicion}
+                >
+                  {guardandoEdicion ? 'Guardando…' : 'Guardar cambios'}
+                </button>
+                <button
+                  className="btn-secondary"
+                  onClick={() => setEdicion(null)}
+                  disabled={guardandoEdicion}
+                >
+                  Cerrar
+                </button>
+              </div>
+            </section>
+          )}
+
           {reservaCheckin && (
             <section className="card border-gold/40">
               <h2 className="font-display text-xl text-stone">Check-in de reserva</h2>
