@@ -26,7 +26,17 @@
   - Si hay **15 habitaciones ocupadas o menos**, el día va en **baja** y se habilitan A/B/C.
   - Si se llega a **15 habitaciones**, se activa la **alta para las siguientes** y se cierran los descuentos, salvo autorización.
   - El sistema sugiere y **el admin confirma**.
-- `[C]` El umbral de 15 es el mismo del SOP; se deja como parámetro.
+- **Ejemplo con 31 habitaciones rentables:**
+
+| Ocupadas a las 3 pm | Temporada | 2 pax A/C | Descuentos |
+|---:|---|---:|---|
+| 10 | Baja | 130.000 | Sí |
+| 14 | Baja | 130.000 | Sí |
+| 15 | La que llega a 15 paga baja; las siguientes, alta | 130.000 / 180.000 | No desde la 16 |
+| 16 o más | Alta | 180.000 | No |
+
+- Si un **grupo** hace cruzar el umbral, se le respeta la tarifa vigente al momento de la cotización; la alta aplica a las ventas siguientes.
+- `[C]` El umbral de 15 es el mismo del SOP; se deja como parámetro y se ajusta con datos de ocupación, ADR y RevPAR.
 - El calendario vive en una tabla de fechas, no en el código.
 
 ## 3. Escenarios y reglas de descuento
@@ -122,6 +132,7 @@ El SIMP ya maneja **tarifas por empresa**, distintas de la matriz pública:
 - `[C]` Si la lista es con IVA incluido o sin IVA.
 - `[C]` **Bar:** en Colombia normalmente maneja impoconsumo del 8 %, no IVA del 19 %. Confirmar con el contador.
 - `[C]` El hotel ya emite factura electrónica. Falta NIT, régimen, resolución y proveedor.
+- Explicación simple de IVA e impoconsumo en [impuestos.md](impuestos.md).
 - **Impresoras:** por ahora solo **Kyocera láser en hoja grande (carta u oficio)**. La térmica para tirilla queda para después.
 
 ## 11. Reglas de estadía

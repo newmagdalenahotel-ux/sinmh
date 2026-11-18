@@ -10,6 +10,7 @@ Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (
 - [procesos-operativos.md](docs/procesos-operativos.md) — cómo opera hoy el hotel.
 - [datos-existentes.md](docs/datos-existentes.md) — qué hay en el SIMP y en las planillas, y cómo migrarlo.
 - [tarifas.md](docs/tarifas.md) — matriz de precios, escenarios y temporadas.
+- [impuestos.md](docs/impuestos.md) — IVA e impoconsumo explicados.
 - [inventario-habitaciones.md](docs/inventario-habitaciones.md) — habitaciones, capacidades y climatización.
 - [decisiones.md](docs/decisiones.md) — decisiones de arquitectura y alcance.
 - [design.md](docs/design.md) — esquema de base de datos propuesto.
