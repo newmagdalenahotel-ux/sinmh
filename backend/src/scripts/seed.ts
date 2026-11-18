@@ -63,6 +63,17 @@ const temporadasBase = [
   ['UNICA', 'Tarifa única'],
 ] as const;
 
+const centrosBase = [
+  ['ALOJAMIENTO', 'Alojamiento', 'INGRESO'],
+  ['BAR_RECEPCION', 'Bar Recepción', 'INGRESO'],
+  ['BAR_TERRAZA', 'Bar Terraza', 'INGRESO'],
+  ['RESTAURANTE', 'Restaurante', 'INGRESO'],
+  ['EVENTOS', 'Eventos', 'INGRESO'],
+  ['PISCINA_PASADIA', 'Piscina - Pasadías', 'INGRESO'],
+  ['LAVANDERIA', 'Lavandería', 'COSTE'],
+  ['TOUR_REPRESA', 'Tour Represa de Prado', 'INGRESO'],
+] as const;
+
 const adminUsername = 'admin';
 const adminPassword = 'admin123';
 
@@ -85,6 +96,13 @@ await db.transaction(async (tx) => {
     await tx.query(
       'INSERT INTO temporada (codigo, nombre) VALUES ($1, $2) ON CONFLICT (codigo) DO NOTHING',
       [codigo, nombre]
+    );
+  }
+
+  for (const [codigo, nombre, tipo] of centrosBase) {
+    await tx.query(
+      'INSERT INTO centro (codigo, nombre, tipo) VALUES ($1, $2, $3) ON CONFLICT (codigo) DO NOTHING',
+      [codigo, nombre, tipo]
     );
   }
 

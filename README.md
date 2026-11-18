@@ -39,6 +39,7 @@ npm run dev
 - Catálogo: `GET /habitaciones` y `GET /tarifas` (requieren token)
 - Disponibilidad: `GET /disponibilidad?desde=2026-11-20&hasta=2026-11-22&pax=2`
 - Cotización: `GET /tarifas/cotizar?habitacion_id=1&pax=2&temporada=BAJA&escenario=NORMAL`
+- Check-in: `POST /checkin` (cliente, reserva, huésped, folio, cargos y cobro)
 - Semilla: 33 habitaciones, 31 rentables y 50 tarifas
 - Base: PostgreSQL embebido (PGlite) en `backend/.data`; el mismo esquema corre en PostgreSQL real.
 - Los datos de `datos y procesos/` no se versionan.
