@@ -61,7 +61,7 @@
 | 5 personas | 250.000 | 210.000 | 210.000 | 225.000 |
 | 6 personas / suite | 290.000 | 250.000 | 250.000 | 260.000 |
 
-**Nota:** el SIMP tiene 2 personas en 125.000, no 130.000. `[C]` cuál rige.
+**Confirmado:** 2 personas en temporada baja cuesta **130.000** y en alta **180.000**. El SIMP tenía 125.000 desactualizado.
 
 ## 5. A/C — Temporada alta
 
@@ -160,7 +160,6 @@ configuracion(clave='desayuno_impuesto', valor='POR_CONFIRMAR')
 
 1. Confirmar **290.000 / 400.000** para sextuple y suite de la 105, y sus descuentos.
 2. Confirmar **IVA 19 % o impoconsumo 8 %** del desayuno de 15.000 (pendiente con el contador).
-3. Confirmar la tarifa base de **2 personas en temporada baja**: 130.000 (tabla del dueño) o 125.000 (SIMP). No tiene que ver con la 105.
-4. IVA incluido o adicional; bar impoconsumo; datos de facturación.
-5. Modelo de la **Kyocera** y tamaño de hoja.
-6. Confirmar el umbral de **15 habitaciones** y si se activa la alta para las siguientes.
+3. IVA incluido o adicional; bar impoconsumo; datos de facturación.
+4. Modelo de la **Kyocera** y tamaño de hoja.
+5. Confirmar el umbral de **15 habitaciones** y si se activa la alta para las siguientes.

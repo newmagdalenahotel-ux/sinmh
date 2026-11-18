@@ -47,7 +47,7 @@
 - **22 tarifas corporativas**:
   - Por empresa: Chemicals 80.000, Eiatec 80.000, BDB 60.000, Novomet 148.000, Rosen 120.000, OMIA 147.500, Borets 75.000, Aviatur 170.000, Smartstar 90.000, entre otras.
   - Genéricas por atributo: "Solo Ventilador (sin parqueadero)" 55.000, "Ventilador + Parqueadero" 60.000, "Con Aire Acond. (sin parqueadero)" 75.000, "Aire Acond. + Parqueadero" 80.000; para 2 personas: 85.000 / 90.000 / 105.000 / 110.000.
-- **Matriz pública**: 5 filas "Temporada Baja" y 5 "Temporada Alta". Coinciden con la tabla del dueño, con **una diferencia: 2 personas temporada baja está en 125.000 en la base y en 130.000 en la tabla**.
+- **Matriz pública**: 5 filas "Temporada Baja" y 5 "Temporada Alta". Coinciden con la tabla del dueño, salvo que la base tiene **125.000** en 2 personas temporada baja y la tarifa vigente confirmada es **130.000**; la base está desactualizada.
 - 1 tarifa "Rato" de 70.000 para 2 personas.
 
 **Conclusión:** el precio corporativo es un **convenio por empresa**, no la matriz pública; y el parqueadero es un atributo que cambia el precio. Hay que modelarlo aparte.
