@@ -323,11 +323,46 @@ foliosRouter.post('/:id/checkout', async (req, res) => {
     return;
   }
 
-  if (saldo > 0 && parsed.data.metodo_pago === 'CREDITO') {
-    res.status(400).json({
-      error: 'El check-out a crédito se implementa cuando esté el módulo de empresas',
-    });
-    return;
+  const esCredito = saldo > 0 && parsed.data.metodo_pago === 'CREDITO';
+  let clienteCredito:
+    | { tipo: string; cupo_credito: string; dias_credito: number }
+    | null = null;
+
+  if (esCredito) {
+    if (!folio.titular_cliente_id) {
+      res.status(400).json({ error: 'El folio no tiene cliente para otorgar crédito' });
+      return;
+    }
+
+    const cliente = await db.query<{
+      tipo: string;
+      cupo_credito: string;
+      dias_credito: number;
+    }>('SELECT tipo, cupo_credito, dias_credito FROM cliente WHERE id = $1', [
+      folio.titular_cliente_id,
+    ]);
+
+    clienteCredito = cliente.rows[0] ?? null;
+
+    if (!clienteCredito || !['EMPRESA', 'EMPLEADO', 'GRUPO_TRABAJO'].includes(clienteCredito.tipo)) {
+      res.status(400).json({ error: 'El crédito es solo para empresa, empleado o grupo de trabajo' });
+      return;
+    }
+
+    if (clienteCredito.tipo !== 'EMPRESA') {
+      const cupo = Number(clienteCredito.cupo_credito);
+      const usado = await db.query<{ total: string }>(
+        `SELECT COALESCE(SUM(saldo), 0) AS total
+         FROM cuenta_cobrar
+         WHERE cliente_id = $1 AND estado IN ('PENDIENTE', 'PARCIAL', 'VENCIDA')`,
+        [folio.titular_cliente_id]
+      );
+
+      if (cupo > 0 && Number(usado.rows[0]?.total ?? 0) + saldo > cupo) {
+        res.status(400).json({ error: 'El saldo supera el cupo de crédito del cliente' });
+        return;
+      }
+    }
   }
 
   let sesionCajaId: number | null = null;
@@ -354,7 +389,24 @@ foliosRouter.post('/:id/checkout', async (req, res) => {
   const resultado = await db.transaction(async (tx) => {
     let cobroId: number | null = null;
 
-    if (saldo > 0 && parsed.data.metodo_pago) {
+    if (saldo > 0 && esCredito && clienteCredito) {
+      const fechaVencimiento = new Date();
+      fechaVencimiento.setDate(fechaVencimiento.getDate() + clienteCredito.dias_credito);
+
+      await tx.query(
+        `INSERT INTO cuenta_cobrar
+           (cliente_id, folio_id, monto_original, saldo, fecha_emision,
+            fecha_vencimiento, estado, notas)
+         VALUES ($1, $2, $3, $3, CURRENT_DATE, $4, 'PENDIENTE', $5)`,
+        [
+          folio.titular_cliente_id,
+          folioId,
+          saldo,
+          fechaVencimiento.toISOString().slice(0, 10),
+          `Check-out ${folio.codigo}`,
+        ]
+      );
+    } else if (saldo > 0 && parsed.data.metodo_pago) {
       const cobro = await tx.query<{ id: number }>(
         `INSERT INTO cobro
            (folio_id, cliente_id, tipo_documento, monto, metodo_pago, sesion_caja_id, usuario_id, notas)

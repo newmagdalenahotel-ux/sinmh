@@ -5,10 +5,12 @@ import {
   actualizarReservaApi,
   cancelarReservaApi,
   checkinReservaApi,
+  clientesApi,
   cotizarApi,
   crearReservaApi,
   disponibilidadApi,
   reservasApi,
+  type Cliente,
   type Habitacion,
   type ReservaPayload,
   type ReservaResumen,
@@ -70,6 +72,7 @@ const formularioInicial: ReservaPayload = {
 export function ReservasPage() {
   const { token } = useAuth();
   const [reservas, setReservas] = useState<ReservaResumen[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
   const [filtroEstado, setFiltroEstado] = useState('');
   const [buscar, setBuscar] = useState('');
@@ -100,11 +103,15 @@ export function ReservasPage() {
     setError('');
 
     try {
-      const respuesta = await reservasApi(token, {
-        estado: filtroEstado || undefined,
-        buscar: buscar.trim() || undefined,
-      });
+      const [respuesta, respuestaClientes] = await Promise.all([
+        reservasApi(token, {
+          estado: filtroEstado || undefined,
+          buscar: buscar.trim() || undefined,
+        }),
+        clientesApi(token),
+      ]);
       setReservas(respuesta.reservas);
+      setClientes(respuestaClientes.clientes);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar las reservas');
     } finally {
@@ -594,6 +601,39 @@ export function ReservasPage() {
                   <option value="NO">No incluye</option>
                   <option value="PAGADO">Pagado</option>
                   <option value="INCLUIDO">Incluido</option>
+                </select>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="label" htmlFor="cliente_existente">Cliente existente</label>
+                <select
+                  id="cliente_existente"
+                  className="input"
+                  value={form.cliente_id ?? ''}
+                  onChange={(event) => {
+                    const id = Number(event.target.value);
+                    const cliente = clientes.find((item) => item.id === id);
+                    setForm({
+                      ...form,
+                      cliente_id: id || undefined,
+                      cliente: cliente
+                        ? {
+                            ...form.cliente,
+                            nombre: cliente.razon_social,
+                            tipo_documento: cliente.tipo_documento ?? 'CC',
+                            numero_documento: cliente.numero_documento ?? '',
+                            telefono: cliente.telefono ?? '',
+                            email: cliente.email ?? '',
+                          }
+                        : { ...form.cliente, nombre: '', numero_documento: '' },
+                    });
+                  }}
+                >
+                  <option value="">Nuevo cliente particular</option>
+                  {clientes.map((cliente) => (
+                    <option key={cliente.id} value={cliente.id}>
+                      {cliente.razon_social} · {cliente.tipo}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>

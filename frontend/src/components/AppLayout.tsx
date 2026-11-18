@@ -23,6 +23,7 @@ const navegacion: SeccionNavegacion[] = [
       { to: '/reservas', label: 'Reservas', activo: true },
       { to: '/checkin', label: 'Check-in', activo: true },
       { to: '/folios', label: 'Huéspedes y folios', activo: true },
+      { to: '/clientes', label: 'Clientes', activo: true },
       { to: '/habitaciones', label: 'Habitaciones', activo: false },
     ],
   },
@@ -32,7 +33,11 @@ const navegacion: SeccionNavegacion[] = [
   },
   {
     titulo: 'Caja',
-    items: [{ to: '/caja', label: 'Caja y turnos', activo: true }],
+    items: [
+      { to: '/caja', label: 'Caja y turnos', activo: true },
+      { to: '/cartera', label: 'Cartera', activo: true },
+      { to: '/cuenta-socio', label: 'Cuenta socio', activo: true },
+    ],
   },
   {
     titulo: 'Análisis',

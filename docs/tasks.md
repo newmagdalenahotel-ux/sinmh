@@ -18,11 +18,14 @@
 | Autenticación, usuarios y roles | Hecho | Admin, gerente, recepción y cajero |
 | Habitaciones, tarifas y disponibilidad | Hecho | 33 espacios y 50 tarifas |
 | Check-in, folio, cargos y check-out | Hecho | Flujo walk-in probado |
-| Contabilidad de doble partida | Parcial | Libro y asientos; falta cuenta socio |
-| Caja central | Hecho | Apertura, cierre, gastos, retiros, aportes y ajustes |
-| Reportes | Parcial | Ingresos, ocupación, libro y desayunos |
+| Contabilidad de doble partida | Parcial | Libro y asientos; falta cierre contable |
+| Caja central | Hecho | Apertura, cierre, movimientos, traslados y cambio de turno |
+| Reportes | Parcial | Ingresos, ocupación, libro, desayunos, cartera y resultado; falta cuadre PDF |
 | Bar recepción | Parcial | Productos, ventas y stock; faltan almacenes, compras y crédito |
 | Reservas | Parcial | Crear, editar fechas, cancelar y check-in; falta anticipo y formulario completo |
+| Clientes y crédito | Hecho | Empresas, empleados, grupos, cupo y plazo |
+| Cuentas por cobrar y abonos | Hecho | Check-out a crédito y abonos en efectivo, tarjeta o transferencia |
+| Cuenta socio | Hecho | Aportes y retiros del dueño |
 | Dashboard y navegación por módulos | Parcial | Menú agrupado; falta dashboard y rutas anidadas |
 | Cambio de turno y traslados de caja | Hecho | Conteo, nuevo turno y traslados entre cajas |
 
@@ -369,13 +372,64 @@ design, design-system y tasks.
 
 ---
 
+## Bloque 9 — 1A financiera
+
+### T9.1 — Clientes y crédito
+**Estado:** Hecho
+**Requisitos:** FR-05, FR-06
+
+**Aceptación:**
+- [x] Crear empresas, empleados, grupos y particulares.
+- [x] Buscar y editar cupo y días de crédito.
+- [x] El cupo se valida en el check-out a crédito.
+
+### T9.2 — Cuentas por cobrar y abonos
+**Estado:** Hecho
+**Requisitos:** FR-16, FR-17, FR-21
+
+**Aceptación:**
+- [x] Check-out a crédito de empresa, empleado o grupo.
+- [x] CxC con vencimiento y estado.
+- [x] Abonos en efectivo, tarjeta o transferencia.
+- [x] Cartera con saldo total.
+
+### T9.3 — Cuenta socio
+**Estado:** Hecho
+**Requisitos:** FR-11
+
+**Aceptación:**
+- [x] Aportes y retiros del dueño.
+- [x] Saldo acumulado.
+- [x] Movimientos visibles en pantalla.
+
+### T9.4 — Reportes financieros
+**Estado:** Parcial
+**Requisitos:** FR-22, FR-23
+
+**Aceptación:**
+- [x] Cartera por empresa.
+- [x] Resultado por centro del mes.
+- [ ] Cuadre de caja en PDF.
+
+### T9.5 — Cierre T1.28
+**Estado:** Parcial
+
+**Aceptación:**
+- [x] Clientes, CxC, abonos y cuenta socio probados.
+- [x] Reportes de ingresos, cartera y resultado.
+- [ ] Tablero de habitaciones.
+- [ ] Cuadre de caja en PDF.
+- [ ] Manual de recepción actualizado.
+
+---
+
 ## Orden de ejecución
 
 1. **T6.2 y T3.3:** dashboard y tablero de habitaciones.
-2. **T4.1, T4.2, T4.3, T4.5 y T4.6:** almacenes, compras, traslados y crédito.
-3. **T7.2 y T7.3:** reportes pendientes.
-4. **T8:** completar los guiones manuales y cerrar la 1A operativa.
-5. **1A financiera:** clientes, CxC, cuenta socio y reportes financieros.
+2. **T4.1, T4.2, T4.3, T4.5 y T4.6:** almacenes, compras, traslados y crédito de bar.
+3. **T9.4 y T9.5:** cuadre PDF y cierre T1.28.
+4. **T8:** completar los guiones manuales.
+5. **Fase 1B:** mensualidad, contratos y extensiones.
 
 Cada tarea se marca como Hecha solo cuando cumple sus criterios y queda probada
 manualmente.

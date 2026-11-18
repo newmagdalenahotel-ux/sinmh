@@ -58,7 +58,7 @@ devuelve un JWT con usuario y rol.
 ## Módulo: Clientes y crédito
 
 ### FR-05 — CRUD de clientes
-**Fase:** 1B · **Estado:** Pendiente
+**Fase:** 1B · **Estado:** Hecho
 **Descripción:** Crear, leer, actualizar y buscar clientes PARTICULAR, EMPRESA,
 EMPLEADO, GRUPO_TRABAJO y SOCIO.
 
@@ -69,7 +69,7 @@ EMPLEADO, GRUPO_TRABAJO y SOCIO.
 - `DELETE /clientes/:id` hace soft delete.
 
 ### FR-06 — Cupo y días de crédito
-**Fase:** 1B · **Estado:** Pendiente
+**Fase:** 1B · **Estado:** Hecho
 **Descripción:** Cada cliente tiene cupo y días de crédito; una venta a crédito
 no puede superar el cupo.
 
@@ -216,7 +216,7 @@ habitación y folio.
 - Genera recibo PDF.
 
 ### FR-16 — Cuenta por cobrar a empresa
-**Fase:** 1B · **Estado:** Pendiente
+**Fase:** 1B · **Estado:** Hecho
 **Descripción:** Al cerrar un folio de empresa con crédito, crear CxC.
 
 **Aceptación:**
@@ -225,7 +225,7 @@ habitación y folio.
 - El folio queda cerrado/facturado.
 
 ### FR-17 — Abono a cuenta por cobrar
-**Fase:** 1B · **Estado:** Pendiente
+**Fase:** 1B · **Estado:** Hecho
 **Descripción:** Registrar abonos a CxC de empresas o empleados.
 
 **Aceptación:**
@@ -359,11 +359,11 @@ la información principal del día.
 **Aceptación:** Devuelve ocupadas, totales y porcentaje.
 
 ### FR-21 — Cartera
-**Fase:** 1B · **Estado:** Pendiente
+**Fase:** 1B · **Estado:** Hecho
 **Aceptación:** Lista CxC por empresa, con estado y vencimiento.
 
 ### FR-22 — Resultado por centro
-**Fase:** 1B · **Estado:** Pendiente
+**Fase:** 1B · **Estado:** Hecho
 **Aceptación:** Ingresos, costos y margen por centro y mes.
 
 ### FR-23 — Cuadre de caja

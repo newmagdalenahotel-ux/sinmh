@@ -86,8 +86,11 @@ diseño de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar 
 | Check-in, folio y check-out | Hecho | Contrato y multi-habitación |
 | Cargos manuales | Hecho | — |
 | Caja central | Hecho | — |
-| Contabilidad | Parcial | Cuenta socio, cierre y estados |
-| Reportes | Parcial | Cartera, resultado y cuadre PDF |
+| Contabilidad | Parcial | Cierre contable y estados |
+| Reportes | Parcial | Cuadre de caja en PDF |
+| Clientes y crédito | Hecho | — |
+| Cuentas por cobrar y abonos | Hecho | — |
+| Cuenta socio | Hecho | — |
 | Bar recepción | Parcial | Almacenes, compras, traslados y crédito |
 | Reservas | Parcial | Crear, listar, editar fechas, cancelar y check-in; faltan anticipo y tablero |
 | Dashboard y navegación por módulos | Parcial | Menú agrupado; faltan dashboard y rutas anidadas |

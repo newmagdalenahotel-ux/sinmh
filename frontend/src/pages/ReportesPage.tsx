@@ -6,10 +6,12 @@ import {
   reporteIngresosApi,
   reporteLibroApi,
   reporteOcupacionApi,
+  resultadoCentrosApi,
   type LibroMovimiento,
   type ReporteDesayunos,
   type ReporteIngresos,
   type ReporteOcupacion,
+  type ResultadoCentro,
 } from '../lib/api';
 
 function fechaLocal() {
@@ -45,6 +47,8 @@ export function ReportesPage() {
   const [ocupacion, setOcupacion] = useState<ReporteOcupacion | null>(null);
   const [libro, setLibro] = useState<LibroMovimiento[]>([]);
   const [desayunos, setDesayunos] = useState<ReporteDesayunos | null>(null);
+  const [mes, setMes] = useState(() => fechaLocal().slice(0, 7));
+  const [resultado, setResultado] = useState<ResultadoCentro[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
@@ -79,6 +83,23 @@ export function ReportesPage() {
       activo = false;
     };
   }, [token, fecha]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    let activo = true;
+    resultadoCentrosApi(token, mes)
+      .then((respuesta) => {
+        if (activo) setResultado(respuesta.centros);
+      })
+      .catch(() => {
+        if (activo) setResultado([]);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, [token, mes]);
 
   if (!token) return null;
 
@@ -264,6 +285,54 @@ export function ReportesPage() {
                     <td className="py-2 text-right">{Number(fila.pax)}</td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="card">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-xl text-stone">Resultado por centro</h2>
+          <input
+            type="month"
+            className="input w-auto py-2 text-sm"
+            value={mes}
+            onChange={(event) => setMes(event.target.value)}
+          />
+        </div>
+
+        {resultado.length === 0 ? (
+          <p className="mt-4 text-sm text-stone-light">No hay movimientos en el mes.</p>
+        ) : (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-cream-dark text-xs uppercase tracking-wide text-stone-light">
+                  <th className="py-2 pr-3">Centro</th>
+                  <th className="py-2 pr-3 text-right">Ingresos</th>
+                  <th className="py-2 pr-3 text-right">Costos y gastos</th>
+                  <th className="py-2 text-right">Margen</th>
+                </tr>
+              </thead>
+              <tbody>
+                {resultado.map((fila) => {
+                  const ingresosCentro = Number(fila.ingresos);
+                  const costosCentro = Number(fila.costos);
+                  return (
+                    <tr key={fila.centro_codigo} className="border-b border-cream-dark/60">
+                      <td className="py-2 pr-3">
+                        <p className="font-medium">{fila.centro}</p>
+                        <p className="text-xs text-stone-light">{fila.centro_codigo}</p>
+                      </td>
+                      <td className="py-2 pr-3 text-right">{formatoMoneda(ingresosCentro)}</td>
+                      <td className="py-2 pr-3 text-right">{formatoMoneda(costosCentro)}</td>
+                      <td className="py-2 text-right font-medium">
+                        {formatoMoneda(ingresosCentro - costosCentro)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

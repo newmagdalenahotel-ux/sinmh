@@ -10,6 +10,9 @@ import { ReportesPage } from './pages/ReportesPage';
 import { ConfiguracionPage } from './pages/ConfiguracionPage';
 import { BarPage } from './pages/BarPage';
 import { ReservasPage } from './pages/ReservasPage';
+import { ClientesPage } from './pages/ClientesPage';
+import { CarteraPage } from './pages/CarteraPage';
+import { CuentaSocioPage } from './pages/CuentaSocioPage';
 
 export function App() {
   return (
@@ -20,6 +23,9 @@ export function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/checkin" element={<CheckinPage />} />
           <Route path="/reservas" element={<ReservasPage />} />
+          <Route path="/clientes" element={<ClientesPage />} />
+          <Route path="/cartera" element={<CarteraPage />} />
+          <Route path="/cuenta-socio" element={<CuentaSocioPage />} />
           <Route path="/caja" element={<CajaPage />} />
           <Route path="/folios" element={<FoliosPage />} />
           <Route path="/reportes" element={<ReportesPage />} />

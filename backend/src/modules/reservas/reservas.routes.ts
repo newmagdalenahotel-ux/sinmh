@@ -133,6 +133,7 @@ reservasRouter.get('/:id', async (req, res) => {
 });
 
 const crearSchema = z.object({
+  cliente_id: z.coerce.number().int().positive().optional(),
   habitacion_id: z.coerce.number().int().positive(),
   pax: z.coerce.number().int().min(1).max(6),
   fecha_entrada: fechaSchema,
@@ -183,9 +184,17 @@ reservasRouter.post('/', async (req, res) => {
   const total = totalAlojamiento + totalDesayuno;
 
   const resultado = await db.transaction(async (tx) => {
-    let clienteId: number | undefined;
+    let clienteId: number | undefined = datos.cliente_id;
 
-    if (datos.cliente.numero_documento) {
+    if (clienteId) {
+      const existente = await tx.query<{ id: number }>(
+        'SELECT id FROM cliente WHERE id = $1 AND activo = true',
+        [clienteId]
+      );
+      if (!existente.rows[0]) throw new Error('Cliente no encontrado o inactivo');
+    }
+
+    if (!clienteId && datos.cliente.numero_documento) {
       const existente = await tx.query<{ id: number }>(
         `SELECT id FROM cliente
          WHERE numero_documento = $1 AND tipo = 'PARTICULAR'

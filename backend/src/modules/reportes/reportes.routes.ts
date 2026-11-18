@@ -86,8 +86,7 @@ reportesRouter.get('/libro', async (req, res) => {
   res.json({ desde: parsed.data.desde, hasta: parsed.data.hasta, movimientos: rows });
 });
 
-reportesRouter.get('/desayunos', async (req, res) => {
-  const parsed = z.object({ fecha: fechaSchema }).safeParse(req.query);
+reportesRouter.get('/desayunos', async (req, res) => {  const parsed = z.object({ fecha: fechaSchema }).safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: 'Fecha inválida' });
     return;
@@ -116,4 +115,33 @@ reportesRouter.get('/desayunos', async (req, res) => {
 
   const total = rows.reduce((suma, fila) => suma + Number(fila.pax), 0);
   res.json({ fecha: parsed.data.fecha, total, habitaciones: rows });
+});
+
+reportesRouter.get('/resultado-centros', async (req, res) => {
+  const parsed = z.object({ mes: z.string().regex(/^\d{4}-\d{2}$/) }).safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Mes inválido' });
+    return;
+  }
+
+  const desde = `${parsed.data.mes}-01`;
+
+  const { rows } = await db.query(
+    `SELECT COALESCE(ce.codigo, 'SIN_CENTRO') AS centro_codigo,
+            COALESCE(ce.nombre, 'Sin centro') AS centro,
+            SUM(CASE WHEN c.tipo = 'INGRESO' THEN l.haber - l.debe ELSE 0 END) AS ingresos,
+            SUM(CASE WHEN c.tipo IN ('COSTO', 'GASTO') THEN l.debe - l.haber ELSE 0 END) AS costos
+     FROM asiento_linea l
+     JOIN asiento a ON a.id = l.asiento_id
+     JOIN cuenta c ON c.id = l.cuenta_id
+     LEFT JOIN centro ce ON ce.id = l.centro_id
+     WHERE a.fecha >= $1::date
+       AND a.fecha < ($1::date + interval '1 month')
+     GROUP BY ce.codigo, ce.nombre
+     HAVING SUM(l.debe) <> 0 OR SUM(l.haber) <> 0
+     ORDER BY ingresos DESC`,
+    [desde]
+  );
+
+  res.json({ mes: parsed.data.mes, centros: rows });
 });

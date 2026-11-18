@@ -645,6 +645,7 @@ export type ReservaDetalle = ReservaResumen & {
 };
 
 export type ReservaPayload = {
+  cliente_id?: number;
   habitacion_id: number;
   pax: number;
   fecha_entrada: string;
@@ -728,4 +729,145 @@ export function checkinReservaApi(
     method: 'POST',
     body: JSON.stringify(payload),
   }, token);
+}
+
+export type Cliente = {
+  id: number;
+  tipo: string;
+  razon_social: string;
+  tipo_documento: string | null;
+  numero_documento: string | null;
+  telefono: string | null;
+  email: string | null;
+  cupo_credito: string;
+  dias_credito: number;
+  activo: boolean;
+};
+
+export function clientesApi(token: string, buscar?: string) {
+  const params = new URLSearchParams();
+  if (buscar) params.set('buscar', buscar);
+  const query = params.toString();
+  return request<{ clientes: Cliente[] }>(
+    `/clientes${query ? `?${query}` : ''}`,
+    {},
+    token
+  );
+}
+
+export function crearClienteApi(
+  token: string,
+  payload: {
+    tipo: 'PARTICULAR' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO_TRABAJO' | 'SOCIO';
+    razon_social: string;
+    tipo_documento?: string;
+    numero_documento?: string;
+    telefono?: string;
+    email?: string;
+    cupo_credito?: number;
+    dias_credito?: number;
+  }
+) {
+  return request<{ cliente: Cliente }>(
+    '/clientes',
+    { method: 'POST', body: JSON.stringify(payload) },
+    token
+  );
+}
+
+export function actualizarClienteApi(
+  token: string,
+  clienteId: number,
+  payload: {
+    tipo?: 'PARTICULAR' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO_TRABAJO' | 'SOCIO';
+    razon_social?: string;
+    tipo_documento?: string;
+    numero_documento?: string;
+    telefono?: string;
+    email?: string;
+    cupo_credito?: number;
+    dias_credito?: number;
+  }
+) {
+  return request<{ cliente: Cliente }>(
+    `/clientes/${clienteId}`,
+    { method: 'PUT', body: JSON.stringify(payload) },
+    token
+  );
+}
+
+export type CuentaCobrar = {
+  id: number;
+  cliente_id: number;
+  cliente: string;
+  tipo_cliente: string;
+  folio_id: number | null;
+  monto_original: string;
+  saldo: string;
+  fecha_emision: string;
+  fecha_vencimiento: string | null;
+  estado: string;
+  notas: string | null;
+};
+
+export function cuentasCobrarApi(token: string, estado?: string) {
+  const params = new URLSearchParams();
+  if (estado) params.set('estado', estado);
+  const query = params.toString();
+  return request<{ cuentas: CuentaCobrar[]; total: number }>(
+    `/cuentas-cobrar${query ? `?${query}` : ''}`,
+    {},
+    token
+  );
+}
+
+export function abonarCuentaApi(
+  token: string,
+  cuentaId: number,
+  payload: {
+    monto: number;
+    metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
+    tipo_documento?: 'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA';
+    notas?: string;
+  }
+) {
+  return request<{
+    abono: { cobroId: number; saldo: number; estado: string };
+  }>(`/cuentas-cobrar/${cuentaId}/abonos`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, token);
+}
+
+export type CuentaSocioMovimiento = {
+  id: number;
+  tipo: 'APORTE' | 'RETIRO';
+  monto: string;
+  saldo_acumulado: string;
+  fecha: string;
+  descripcion: string | null;
+  usuario: string | null;
+};
+
+export function cuentaSocioApi(token: string) {
+  return request<{ saldo: number; movimientos: CuentaSocioMovimiento[] }>(
+    '/caja/cuenta-socio',
+    {},
+    token
+  );
+}
+
+export type ResultadoCentro = {
+  centro_codigo: string;
+  centro: string;
+  ingresos: string;
+  costos: string;
+};
+
+export function resultadoCentrosApi(token: string, mes: string) {
+  return request<{ mes: string; centros: ResultadoCentro[] }>(
+    `/reportes/resultado-centros?mes=${mes}`,
+    {},
+    token
+  );
 }

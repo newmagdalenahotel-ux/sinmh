@@ -54,9 +54,9 @@ export function FoliosPage() {
     es_cortesia: false,
     motivo_cortesia: '',
   });
-  const [metodoPago, setMetodoPago] = useState<'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'>(
-    'EFECTIVO'
-  );
+  const [metodoPago, setMetodoPago] = useState<
+    'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CREDITO'
+  >('EFECTIVO');
   const [tipoDocumento, setTipoDocumento] = useState<
     'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA'
   >('NINGUNO');
@@ -458,13 +458,18 @@ export function FoliosPage() {
                       value={metodoPago}
                       onChange={(event) =>
                         setMetodoPago(
-                          event.target.value as 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'
+                          event.target.value as
+                            | 'EFECTIVO'
+                            | 'TARJETA'
+                            | 'TRANSFERENCIA'
+                            | 'CREDITO'
                         )
                       }
                     >
                       <option value="EFECTIVO">Efectivo</option>
                       <option value="TARJETA">Tarjeta</option>
                       <option value="TRANSFERENCIA">Transferencia</option>
+                      <option value="CREDITO">Crédito (empresa/empleado)</option>
                     </select>
                   </div>
                   <div>

@@ -85,6 +85,22 @@ cajaRouter.get('/sesion-actual', async (_req, res) => {
   });
 });
 
+cajaRouter.get('/cuenta-socio', async (_req, res) => {
+  const { rows } = await db.query(
+    `SELECT cs.id, cs.tipo, cs.monto, cs.saldo_acumulado, cs.fecha, cs.descripcion,
+            u.nombre_completo AS usuario
+     FROM cuenta_socio cs
+     LEFT JOIN usuario u ON u.id = cs.usuario_id
+     ORDER BY cs.fecha DESC, cs.id DESC
+     LIMIT 100`
+  );
+
+  res.json({
+    saldo: rows.length > 0 ? Number((rows[0] as { saldo_acumulado: string }).saldo_acumulado) : 0,
+    movimientos: rows,
+  });
+});
+
 cajaRouter.get('/puntos-venta', async (_req, res) => {
   const { rows } = await db.query(
     `SELECT pv.id, pv.codigo, pv.nombre, c.codigo AS centro
@@ -381,6 +397,31 @@ cajaRouter.post('/movimientos', async (req, res) => {
 
     const movimientoId = creado.rows[0]?.id;
     if (!movimientoId) throw new Error('No se pudo crear el movimiento');
+
+    if (parsed.data.tipo === 'APORTE' || parsed.data.tipo === 'RETIRO_DUENO') {
+      const anterior = await tx.query<{ saldo_acumulado: string }>(
+        'SELECT saldo_acumulado FROM cuenta_socio ORDER BY id DESC LIMIT 1'
+      );
+      const saldoAnterior = Number(anterior.rows[0]?.saldo_acumulado ?? 0);
+      const nuevoSaldo =
+        parsed.data.tipo === 'APORTE'
+          ? saldoAnterior + parsed.data.monto
+          : saldoAnterior - parsed.data.monto;
+
+      await tx.query(
+        `INSERT INTO cuenta_socio
+           (tipo, monto, saldo_acumulado, descripcion, movimiento_caja_id, usuario_id)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          parsed.data.tipo === 'APORTE' ? 'APORTE' : 'RETIRO',
+          parsed.data.monto,
+          nuevoSaldo,
+          parsed.data.descripcion,
+          movimientoId,
+          usuarioId,
+        ]
+      );
+    }
 
     await registrarAsiento(tx, {
       descripcion: parsed.data.descripcion,

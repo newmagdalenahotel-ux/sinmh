@@ -2,10 +2,11 @@
 
 Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (caja y bar), con una sola fuente de verdad para la operación del hotel.
 
-**Estado:** 1A operativa lista para pruebas manuales. Ya funcionan reservas,
-check-in, folios, cargos, check-out, caja con traslados y cambio de turno,
-contabilidad, reportes, usuarios y bar recepción. Faltan tablero de habitaciones,
-dashboard y la 1A financiera (clientes, CxC, cuenta socio).
+**Estado:** 1A operativa y financiera implementadas para pruebas manuales.
+Funcionan reservas, check-in, folios, cargos, check-out, caja con traslados y
+cambio de turno, contabilidad, reportes, usuarios, bar recepción, clientes con
+crédito, cuentas por cobrar, abonos y cuenta socio. Faltan tablero de
+habitaciones, dashboard, cuadre de caja en PDF y compras/inventario del bar.
 
 ## Documentos
 
@@ -40,10 +41,13 @@ npm run dev
 - Cotización: `GET /tarifas/cotizar?habitacion_id=1&pax=2&temporada=BAJA&escenario=NORMAL`
 - Check-in: `POST /checkin` (cliente, reserva, huésped, folio, cargos y cobro)
 - Reservas: `GET/POST /reservas`, `PUT /reservas/:id`, `POST /reservas/:id/cancelar`, `POST /reservas/:id/checkin`
+- Clientes: `GET/POST /clientes`, `PUT /clientes/:id`
+- Cartera: `GET /cuentas-cobrar`, `GET /cuentas-cobrar/:id`, `POST /cuentas-cobrar/:id/abonos`
+- Cuenta socio: `GET /caja/cuenta-socio`
 - Caja: `GET /caja/sesion-actual`, `GET /caja/puntos-venta`, `GET /caja/sesiones-abiertas`, `POST /caja/sesiones`, `POST /caja/sesiones/:id/cerrar`
 - Caja avanzada: `POST /caja/movimientos`, `POST /caja/traslados`, `POST /caja/sesiones/:id/cambio-turno`
 - Folios: `GET /folios`, `GET /folios/:id`, `POST /folios/:id/checkout`
-- Reportes: `GET /reportes/ingresos?fecha=...`, `GET /reportes/ocupacion`, `GET /reportes/libro?desde=...&hasta=...`, `GET /reportes/desayunos?fecha=...`
+- Reportes: `GET /reportes/ingresos?fecha=...`, `GET /reportes/ocupacion`, `GET /reportes/libro?desde=...&hasta=...`, `GET /reportes/desayunos?fecha=...`, `GET /reportes/resultado-centros?mes=...`
 - Recibo PDF: `GET /cobros/:id/recibo`
 - Administración: `GET /admin/usuarios`, `GET /admin/roles`, `POST /admin/usuarios`, `PUT /admin/usuarios/:id`
 - Cargos manuales: `POST /folios/:id/cargos`, `GET /catalogos/centros`
@@ -82,9 +86,17 @@ npm run dev
 
 ![Bar recepción](docs/capturas/bar-recepcion.png)
 
+![Clientes](docs/capturas/clientes.png)
+
+![Cartera](docs/capturas/cartera.png)
+
+![Cuenta socio](docs/capturas/cuenta-socio.png)
+
 ![Reportes](docs/capturas/reportes.png)
 
 ![Desayunos del día](docs/capturas/reportes-desayunos.png)
+
+![Reportes financieros](docs/capturas/reportes-financiero.png)
 
 ![Usuarios y roles](docs/capturas/configuracion.png)
 
@@ -99,10 +111,9 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-La 1A operativa está lista para probar: reservas, check-in, folios, cargos,
-check-out, caja con traslados y cambio de turno, bar ventas y reportes.
-Faltan tablero de habitaciones y dashboard. Después sigue la 1A financiera:
-clientes, CxC, cuenta socio y reportes financieros.
+La 1A operativa y financiera está lista para pruebas manuales. Faltan tablero
+de habitaciones, dashboard, cuadre de caja en PDF y compras/inventario del bar.
+El orden está en [tasks.md](docs/tasks.md).
 
 ## Repositorio remoto
 
