@@ -1,15 +1,15 @@
 # Inventario de habitaciones
 
-**Estado:** borrador del 18-nov-2026, según lista del dueño. Pendiente confirmar 206, tarifa de sextuple/suite y el conteo de ventilador.
+**Estado:** borrador del 18-nov-2026, confirmado con el dueño. Pendiente el conteo exacto de ventilador.
 **Archivo de datos:** `seeds/habitaciones.csv`.
 
 ---
 
 ## 1. Composición
 
-- **33 espacios** si se confirma la 206: **31 habitaciones rentables + 103 bodega + Admin oficina**.
-- La lista del dueño tiene **30 habitaciones** (no incluye 206) y omite 103 y Admin.
-- **22 con A/C** y **8 con ventilador** según la lista. El dueño había dicho 7; hay que definir cuál de las 8 no cuenta o si una ya tiene A/C.
+- **33 espacios confirmados:** **31 habitaciones rentables + 103 bodega + Admin oficina**.
+- **22 con A/C** y **8 con ventilador** según la lista. El dueño había dicho 7 y la tabla de tarifas también dice 7; hay que definir cuál de las 8 no cuenta o si una ya tiene A/C.
+- La 206 quedó confirmada: sencilla o doble, A/C.
 
 | Piso | Habitaciones |
 |---|---|
@@ -21,7 +21,7 @@
 
 ## 2. Capacidades
 
-- **1 o 2 personas:** 104, 108, 110, 111, 204, 207, 209, 210, 301, 304, 305, 306, 307, 308, 401, 402, 405.
+- **1 o 2 personas:** 104, 108, 110, 111, 204, 206, 207, 209, 210, 301, 304, 305, 306, 307, 308, 401, 402, 405.
 - **1 persona:** 205.
 - **3 personas:** 107, 202, 203, 302, 303, 404.
 - **4 o 5 personas:** 109, 208, 403.
@@ -40,7 +40,8 @@ La capacidad **no es rígida**: 109, 208 y 403 a veces se ponen quintuples, y 10
 ## 4. Suite
 
 - La suite no es una habitación aparte: **105 se configura como suite** (también quintuple o sextuple).
-- `[C]` ¿La suite tiene tarifa propia o se cobra como sextuple? Falta el precio de 6 personas y de suite.
+- **La suite se cobra al mismo precio que la sextuple.**
+- Ver la tabla de sextuple en `tarifas.md`.
 
 ## 5. Reglas operativas
 
@@ -51,8 +52,6 @@ La capacidad **no es rígida**: 109, 208 y 403 a veces se ponen quintuples, y 10
 
 ## 6. Pendientes
 
-1. Confirmar si existe la **206** y en qué estado está.
-2. Confirmar cuáles son las **7 de ventilador** (la lista da 8).
-3. Precio de **sextuple** y de **suite**.
-4. Si la suite incluye algo especial (sala, jacuzzi, etc.).
-5. Confirmar el total: ¿33 incluye 103 y Admin?
+1. Confirmar cuáles son las **7 de ventilador** (la lista da 8: 108, 205, 207, 209, 301, 303, 305, 405).
+2. Confirmar si la suite incluye algo especial (sala, jacuzzi, etc.).
+3. Confirmar si la 105 puede venderse para 1 a 4 personas o solo 5, 6 y suite.

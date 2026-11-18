@@ -1,29 +1,33 @@
 # Tarifas y política de precios — Hotel New Magdalena
 
-**Estado:** borrador validado con el dueño el 18-nov-2026. Pendiente: suite, inventario real y confirmación de las reglas marcadas `[C]`.
+**Estado:** borrador validado con el dueño el 18-nov-2026. Pendiente el conteo exacto de ventilador y confirmar el precio de sextuple/suite.
 **Fuentes:** tabla del dueño, `bd_hpm.sql` (tarifas del SIMP) y SOP de check-in.
+
+**Principio:** todos los precios son cerrados y redondos, para no tener que devolver monedas.
 
 ---
 
 ## 1. Inventario
 
-- **33 espacios** si se confirma la 206: **31 habitaciones rentables + 103 bodega + Admin oficina**. La lista del dueño tiene 30 habitaciones y no incluye la 206.
-- **22 con A/C y 8 con ventilador** según la lista; el dueño había dicho 7. `[C]` cuál no cuenta.
-- La **suite es la 105** configurada como suite; también puede ser quintuple o sextuple. `[C]` falta la tarifa de 6 personas y de suite.
-- La **climatización es dinámica**: si se repara el A/C se vende como A/C; si se pone un ventilador en una habitación de A/C y se baja el taco, se cobra como ventilador.
+- **33 espacios confirmados:** **31 habitaciones rentables + 103 bodega + Admin oficina**.
+- La **206** es sencilla o doble, A/C.
+- **22 con A/C y 8 con ventilador** según la lista; el dueño y la tabla dicen 7. `[C]` cuál de las 8 no cuenta.
+- La **suite es la 105** configurada como suite; se cobra **al mismo precio que la sextuple**.
+- La **climatización es dinámica**: si se repara el A/C se vende como A/C; si se pone un ventilador en una de A/C y se baja el taco, se cobra como ventilador.
 - La tarifa depende de **climatización vendida + acomodación + temporada + escenario**.
 - Ver `inventario-habitaciones.md` y `seeds/habitaciones.csv`.
 
-## 2. Temporadas y decisión diaria
+## 2. Temporadas
 
-- **Base:** tarifa baja; alta en festivos y del **15 de diciembre al 15 de enero**.
+- **Base:** baja; alta en festivos y del **15 de diciembre al 15 de enero**.
 - **El admin ajusta cada día**: si el festivo está flojo, lo pasa a baja; si ve demanda, lo deja alto.
-- **Regla propuesta para no quedar solos en un festivo malo:**
-  - A las **3 pm** se mira la ocupación. Si hay **15 habitaciones ocupadas o menos**, el día se maneja en **baja** y se habilitan A/B/C.
-  - Si hay **más de 15**, se mantiene **alta** y no se ofrecen descuentos salvo autorización.
+- **Regla de ejemplo, configurable, para ir probando:**
+  - A las **3 pm** se mira la ocupación.
+  - Si hay **15 habitaciones ocupadas o menos**, el día va en **baja** y se habilitan A/B/C.
+  - Si se llega a **15 habitaciones**, se activa la **alta para las siguientes** y se cierran los descuentos, salvo autorización.
   - El sistema muestra la ocupación y sugiere; **el admin confirma**.
-- `[C]` El umbral de 15 es el mismo del SOP; confirmar.
-- `[C]` Alternativa de ingreso: las primeras 15 habitaciones a baja y de la 16 en adelante a alta. Es más rentable, pero el precio cambia durante el día.
+- `[C]` El umbral de 15 es el mismo del SOP; se deja como parámetro para ajustarlo con datos.
+- `[C]` Si el festivo no tiene reservas, se maneja en baja; si las tiene, en alta.
 - El calendario vive en una tabla de fechas, no en el código.
 
 ## 3. Escenarios y reglas de descuento
@@ -33,27 +37,18 @@
 | Normal | tarifa de lista | 0 % |
 | A | llegada después de las **7:30 pm** | 15 % |
 | B | estadía de **2 o más noches** | 15 % |
-| C | varias habitaciones o varias noches, grupo o regateo | 10 % |
+| C | grupo o varias habitaciones | 10 % |
 
 **Reglas confirmadas por el dueño (18-nov-2026):**
 
-1. **Escenario A:** llegada después de las 7:30 pm; el 15 % se aplica a **todas las noches** de la estadía.
-2. **Escenario B:** si se quedan **2, 3, 4 o más noches**, el 15 % se aplica **a todas las noches**. Confirmado con ejemplo: 3 noches de 130.000 = **330.000** con B.
-3. **Escenario C:** si vienen varias habitaciones o se quedan varias noches, el 10 % se aplica a todas las noches. Si además llegan después de las 7:30 y hay buen movimiento, se les puede ofrecer el 15 % de A.
+1. **A:** llegada después de las 7:30 pm; el 15 % se aplica a **todas las noches**.
+2. **B:** 2, 3, 4 o más noches; el 15 % se aplica a **todas las noches**. Ejemplo: 3 noches de 130.000 = **330.000**.
+3. **C:** grupo o varias habitaciones; el 10 % se aplica a todas las noches. **Si el grupo no acepta, se le ofrece B (15 %) para cerrar.**
 4. **Orden de venta:** si llega tarde y se queda varias noches, **primero B**; si no acepta, **A** para que se quede. **C no se usa para retener** a un cliente de una sola habitación que llega tarde.
 5. **No ofrecer descuento de entrada.** Solo si el cliente insiste, demuestra intención real de quedarse y la **ocupación del día es de 15 habitaciones o menos** (SOP).
 6. Las habitaciones con **ventilador no tienen ningún descuento**, ni por llegada tarde, ni por estadía, ni por grupo.
 7. **Descuento manual** solo con motivo y autorización; queda registrado.
 8. **A, B y C no se acumulan**; se elige uno.
-
-**El porcentaje es nominal, no exacto.** Los precios están redondeados a cifras comerciales:
-
-- 90.000 → 75.000 es 16,7 %.
-- 130.000 → 115.000 es 11,5 %.
-- 170.000 → 155.000 es 8,8 %.
-- 210.000 → 190.000 es 9,5 %.
-
-Por eso el sistema **guarda el precio final** de cada combinación y no calcula el porcentaje.
 
 ## 4. A/C — Temporada baja
 
@@ -64,6 +59,7 @@ Por eso el sistema **guarda el precio final** de cada combinación y no calcula 
 | 3 personas | 170.000 | 145.000 | 145.000 | 155.000 |
 | 4 personas | 210.000 | 180.000 | 180.000 | 190.000 |
 | 5 personas | 250.000 | 210.000 | 210.000 | 225.000 |
+| 6 personas / suite | 290.000 | 250.000 | 250.000 | 260.000 |
 
 **Nota:** el SIMP tiene 2 personas en 125.000, no 130.000. `[C]` cuál rige.
 
@@ -76,28 +72,36 @@ Por eso el sistema **guarda el precio final** de cada combinación y no calcula 
 | 3 personas | 240.000 | 205.000 | 205.000 | 215.000 |
 | 4 personas | 300.000 | 255.000 | 255.000 | 270.000 |
 | 5 personas | 360.000 | 305.000 | 305.000 | 325.000 |
+| 6 personas / suite | 400.000 | 345.000 | 345.000 | 360.000 |
 
-## 6. Habitaciones con ventilador
+## 6. Sextuple y suite
+
+- La **105** puede ser quintuple, sextuple o suite.
+- **La suite se cobra igual que la sextuple.**
+- Precios en las tablas de arriba: **290.000 / 400.000** normal, **250.000 / 345.000** con A o B, **260.000 / 360.000** con C.
+- Son precios cerrados, sin monedas. `[C]` confirmar.
+
+## 7. Habitaciones con ventilador
 
 | Acomodación | Tarifa única | Descuentos |
 |---:|---:|---|
 | 1 persona | 50.000 | No aplica ninguno |
 | 2 personas | 80.000 | No aplica ninguno |
 
-- `[C]` capacidad máxima de las 7 y si existe tarifa para 3 o más.
+- `[C]` Capacidad máxima de las 7 y si existe tarifa para 3 o más.
 
-## 7. Tarifas corporativas y convenios
+## 8. Tarifas corporativas y convenios
 
 El SIMP ya maneja **tarifas por empresa**, distintas de la matriz pública:
 
 - Por empresa: Chemicals 80.000, Eiatec 80.000, BDB 60.000, Novomet 148.000, Rosen 120.000, OMIA 147.500, Borets 75.000, Aviatur 170.000, Smartstar 90.000.
 - Genéricas: ventilador sin parqueadero 55.000, ventilador con parqueadero 60.000, A/C sin parqueadero 75.000, A/C con parqueadero 80.000 (1 persona); 85.000 / 90.000 / 105.000 / 110.000 para 2 personas.
 - **El parqueadero cambia el precio.**
-- El convenio incluye tarifa y **plazo de pago** (8, 15 o 30 días) y **cupo configurable** por empresa.
+- El convenio incluye tarifa, **plazo de pago** (8, 15 o 30 días) y **cupo configurable** por empresa.
 
 **Conclusión:** el modelo necesita `convenio_tarifa` por cliente/empresa, no solo la matriz pública.
 
-## 8. Impuestos y documentos
+## 9. Impuestos y documentos
 
 - A las empresas o a quien pida **factura electrónica** se le suma **19 %**.
 - `[C]` Si la lista es con IVA incluido o sin IVA.
@@ -105,7 +109,7 @@ El SIMP ya maneja **tarifas por empresa**, distintas de la matriz pública:
 - `[C]` El hotel ya emite factura electrónica. Falta NIT, régimen, resolución y proveedor.
 - **Impresoras:** por ahora solo **Kyocera láser en hoja grande (carta u oficio)**. La térmica para tirilla queda para después.
 
-## 9. Reglas de estadía
+## 10. Reglas de estadía
 
 - **Check-in 3 pm, check-out 1 pm.**
 - Entrada desde las **12 pm sin cobro**; antes de las 12 se cobra por horas.
@@ -117,7 +121,7 @@ El SIMP ya maneja **tarifas por empresa**, distintas de la matriz pública:
 - **Mensualidad:** prepagada, con contrato impreso distinto al registro de hospedaje.
 - **Reservas:** abono 50 %, sin devolución, reprogramable `[C]` condiciones.
 
-## 10. Modelo de datos propuesto
+## 11. Modelo de datos propuesto
 
 ```sql
 temporada(id, codigo, nombre)                  -- BAJA, ALTA
@@ -126,17 +130,17 @@ tarifa(id, tipo_habitacion_id, temporada_id, acomodacion, escenario, valor)
 convenio_tarifa(id, cliente_id, tipo_habitacion_id, acomodacion, valor, dias_credito, cupo)
 ```
 
-- `acomodacion`: 1 a 5.
+- `acomodacion`: 1 a 6.
 - `escenario`: `NORMAL`, `A`, `B`, `C`.
 - El cargo guarda `tarifa_id`, `precio_lista` y `precio_cobrado`.
 - El convenio guarda tarifa, plazo y cupo por empresa.
+- La suite usa la tarifa de 6 personas.
 
-## 11. Pendientes
+## 12. Pendientes
 
-1. Confirmar la **206** y el total de 33 espacios (31 rentables + 103 bodega + Admin).
-2. Confirmar cuáles son las **7 de ventilador** (la lista da 8: 108, 205, 207, 209, 301, 303, 305, 405).
-3. Precio de **sextuple** y de **suite** en la 105.
-4. Confirmar **130.000 vs 125.000** en 2 personas temporada baja.
-5. IVA incluido o adicional; bar impoconsumo; datos de facturación.
-6. Modelo de la **Kyocera** y tamaño de hoja; la térmica queda para después.
-7. Confirmar el umbral de **15 habitaciones** para temporada alta y descuentos.
+1. Confirmar cuáles son las **7 de ventilador** (la lista da 8: 108, 205, 207, 209, 301, 303, 305, 405).
+2. Confirmar **290.000 / 400.000** para sextuple y suite, y sus descuentos.
+3. Confirmar **130.000 vs 125.000** en 2 personas temporada baja.
+4. IVA incluido o adicional; bar impoconsumo; datos de facturación.
+5. Modelo de la **Kyocera** y tamaño de hoja.
+6. Confirmar el umbral de **15 habitaciones** y si se activa la alta para las siguientes.

@@ -167,9 +167,21 @@
 
 **Contexto:** hay festivos buenos y festivos malos; si se marca alta por calendario y no llega gente, se pierden ventas.
 
-**Decisión:** calendario base (festivos y 15-dic a 15-ene) más una **decisión diaria a las 3 pm**: si hay 15 habitaciones ocupadas o menos, el día va en baja y se habilitan A/B/C; si hay más de 15, se mantiene alta. El sistema sugiere y el admin confirma. `[C]` alternativa: primeras 15 a baja y de la 16 en adelante a alta.
+**Decisión:** calendario base (festivos y 15-dic a 15-ene) más una **decisión diaria a las 3 pm**. Si hay reservas y la ocupación llega a **15 habitaciones**, se activa la **alta para las siguientes** y se cierran los descuentos; si no se llega a 15, el día va en **baja** y se habilitan A/B/C. El sistema sugiere y el admin confirma. La regla queda como **ejemplo configurable** para ir probando.
 
 **Consecuencia:** el precio de la noche se cierra a las 3 pm; después de esa hora solo se aplica A si hay cupo y autorización.
+
+---
+
+## ADR-018 — Grupo: primero C, luego B
+
+**Estado:** aceptada
+
+**Contexto:** el grupo tiene 10 % (C), pero a veces no acepta y se va.
+
+**Decisión:** a un grupo o varias habitaciones se le ofrece **C (10 %)**; si no acepta, se le ofrece **B (15 %)** para cerrar. B nunca se ofrece de entrada a un grupo.
+
+**Consecuencia:** se protege el margen y se deja una carta de cierre; queda registrado qué escenario se usó.
 
 ---
 

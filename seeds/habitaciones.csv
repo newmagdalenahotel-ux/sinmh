@@ -1,6 +1,6 @@
 numero,tipo_uso,clima,capacidad_max,piso,activo,notas
 104,HABITACION,AC,2,1,true,"Sencilla o doble"
-105,HABITACION,AC,6,1,true,"Quintuple, sextuple o suite; falta tarifa de 6 y suite"
+105,HABITACION,AC,6,1,true,"Quintuple, sextuple o suite; suite al mismo precio de sextuple"
 106,HABITACION,AC,5,1,true,"Quintuple"
 107,HABITACION,AC,3,1,true,"Triple"
 108,HABITACION,VENTILADOR,2,1,true,"Sencilla o doble; A/C no funciona"
@@ -12,7 +12,7 @@ numero,tipo_uso,clima,capacidad_max,piso,activo,notas
 203,HABITACION,AC,3,2,true,"Triple"
 204,HABITACION,AC,2,2,true,"Sencilla o doble"
 205,HABITACION,VENTILADOR,1,2,true,"Sencilla; A/C no funciona"
-206,HABITACION,,0,2,true,"POR CONFIRMAR: no esta en la lista del dueno"
+206,HABITACION,AC,2,2,true,"Sencilla o doble"
 207,HABITACION,VENTILADOR,2,2,true,"Sencilla o doble; A/C no funciona"
 208,HABITACION,AC,5,2,true,"Cuadruple; a veces se pone quintuple"
 209,HABITACION,VENTILADOR,2,2,true,"Sencilla o doble; A/C no funciona"
