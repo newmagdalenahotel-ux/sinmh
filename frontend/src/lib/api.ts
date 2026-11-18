@@ -198,12 +198,21 @@ export function sesionActualApi(token: string) {
   return request<{ sesion: SesionCaja | null }>('/caja/sesion-actual', {}, token);
 }
 
-export function abrirCajaApi(token: string, montoApertura: number, notas?: string) {
+export function abrirCajaApi(
+  token: string,
+  montoApertura: number,
+  notas?: string,
+  puntoVentaCodigo?: string
+) {
   return request<{ sesion: SesionCaja }>(
     '/caja/sesiones',
     {
       method: 'POST',
-      body: JSON.stringify({ monto_apertura: montoApertura, notas }),
+      body: JSON.stringify({
+        monto_apertura: montoApertura,
+        notas,
+        punto_venta_codigo: puntoVentaCodigo ?? 'RECEPCION',
+      }),
     },
     token
   );
@@ -243,6 +252,58 @@ export function cajaMovimientoApi(token: string, payload: MovimientoCajaPayload)
     movimiento: { id: number; tipo: string; monto: number };
     efectivo_esperado: number;
   }>('/caja/movimientos', { method: 'POST', body: JSON.stringify(payload) }, token);
+}
+
+export type PuntoVenta = {
+  id: number;
+  codigo: string;
+  nombre: string;
+  centro: string;
+};
+
+export type SesionAbierta = SesionCaja & {
+  punto_venta_nombre: string;
+};
+
+export function cajaPuntosVentaApi(token: string) {
+  return request<{ puntos_venta: PuntoVenta[] }>('/caja/puntos-venta', {}, token);
+}
+
+export function cajaSesionesAbiertasApi(token: string) {
+  return request<{ sesiones: SesionAbierta[] }>('/caja/sesiones-abiertas', {}, token);
+}
+
+export function cajaTrasladoApi(
+  token: string,
+  payload: {
+    sesion_origen_id: number;
+    sesion_destino_id: number;
+    monto: number;
+    descripcion: string;
+  }
+) {
+  return request<{ traslado: { salida: number; entrada: number } }>(
+    '/caja/traslados',
+    { method: 'POST', body: JSON.stringify(payload) },
+    token
+  );
+}
+
+export function cajaCambioTurnoApi(
+  token: string,
+  sesionId: number,
+  montoDeclarado: number,
+  notas?: string
+) {
+  return request<{
+    cierre: SesionCaja;
+    nueva: SesionCaja;
+    efectivo_esperado: number;
+    diferencia: number;
+  }>(`/caja/sesiones/${sesionId}/cambio-turno`, {
+    method: 'POST',
+    body: JSON.stringify({ monto_declarado: montoDeclarado, notas }),
+  }, token);
 }
 
 export type FolioResumen = {
@@ -546,4 +607,125 @@ export function venderBarApi(token: string, payload: VentaBarPayload) {
     { method: 'POST', body: JSON.stringify(payload) },
     token
   );
+}
+
+export type ReservaResumen = {
+  id: number;
+  codigo: string;
+  estado: string;
+  fecha_entrada: string;
+  fecha_salida: string;
+  total: string;
+  saldo: string;
+  desayuno_modo: string;
+  desayunos_total: number;
+  temporada: 'BAJA' | 'ALTA';
+  escenario: 'NORMAL' | 'A' | 'B' | 'C';
+  cliente: string | null;
+  numero_documento: string | null;
+  reserva_habitacion_id: number;
+  pax: number;
+  precio_noche: string;
+  habitacion_id: number;
+  habitacion: string;
+};
+
+export type ReservaDetalle = ReservaResumen & {
+  modalidad: string;
+  notas: string | null;
+  incluye_desayuno: boolean;
+  desayunos_pax: number;
+  total_desayuno: string;
+  rh_estado: string;
+  clima: string;
+  cliente_id: number;
+  tipo_documento: string | null;
+  telefono: string | null;
+  email: string | null;
+};
+
+export type ReservaPayload = {
+  habitacion_id: number;
+  pax: number;
+  fecha_entrada: string;
+  fecha_salida: string;
+  temporada: 'BAJA' | 'ALTA';
+  escenario: 'NORMAL' | 'A' | 'B' | 'C';
+  cliente: {
+    nombre: string;
+    tipo_documento?: string;
+    numero_documento?: string;
+    telefono?: string;
+    email?: string;
+  };
+  desayuno: 'NO' | 'PAGADO' | 'INCLUIDO';
+  notas?: string;
+};
+
+export type CheckinReservaPayload = {
+  pago?: {
+    monto: number;
+    metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CREDITO';
+    tipo_documento?: 'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA';
+    notas?: string;
+  };
+};
+
+export function reservasApi(token: string, filtros?: { estado?: string; buscar?: string }) {
+  const params = new URLSearchParams();
+  if (filtros?.estado) params.set('estado', filtros.estado);
+  if (filtros?.buscar) params.set('buscar', filtros.buscar);
+  const query = params.toString();
+  return request<{ reservas: ReservaResumen[] }>(
+    `/reservas${query ? `?${query}` : ''}`,
+    {},
+    token
+  );
+}
+
+export function reservaApi(token: string, reservaId: number) {
+  return request<{ reserva: ReservaDetalle }>(`/reservas/${reservaId}`, {}, token);
+}
+
+export function crearReservaApi(token: string, payload: ReservaPayload) {
+  return request<{ reserva: ReservaResumen }>(
+    '/reservas',
+    { method: 'POST', body: JSON.stringify(payload) },
+    token
+  );
+}
+
+export function actualizarReservaApi(
+  token: string,
+  reservaId: number,
+  payload: Partial<ReservaPayload>
+) {
+  return request<{ ok: boolean }>(
+    `/reservas/${reservaId}`,
+    { method: 'PUT', body: JSON.stringify(payload) },
+    token
+  );
+}
+
+export function cancelarReservaApi(token: string, reservaId: number) {
+  return request<{ ok: boolean }>(
+    `/reservas/${reservaId}/cancelar`,
+    { method: 'POST', body: JSON.stringify({}) },
+    token
+  );
+}
+
+export function checkinReservaApi(
+  token: string,
+  reservaId: number,
+  payload: CheckinReservaPayload
+) {
+  return request<{
+    reserva: { id: number; codigo: string; estado: string; total: number; saldo: number };
+    folio: { id: number; saldo: number };
+    cobro: { id: number; monto: number } | null;
+  }>(`/reservas/${reservaId}/checkin`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, token);
 }

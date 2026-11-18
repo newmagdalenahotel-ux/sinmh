@@ -14,6 +14,7 @@ import { foliosRouter } from './modules/folios/folios.routes.js';
 import { habitacionesRouter } from './modules/habitaciones/habitaciones.routes.js';
 import { productosRouter } from './modules/productos/productos.routes.js';
 import { reportesRouter } from './modules/reportes/reportes.routes.js';
+import { reservasRouter } from './modules/reservas/reservas.routes.js';
 import { tarifasRouter } from './modules/tarifas/tarifas.routes.js';
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/checkin', checkinRouter);
 app.use('/caja', cajaRouter);
 app.use('/cobros', cobrosRouter);
 app.use('/productos', productosRouter);
+app.use('/reservas', reservasRouter);
 app.use('/bar', barRouter);
 app.use('/folios', foliosRouter);
 app.use('/reportes', reportesRouter);

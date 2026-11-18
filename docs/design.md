@@ -1,17 +1,17 @@
-﻿# Design â€” Sistema Hotel New Magdalena
+# Design — Sistema Hotel New Magdalena
 
-> **Documento vigente de diseÃ±o.** Define la arquitectura del frontend, las
-> pantallas y el esquema objetivo de base de datos. La implementaciÃ³n real estÃ¡
+> **Documento vigente de diseño.** Define la arquitectura del frontend, las
+> pantallas y el esquema objetivo de base de datos. La implementación real está
 > en `backend/migrations` y se contrasta con este documento antes de cada tarea.
 
-**VersiÃ³n:** 3.0
+**Versión:** 3.0
 **Fecha:** 2026-11-18
 **Estado:** Aprobado para la fase actual
 **Basado en:** SPEC.md v3.0
 
-Este documento contiene el mapa de mÃ³dulos y pantallas del frontend y el esquema
-de base de datos organizado por migraciones. La implementaciÃ³n actual estÃ¡
-consolidada en las migraciones 001â€“009; las migraciones 010â€“025 del diseÃ±o
+Este documento contiene el mapa de módulos y pantallas del frontend y el esquema
+de base de datos organizado por migraciones. La implementación actual está
+consolidada en las migraciones 001–009; las migraciones 010–025 del diseño
 original quedan como objetivo de las fases siguientes.
 
 ---
@@ -20,104 +20,104 @@ original quedan como objetivo de las fases siguientes.
 
 - **Base de datos:** PostgreSQL 14+ compatible. En la v1 se usa PGlite local en
   `backend/.data`; el mismo SQL debe poder ejecutarse en PostgreSQL real.
-- **Dinero:** `NUMERIC(14,2)` â€” nunca FLOAT
+- **Dinero:** `NUMERIC(14,2)` — nunca FLOAT
 - **Fechas:** `TIMESTAMPTZ` siempre
 - **PKs:** `BIGSERIAL`
 - **Soft delete:** `activo BOOLEAN` donde aplique
-- **AuditorÃ­a:** `created_at`, `updated_at`, `usuario_id`
-- **Migraciones:** se ejecutan en orden, nunca se modifican despuÃ©s de aplicadas
+- **Auditoría:** `created_at`, `updated_at`, `usuario_id`
+- **Migraciones:** se ejecutan en orden, nunca se modifican después de aplicadas
 
 ---
 
-## Arquitectura de la aplicaciÃ³n
+## Arquitectura de la aplicación
 
-### MÃ³dulos del frontend
+### Módulos del frontend
 
-| MÃ³dulo | Ruta base | Pantallas |
+| Módulo | Ruta base | Pantallas |
 |---|---|---|
-| Dashboard | `/dashboard` | OcupaciÃ³n, llegadas, salidas, caja del turno, ventas del dÃ­a, alertas |
-| Alojamiento | `/alojamiento` | Reservas, disponibilidad, tablero, check-in, huÃ©spedes, folios, check-out |
-| Bar y servicios | `/bar` | Venta, productos, inventario, compras, traslados, crÃ©ditos de empleados |
+| Dashboard | `/dashboard` | Ocupación, llegadas, salidas, caja del turno, ventas del día, alertas |
+| Alojamiento | `/alojamiento` | Reservas, disponibilidad, tablero, check-in, huéspedes, folios, check-out |
+| Bar y servicios | `/bar` | Venta, productos, inventario, compras, traslados, créditos de empleados |
 | Caja | `/caja` | Turno, movimientos, cambio de turno, traslados, cierre |
-| Reportes | `/reportes` | Ingresos, ocupaciÃ³n, libro, desayunos, cartera, cuadre |
-| ConfiguraciÃ³n | `/configuracion` | Usuarios, roles, tarifas, temporadas, centros |
+| Reportes | `/reportes` | Ingresos, ocupación, libro, desayunos, cartera, cuadre |
+| Configuración | `/configuracion` | Usuarios, roles, tarifas, temporadas, centros |
 
-La navegaciÃ³n es por mÃ³dulos, no por pantallas sueltas. El sidebar mantiene el
-diseÃ±o de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar de
+La navegación es por módulos, no por pantallas sueltas. El sidebar mantiene el
+diseño de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar de
 64 px con usuario y rol.
 
-### Pantallas por mÃ³dulo
+### Pantallas por módulo
 
 **Dashboard**
 - Tarjetas: habitaciones ocupadas, llegadas de hoy, salidas de hoy, efectivo
-  esperado, ventas del dÃ­a.
+  esperado, ventas del día.
 - Alertas: caja cerrada, habitaciones sucias, stock bajo, folios con saldo.
 
 **Alojamiento**
 - `/alojamiento/reservas`: lista y formulario de reserva.
 - `/alojamiento/tablero`: estado visual de las 31 habitaciones.
 - `/alojamiento/checkin`: check-in de reserva o walk-in.
-- `/alojamiento/huespedes`: folios abiertos y huÃ©spedes en casa.
+- `/alojamiento/huespedes`: folios abiertos y huéspedes en casa.
 - `/alojamiento/folios/:id`: detalle, cargos, pagos y check-out.
 
 **Bar y servicios**
-- `/bar/venta`: catÃ¡logo, carrito y cobro.
-- `/bar/productos`: alta y ediciÃ³n de productos.
-- `/bar/inventario`: existencias por almacÃ©n y traslados.
+- `/bar/venta`: catálogo, carrito y cobro.
+- `/bar/productos`: alta y edición de productos.
+- `/bar/inventario`: existencias por almacén y traslados.
 - `/bar/compras`: compra a proveedor y entrada de inventario.
 - `/bar/creditos`: consumo y abono de empleados.
 
 **Caja**
-- `/caja/turno`: sesiÃ³n actual, movimientos y cierre.
+- `/caja/turno`: sesión actual, movimientos y cierre.
 - `/caja/movimientos`: gastos, retiros, aportes y ajustes.
 - `/caja/cambio-turno`: conteo, entrega y recibo del turno.
 - `/caja/traslados`: efectivo entre cajas.
 
 **Reportes**
-- Ingresos, ocupaciÃ³n, libro, desayunos, cartera y cuadre.
+- Ingresos, ocupación, libro, desayunos, cartera y cuadre.
 
-### Estado de implementaciÃ³n
+### Estado de implementación
 
-| MÃ³dulo | Estado | QuÃ© falta |
+| Módulo | Estado | Qué falta |
 |---|---|---|
-| AutenticaciÃ³n y usuarios | Hecho | AuditorÃ­a de cambios |
-| Habitaciones y tarifas | Hecho | EdiciÃ³n visual de temporadas |
-| Disponibilidad y cotizaciÃ³n | Hecho | â€” |
-| Check-in, folio y check-out | Hecho | Contrato y multi-habitaciÃ³n |
-| Cargos manuales | Hecho | â€” |
-| Caja central | Hecho | Cambio de turno y traslados |
+| Autenticación y usuarios | Hecho | Auditoría de cambios |
+| Habitaciones y tarifas | Hecho | Edición visual de temporadas |
+| Disponibilidad y cotización | Hecho | — |
+| Check-in, folio y check-out | Hecho | Contrato y multi-habitación |
+| Cargos manuales | Hecho | — |
+| Caja central | Hecho | — |
 | Contabilidad | Parcial | Cuenta socio, cierre y estados |
 | Reportes | Parcial | Cartera, resultado y cuadre PDF |
-| Bar recepciÃ³n | Parcial | Almacenes, compras, traslados y crÃ©dito |
-| Reservas | Pendiente | CRUD, calendario y tablero |
-| Dashboard y navegaciÃ³n por mÃ³dulos | Pendiente | ReorganizaciÃ³n del frontend |
+| Bar recepción | Parcial | Almacenes, compras, traslados y crédito |
+| Reservas | Parcial | Crear, listar, editar fechas, cancelar y check-in; faltan anticipo y tablero |
+| Dashboard y navegación por módulos | Parcial | Menú agrupado; faltan dashboard y rutas anidadas |
 | Restaurante, eventos, DIAN | Fuera de la fase | Fases 1C, 2 y 3 |
 
 ### Esquema implementado
 
-La implementaciÃ³n consolidÃ³ el esquema en estas migraciones:
+La implementación consolidó el esquema en estas migraciones:
 
-| MigraciÃ³n | Contenido |
+| Migración | Contenido |
 |---|---|
-| `001_init.sql` | ConfiguraciÃ³n, roles, usuarios y migraciones |
+| `001_init.sql` | Configuración, roles, usuarios y migraciones |
 | `002_habitaciones_tarifas.sql` | Temporadas, habitaciones y tarifas |
-| `003_reservas.sql` | Acomodaciones, clientes, reservas y reserva_habitaciÃ³n |
-| `004_checkin.sql` | Centros, huÃ©spedes, folios, cargos, cobros y desayuno |
+| `003_reservas.sql` | Acomodaciones, clientes, reservas y reserva_habitación |
+| `004_checkin.sql` | Centros, huéspedes, folios, cargos, cobros y desayuno |
 | `005_caja.sql` | Puntos de venta, sesiones y movimientos de caja |
-| `006_contabilidad.sql` | Cuentas, asientos, lÃ­neas y libro |
-| `007_cargo_cortesia.sql` | Motivo de cortesÃ­a |
+| `006_contabilidad.sql` | Cuentas, asientos, líneas y libro |
+| `007_cargo_cortesia.sql` | Motivo de cortesía |
 | `008_bar.sql` | Productos, inventario, ventas de bar y detalle |
-| `009_caja_avanzada.sql` | AutorizaciÃ³n y soporte de movimientos |
+| `009_caja_avanzada.sql` | Autorización y soporte de movimientos |
 
-El diseÃ±o de las migraciones 001â€“025 sigue siendo el objetivo funcional. Cuando
+El diseño de las migraciones 001–025 sigue siendo el objetivo funcional. Cuando
 una tabla implementada se simplifica, la diferencia se registra en este documento
-y en `tasks.md`; no se crea una tabla por fuera del diseÃ±o sin actualizarlo.
+y en `tasks.md`; no se crea una tabla por fuera del diseño sin actualizarlo.
 
 ---
 
-## Fase 0 / 1A â€” NÃºcleo financiero
+## Fase 0 / 1A — Núcleo financiero
 
-### MigraciÃ³n 001 â€” Extensiones y configuraciÃ³n
+### Migración 001 — Extensiones y configuración
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
@@ -131,7 +131,7 @@ CREATE TABLE configuracion (
 );
 ```
 
-### MigraciÃ³n 002 â€” Usuarios, roles y permisos
+### Migración 002 — Usuarios, roles y permisos
 
 ```sql
 CREATE TABLE usuario (
@@ -170,7 +170,7 @@ CREATE TABLE rol_permiso (
 );
 ```
 
-### MigraciÃ³n 003 â€” Centros y plan de cuentas
+### Migración 003 — Centros y plan de cuentas
 
 ```sql
 CREATE TABLE centro (
@@ -192,7 +192,7 @@ CREATE TABLE cuenta (
 );
 ```
 
-### MigraciÃ³n 004 â€” Clientes
+### Migración 004 — Clientes
 
 ```sql
 CREATE TABLE cliente (
@@ -217,7 +217,7 @@ CREATE INDEX idx_cliente_doc ON cliente(tipo_documento, numero_documento);
 CREATE INDEX idx_cliente_razon ON cliente(razon_social);
 ```
 
-### MigraciÃ³n 005 â€” Cajas, POS, sesiones y movimientos de caja
+### Migración 005 — Cajas, POS, sesiones y movimientos de caja
 
 ```sql
 CREATE TABLE caja_fisica (
@@ -283,7 +283,7 @@ CREATE TABLE movimiento_caja (
 CREATE INDEX idx_mov_caja_sesion ON movimiento_caja(sesion_caja_id);
 ```
 
-### MigraciÃ³n 006 â€” Libro de movimientos (doble partida)
+### Migración 006 — Libro de movimientos (doble partida)
 
 ```sql
 CREATE TABLE libro_movimiento (
@@ -307,7 +307,7 @@ CREATE INDEX idx_libro_cuenta_fecha ON libro_movimiento(cuenta_id, fecha);
 CREATE INDEX idx_libro_origen ON libro_movimiento(origen_tipo, origen_id);
 ```
 
-### MigraciÃ³n 007 â€” Cuenta socio
+### Migración 007 — Cuenta socio
 
 ```sql
 CREATE TABLE cuenta_socio (
@@ -322,7 +322,7 @@ CREATE TABLE cuenta_socio (
 );
 ```
 
-### MigraciÃ³n 008 â€” Documentos adjuntos
+### Migración 008 — Documentos adjuntos
 
 ```sql
 CREATE TABLE documento_adjunto (
@@ -342,9 +342,9 @@ CREATE INDEX idx_adjunto_referencia ON documento_adjunto(referencia_tipo, refere
 
 ---
 
-## Fase 1A â€” Alojamiento
+## Fase 1A — Alojamiento
 
-### MigraciÃ³n 009 â€” Habitaciones y tarifas
+### Migración 009 — Habitaciones y tarifas
 
 ```sql
 CREATE TABLE tipo_habitacion (
@@ -375,7 +375,7 @@ CREATE TABLE tarifa (
 );
 ```
 
-### MigraciÃ³n 010 â€” Reservas, huÃ©spedes y habitaciones reservadas
+### Migración 010 — Reservas, huéspedes y habitaciones reservadas
 
 ```sql
 CREATE TABLE reserva (
@@ -439,7 +439,7 @@ CREATE TABLE huesped (
 );
 ```
 
-### MigraciÃ³n 011 â€” Folios y cargos
+### Migración 011 — Folios y cargos
 
 ```sql
 CREATE TABLE folio (
@@ -481,7 +481,7 @@ CREATE TABLE folio_cargo (
 CREATE INDEX idx_folio_cargo_folio ON folio_cargo(folio_id);
 ```
 
-### MigraciÃ³n 012 â€” Cobros y cuentas por cobrar
+### Migración 012 — Cobros y cuentas por cobrar
 
 ```sql
 CREATE TABLE cobro (
@@ -545,9 +545,9 @@ CREATE TABLE cuenta_cobrar_pago (
 
 ---
 
-## Fase 1B â€” Reglas de negocio del alojamiento
+## Fase 1B — Reglas de negocio del alojamiento
 
-### MigraciÃ³n 013 â€” Contratos
+### Migración 013 — Contratos
 
 ```sql
 CREATE TABLE contrato (
@@ -565,7 +565,7 @@ CREATE TABLE contrato (
 );
 ```
 
-### MigraciÃ³n 014 â€” Reglas de descuento
+### Migración 014 — Reglas de descuento
 
 ```sql
 CREATE TABLE regla_descuento (
@@ -595,9 +595,9 @@ CREATE TABLE descuento_aplicado (
 
 ---
 
-## Fase 1C â€” OperaciÃ³n ampliada
+## Fase 1C — Operación ampliada
 
-### MigraciÃ³n 015 â€” AverÃ­as, limpieza y turnos
+### Migración 015 — Averías, limpieza y turnos
 
 ```sql
 CREATE TABLE averia_habitacion (
@@ -633,7 +633,7 @@ CREATE TABLE turno_personal (
 );
 ```
 
-### MigraciÃ³n 016 â€” Activos fijos (inventario de mobiliario)
+### Migración 016 — Activos fijos (inventario de mobiliario)
 
 ```sql
 CREATE TABLE activo_fijo (
@@ -676,7 +676,7 @@ CREATE TABLE verificacion_activo (
 );
 ```
 
-### MigraciÃ³n 017 â€” Productos, almacenes e inventario
+### Migración 017 — Productos, almacenes e inventario
 
 ```sql
 CREATE TABLE categoria_producto (
@@ -730,7 +730,7 @@ CREATE TABLE movimiento_inventario (
 CREATE INDEX idx_mov_inv_inventario ON movimiento_inventario(inventario_id, fecha);
 ```
 
-### MigraciÃ³n 018 â€” Ventas
+### Migración 018 — Ventas
 
 ```sql
 CREATE TABLE venta (
@@ -770,7 +770,7 @@ ALTER TABLE cobro ADD CONSTRAINT fk_cobro_venta
   FOREIGN KEY (venta_id) REFERENCES venta(id);
 ```
 
-### MigraciÃ³n 019 â€” Proveedores, compras y gastos
+### Migración 019 — Proveedores, compras y gastos
 
 ```sql
 CREATE TABLE proveedor (
@@ -833,9 +833,9 @@ CREATE INDEX idx_gasto_centro_fecha ON gasto(centro_id, fecha);
 
 ---
 
-## Fase 2 â€” POS completo y eventos
+## Fase 2 — POS completo y eventos
 
-### MigraciÃ³n 020 â€” Mesas y comandas
+### Migración 020 — Mesas y comandas
 
 ```sql
 CREATE TABLE mesa (
@@ -864,7 +864,7 @@ ALTER TABLE venta ADD COLUMN tipo_servicio VARCHAR(20)
 ALTER TABLE venta ADD COLUMN venta_padre_id BIGINT REFERENCES venta(id);
 ```
 
-### MigraciÃ³n 021 â€” Eventos y recursos reservables
+### Migración 021 — Eventos y recursos reservables
 
 ```sql
 CREATE TABLE recurso_reservable (
@@ -904,7 +904,7 @@ CREATE TABLE evento_recurso (
 );
 ```
 
-### MigraciÃ³n 022 â€” Paquetes turÃ­sticos
+### Migración 022 — Paquetes turísticos
 
 ```sql
 CREATE TABLE paquete (
@@ -928,7 +928,7 @@ CREATE TABLE paquete_componente (
 );
 ```
 
-### MigraciÃ³n 023 â€” FacturaciÃ³n electrÃ³nica
+### Migración 023 — Facturación electrónica
 
 ```sql
 CREATE TABLE resolucion_dian (
@@ -956,28 +956,28 @@ CREATE TABLE documento_electronico (
 );
 ```
 
-### MigraciÃ³n 024 â€” Ãndices adicionales
+### Migración 024 — Índices adicionales
 
 ```sql
 CREATE INDEX idx_huesped_documento ON huesped(numero_documento);
 CREATE INDEX idx_reserva_fechas ON reserva(fecha_entrada, fecha_salida);
 ```
 
-### MigraciÃ³n 025 â€” Datos semilla
+### Migración 025 — Datos semilla
 
 ```sql
 -- Centros
 INSERT INTO centro (codigo, nombre, tipo) VALUES
   ('ALOJAMIENTO',     'Alojamiento',           'INGRESO'),
-  ('BAR_RECEPCION',   'Bar RecepciÃ³n',         'INGRESO'),
+  ('BAR_RECEPCION',   'Bar Recepción',         'INGRESO'),
   ('BAR_TERRAZA',     'Bar Terraza',           'INGRESO'),
   ('RESTAURANTE',     'Restaurante',           'INGRESO'),
   ('EVENTOS',         'Eventos',               'INGRESO'),
-  ('PISCINA_PASADIA', 'Piscina - PasadÃ­as',    'INGRESO'),
-  ('LAVANDERIA',      'LavanderÃ­a',            'COSTE'),
+  ('PISCINA_PASADIA', 'Piscina - Pasadías',    'INGRESO'),
+  ('LAVANDERIA',      'Lavandería',            'COSTE'),
   ('TOUR_REPRESA',    'Tour Represa de Prado', 'INGRESO');
 
--- Plan de cuentas mÃ­nimo
+-- Plan de cuentas mínimo
 INSERT INTO cuenta (codigo, nombre, tipo) VALUES
   ('1101', 'Caja',                         'ACTIVO'),
   ('1102', 'Bancos',                       'ACTIVO'),
@@ -987,31 +987,31 @@ INSERT INTO cuenta (codigo, nombre, tipo) VALUES
   ('2102', 'Cuentas por pagar proveedores','PASIVO'),
   ('3101', 'Patrimonio',                   'PATRIMONIO'),
   ('4101', 'Ingreso Alojamiento',          'INGRESO'),
-  ('4102', 'Ingreso Bar RecepciÃ³n',        'INGRESO'),
+  ('4102', 'Ingreso Bar Recepción',        'INGRESO'),
   ('4103', 'Ingreso Bar Terraza',          'INGRESO'),
   ('4104', 'Ingreso Restaurante',          'INGRESO'),
   ('4105', 'Ingreso Eventos',              'INGRESO'),
-  ('4106', 'Ingreso Piscina PasadÃ­a',      'INGRESO'),
+  ('4106', 'Ingreso Piscina Pasadía',      'INGRESO'),
   ('4107', 'Ingreso Tour Represa',         'INGRESO'),
   ('5101', 'Costo Bebidas',                'COSTO'),
   ('5102', 'Costo Alimentos',              'COSTO'),
-  ('6101', 'Gasto LavanderÃ­a',             'GASTO'),
+  ('6101', 'Gasto Lavandería',             'GASTO'),
   ('6102', 'Gasto Servicios',              'GASTO'),
-  ('6103', 'Gasto NÃ³mina',                 'GASTO'),
+  ('6103', 'Gasto Nómina',                 'GASTO'),
   ('6104', 'Gasto Mantenimiento',          'GASTO'),
-  ('6105', 'Gasto AdministraciÃ³n',         'GASTO'),
-  ('6106', 'Gasto CortesÃ­as',              'GASTO');
+  ('6105', 'Gasto Administración',         'GASTO'),
+  ('6106', 'Gasto Cortesías',              'GASTO');
 
--- Caja fÃ­sica central
+-- Caja física central
 INSERT INTO caja_fisica (nombre, ubicacion) VALUES
-  ('Caja Central', 'RecepciÃ³n');
+  ('Caja Central', 'Recepción');
 
 -- Puntos de venta iniciales
 INSERT INTO punto_venta (codigo, nombre, centro_id, caja_fisica_id, capacidades) VALUES
-  ('RECEPCION', 'RecepciÃ³n',
+  ('RECEPCION', 'Recepción',
     (SELECT id FROM centro WHERE codigo='ALOJAMIENTO'), 1,
     '{"mesas":false,"cargo_folio":true,"venta_por_cantidad":false}'::jsonb),
-  ('BAR_RECEP', 'Bar RecepciÃ³n',
+  ('BAR_RECEP', 'Bar Recepción',
     (SELECT id FROM centro WHERE codigo='BAR_RECEPCION'), 1,
     '{"mesas":false,"cargo_folio":true,"venta_por_cantidad":false}'::jsonb),
   ('TAQUILLA_PISCINA', 'Taquilla Piscina',
@@ -1025,7 +1025,7 @@ INSERT INTO rol (codigo, nombre) VALUES
   ('RECEPCION', 'Recepcionista'),
   ('CAJERO',    'Cajero');
 
--- Usuario admin (password: admin123 â€” CAMBIAR EN PRODUCCIÃ“N)
+-- Usuario admin (password: admin123 — CAMBIAR EN PRODUCCIÓN)
 INSERT INTO usuario (username, nombre_completo, password_hash, activo) VALUES
   ('admin', 'Administrador', crypt('admin123', gen_salt('bf')), true);
 
@@ -1036,7 +1036,7 @@ INSERT INTO usuario_rol (usuario_id, rol_id) VALUES
 
 ---
 
-## Consultas de validaciÃ³n (Fase 1A)
+## Consultas de validación (Fase 1A)
 
 ```sql
 -- 1. Ingresos alojamiento del mes por modalidad
@@ -1058,7 +1058,7 @@ WHERE cc.cliente_id = :empresa_id
   AND cc.estado IN ('PENDIENTE','PARCIAL','VENCIDA')
 ORDER BY cc.fecha_vencimiento;
 
--- 3. Habitaciones ocupadas hoy y quiÃ©n paga
+-- 3. Habitaciones ocupadas hoy y quién paga
 SELECT h.numero, hu.nombre_completo AS huesped,
        c.razon_social AS responsable_pago, f.tipo AS tipo_folio
 FROM habitacion h

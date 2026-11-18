@@ -1,0 +1,7 @@
+ALTER TABLE reserva
+  ADD COLUMN IF NOT EXISTS temporada VARCHAR(10) NOT NULL DEFAULT 'BAJA'
+    CHECK (temporada IN ('BAJA', 'ALTA'));
+
+ALTER TABLE reserva
+  ADD COLUMN IF NOT EXISTS escenario VARCHAR(10) NOT NULL DEFAULT 'NORMAL'
+    CHECK (escenario IN ('NORMAL', 'A', 'B', 'C'));

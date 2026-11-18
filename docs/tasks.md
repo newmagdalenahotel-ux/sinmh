@@ -1,11 +1,11 @@
-﻿# Tasks â€” Plan por mÃ³dulos
+# Tasks — Plan por módulos
 
-> **Documento vigente de ejecuciÃ³n.** Cada tarea sale de un requisito de
+> **Documento vigente de ejecución.** Cada tarea sale de un requisito de
 > `requirements.md` y se implementa en el orden de este archivo. El estado se
 > actualiza al terminar la tarea. No se ejecutan tareas sin requisito y criterio
-> de aceptaciÃ³n.
+> de aceptación.
 
-**VersiÃ³n:** 3.0
+**Versión:** 3.0
 **Fecha:** 2026-11-18
 **Basado en:** SPEC.md v3.0 y requirements.md v3.0
 
@@ -13,318 +13,321 @@
 
 ## Estado actual
 
-| MÃ³dulo | Estado | ObservaciÃ³n |
+| Módulo | Estado | Observación |
 |---|---|---|
-| AutenticaciÃ³n, usuarios y roles | Hecho | Admin, gerente, recepciÃ³n y cajero |
+| Autenticación, usuarios y roles | Hecho | Admin, gerente, recepción y cajero |
 | Habitaciones, tarifas y disponibilidad | Hecho | 33 espacios y 50 tarifas |
 | Check-in, folio, cargos y check-out | Hecho | Flujo walk-in probado |
 | Contabilidad de doble partida | Parcial | Libro y asientos; falta cuenta socio |
 | Caja central | Hecho | Apertura, cierre, gastos, retiros, aportes y ajustes |
-| Reportes | Parcial | Ingresos, ocupaciÃ³n, libro y desayunos |
-| Bar recepciÃ³n | Parcial | Productos, ventas y stock; faltan almacenes, compras y crÃ©dito |
-| Reservas | Pendiente | Solo existe check-in directo |
-| Dashboard y navegaciÃ³n por mÃ³dulos | Pendiente | El menÃº actual es de pantallas sueltas |
-| Cambio de turno y traslados de caja | Pendiente | Cierre y reapertura, sin entrega formal |
+| Reportes | Parcial | Ingresos, ocupación, libro y desayunos |
+| Bar recepción | Parcial | Productos, ventas y stock; faltan almacenes, compras y crédito |
+| Reservas | Parcial | Crear, editar fechas, cancelar y check-in; falta anticipo y formulario completo |
+| Dashboard y navegación por módulos | Parcial | Menú agrupado; falta dashboard y rutas anidadas |
+| Cambio de turno y traslados de caja | Hecho | Conteo, nuevo turno y traslados entre cajas |
 
 ---
 
-## Bloque 1 â€” DocumentaciÃ³n y base
+## Bloque 1 — Documentación y base
 
-### T1.1 â€” Documentos reconciliados
+### T1.1 — Documentos reconciliados
 **Estado:** Hecho
-**Objetivo:** Dejar cinco documentos como Ãºnica fuente: SPEC, requirements,
+**Objetivo:** Dejar cinco documentos como única fuente: SPEC, requirements,
 design, design-system y tasks.
 
-**AceptaciÃ³n:**
-- [x] Los cinco documentos existen y no tienen encabezados de â€œhistÃ³ricoâ€.
+**Aceptación:**
+- [x] Los cinco documentos existen y no tienen encabezados de “histórico”.
 - [x] No hay documentos paralelos de alcance, procesos o decisiones.
-- [x] El mapa de mÃ³dulos estÃ¡ en `design.md`.
+- [x] El mapa de módulos está en `design.md`.
 
-### T1.2 â€” Migraciones y seed
+### T1.2 — Migraciones y seed
 **Estado:** Hecho
-**Objetivo:** Base local con migraciones 001â€“009 y seed idempotente.
+**Objetivo:** Base local con migraciones 001–009 y seed idempotente.
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [x] `npm run migrate` corre limpio.
 - [x] `npm run seed` carga habitaciones, tarifas, cuentas y productos.
 - [x] El build de backend y frontend pasa.
 
 ---
 
-## Bloque 2 â€” NÃºcleo
+## Bloque 2 — Núcleo
 
-### T2.1 â€” AutenticaciÃ³n y roles
+### T2.1 — Autenticación y roles
 **Estado:** Hecho
 **Requisitos:** FR-01, FR-02
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [x] Login con JWT de 8 horas.
-- [x] Rutas de administraciÃ³n solo para ADMIN.
+- [x] Rutas de administración solo para ADMIN.
 - [x] CRUD de usuarios y cambio de rol.
 
-### T2.2 â€” CatÃ¡logos y contabilidad
+### T2.2 — Catálogos y contabilidad
 **Estado:** Hecho
 **Requisitos:** FR-03, FR-04
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [x] Centros y puntos de venta.
 - [x] Plan de cuentas.
-- [x] Asientos automÃ¡ticos de check-in, cobro, cargos, bar y caja.
+- [x] Asientos automáticos de check-in, cobro, cargos, bar y caja.
 - [x] Todo asiento cuadrado.
 
 ---
 
-## Bloque 3 â€” Alojamiento
+## Bloque 3 — Alojamiento
 
-### T3.1 â€” API de reservas
-**Estado:** Pendiente
+### T3.1 — API de reservas
+**Estado:** Parcial
 **Requisitos:** FR-12, FR-27
 
 **Pasos:**
-1. Crear reserva con cliente, fechas, pax, habitaciÃ³n y tarifa.
+1. Crear reserva con cliente, fechas, pax, habitación y tarifa.
 2. Validar disponibilidad.
-3. Generar cÃ³digo y folio.
-4. Editar fechas, habitaciÃ³n o pax.
-5. Cancelar con motivo y polÃ­tica de anticipo.
+3. Generar código y folio.
+4. Editar fechas, habitación o pax.
+5. Cancelar con motivo y política de anticipo.
 
-**AceptaciÃ³n:**
-- [ ] `POST /reservas` crea reserva y folio.
-- [ ] `PUT /reservas/:id` valida disponibilidad.
-- [ ] `POST /reservas/:id/cancelar` registra motivo.
+**Aceptación:**
+- [x] `POST /reservas` crea la reserva.
+- [x] `POST /reservas/:id/checkin` crea el folio.
+- [x] `PUT /reservas/:id` valida disponibilidad.
+- [x] `POST /reservas/:id/cancelar` cambia el estado.
 - [ ] Anticipo genera cobro y asiento.
 
-### T3.2 â€” Pantalla de reservas
-**Estado:** Pendiente
+### T3.2 — Pantalla de reservas
+**Estado:** Parcial
 **Requisitos:** FR-38
 
 **Pasos:**
 1. Lista de reservas con estado.
-2. Formulario de creaciÃ³n.
-3. BÃºsqueda por cÃ³digo, cliente o documento.
-4. AcciÃ³n â€œconvertir en check-inâ€.
+2. Formulario de creación.
+3. Búsqueda por código, cliente o documento.
+4. Acción “convertir en check-in”.
 
-**AceptaciÃ³n:**
-- [ ] Se crea una reserva desde la pantalla.
-- [ ] Se consulta y edita.
-- [ ] Se convierte en check-in sin volver a capturar datos.
+**Aceptación:**
+- [x] Se crea una reserva desde la pantalla.
+- [x] Se consulta por estado o búsqueda.
+- [x] Se convierten las fechas desde la lista.
+- [x] Se convierte en check-in sin volver a capturar datos.
+- [ ] Formulario completo de edición de habitación y pax.
 
-### T3.3 â€” Tablero de habitaciones
+### T3.3 — Tablero de habitaciones
 **Estado:** Pendiente
 **Requisitos:** FR-28, FR-39
 
 **Pasos:**
 1. Vista de las 31 habitaciones por piso.
 2. Estados: libre, ocupada, sucia, mantenimiento.
-3. Acciones desde la habitaciÃ³n.
+3. Acciones desde la habitación.
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [ ] Se ve el estado de todas las habitaciones.
-- [ ] Se inicia check-in desde una habitaciÃ³n libre.
+- [ ] Se inicia check-in desde una habitación libre.
 - [ ] Se marca limpieza o mantenimiento.
 
-### T3.4 â€” Check-in, folio, cargos y check-out
+### T3.4 — Check-in, folio, cargos y check-out
 **Estado:** Hecho
 **Requisitos:** FR-13, FR-14, FR-15
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [x] Check-in walk-in con folio y cargo de alojamiento.
 - [x] Cargos manuales con centro y asiento.
 - [x] Check-out con cobro y cierre.
 - [x] Recibo PDF.
 
-### T3.5 â€” Desayuno y recibo
+### T3.5 — Desayuno y recibo
 **Estado:** Hecho
 **Requisitos:** FR-37
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [x] Desayuno incluido o pagado.
 - [x] Reporte de desayunos por fecha.
 - [x] PDF de recibo de caja.
 
-### T3.6 â€” Contrato y multi-habitaciÃ³n
+### T3.6 — Contrato y multi-habitación
 **Estado:** Pendiente
 **Fase:** 1B
 
-**AceptaciÃ³n:**
-- [ ] Contrato bÃ¡sico de hospedaje.
-- [ ] Reserva con varias habitaciones y huÃ©spedes.
+**Aceptación:**
+- [ ] Contrato básico de hospedaje.
+- [ ] Reserva con varias habitaciones y huéspedes.
 - [ ] Responsable de pago por folio.
 
 ---
 
-## Bloque 4 â€” Bar y servicios
+## Bloque 4 — Bar y servicios
 
-### T4.1 â€” Productos y almacenes
+### T4.1 — Productos y almacenes
 **Estado:** Parcial
 **Requisitos:** FR-29
 
 **Pasos:**
-1. Agregar almacÃ©n central y almacenes de subcentros.
-2. Relacionar producto con almacÃ©n.
-3. Pantalla de alta y ediciÃ³n de productos.
+1. Agregar almacén central y almacenes de subcentros.
+2. Relacionar producto con almacén.
+3. Pantalla de alta y edición de productos.
 
-**AceptaciÃ³n:**
-- [ ] Producto con centro, unidad, precio, costo y stock mÃ­nimo.
-- [ ] Existen almacÃ©n central, bar terraza y restaurante.
+**Aceptación:**
+- [ ] Producto con centro, unidad, precio, costo y stock mínimo.
+- [ ] Existen almacén central, bar terraza y restaurante.
 - [ ] Se crea y edita un producto desde la pantalla.
 
-### T4.2 â€” Compras y entrada de inventario
+### T4.2 — Compras y entrada de inventario
 **Estado:** Pendiente
 **Requisitos:** FR-30
 
 **Pasos:**
 1. Proveedor y compra con detalle.
-2. Entrada al almacÃ©n.
+2. Entrada al almacén.
 3. Pago desde caja o cuenta por pagar.
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [ ] `POST /compras` crea compra y aumenta inventario.
 - [ ] Si se paga de caja, crea movimiento y asiento.
 - [ ] Si queda pendiente, crea cuenta por pagar.
 
-### T4.3 â€” Traslado de inventario
+### T4.3 — Traslado de inventario
 **Estado:** Pendiente
 **Requisitos:** FR-31
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [ ] `POST /inventario/traslados` mueve productos entre almacenes.
 - [ ] Descuenta origen y aumenta destino.
 - [ ] Crea dos movimientos vinculados.
 
-### T4.4 â€” Venta de bar
+### T4.4 — Venta de bar
 **Estado:** Hecho
 **Requisitos:** FR-33
 
-**AceptaciÃ³n:**
-- [x] Venta en efectivo, tarjeta, transferencia o cargo a habitaciÃ³n.
+**Aceptación:**
+- [x] Venta en efectivo, tarjeta, transferencia o cargo a habitación.
 - [x] Descuenta stock.
 - [x] Genera asiento de ingreso.
 
-### T4.5 â€” CrÃ©dito de empleados
+### T4.5 — Crédito de empleados
 **Estado:** Pendiente
 **Requisitos:** FR-34
 
-**AceptaciÃ³n:**
-- [ ] Venta a crÃ©dito con cupo.
+**Aceptación:**
+- [ ] Venta a crédito con cupo.
 - [ ] CxC por empleado.
-- [ ] Abono y actualizaciÃ³n de saldo.
+- [ ] Abono y actualización de saldo.
 
-### T4.6 â€” PÃ©rdidas y cortesÃ­as
+### T4.6 — Pérdidas y cortesías
 **Estado:** Pendiente
 **Requisitos:** FR-36
 
-**AceptaciÃ³n:**
-- [ ] Merma o pÃ©rdida con motivo.
-- [ ] CortesÃ­a autorizada con costo.
+**Aceptación:**
+- [ ] Merma o pérdida con motivo.
+- [ ] Cortesía autorizada con costo.
 - [ ] No se registra como venta.
 
 ---
 
-## Bloque 5 â€” Caja
+## Bloque 5 — Caja
 
-### T5.1 â€” Apertura, cierre y movimientos
+### T5.1 — Apertura, cierre y movimientos
 **Estado:** Hecho
 **Requisitos:** FR-07, FR-08, FR-10, FR-11, FR-26
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [x] Apertura y cierre con diferencia.
 - [x] Gastos, retiros, aportes y ajustes.
 - [x] Asientos contables.
 
-### T5.2 â€” Cambio de turno
-**Estado:** Pendiente
+### T5.2 — Cambio de turno
+**Estado:** Hecho
 **Requisitos:** FR-25
 
 **Pasos:**
 1. El saliente declara el efectivo contado.
 2. El entrante confirma el conteo.
-3. Se registra quiÃ©n entrega y quiÃ©n recibe.
+3. Se registra quién entrega y quién recibe.
 4. Se abre el nuevo turno con el efectivo contado.
 
-**AceptaciÃ³n:**
-- [ ] Cambio de turno con conteo y responsables.
-- [ ] Diferencia registrada y autorizada.
-- [ ] El nuevo turno inicia con el saldo correcto.
+**Aceptación:**
+- [x] Cambio de turno con conteo y responsables.
+- [x] Diferencia registrada y autorizada.
+- [x] El nuevo turno inicia con el saldo correcto.
 
-### T5.3 â€” Traslados entre cajas
-**Estado:** Pendiente
+### T5.3 — Traslados entre cajas
+**Estado:** Hecho
 **Requisitos:** FR-09
 
-**AceptaciÃ³n:**
-- [ ] `POST /caja/traslados` crea salida y entrada vinculadas.
-- [ ] El efectivo esperado de ambas cajas cambia.
-- [ ] Se ve en el cuadre del turno.
+**Aceptación:**
+- [x] `POST /caja/traslados` crea salida y entrada vinculadas.
+- [x] El efectivo esperado de ambas cajas cambia.
+- [x] Se ve en el cuadre del turno.
 
-### T5.4 â€” Reporte de cuadre
+### T5.4 — Reporte de cuadre
 **Estado:** Parcial
 **Requisitos:** FR-23
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [x] La pantalla de cierre muestra esperado, declarado y diferencia.
 - [ ] Reporte PDF del cuadre por turno.
 
 ---
 
-## Bloque 6 â€” Frontend por mÃ³dulos
+## Bloque 6 — Frontend por módulos
 
-### T6.1 â€” NavegaciÃ³n por mÃ³dulos
-**Estado:** Pendiente
+### T6.1 — Navegación por módulos
+**Estado:** Parcial
 **Requisitos:** FR-35
 
 **Pasos:**
-1. Sidebar: Dashboard, Alojamiento, Bar y servicios, Caja, Reportes, ConfiguraciÃ³n.
-2. Rutas anidadas por mÃ³dulo.
-3. Mover check-in, huÃ©spedes y folios a Alojamiento.
+1. Sidebar: Dashboard, Alojamiento, Bar y servicios, Caja, Reportes, Configuración.
+2. Rutas anidadas por módulo.
+3. Mover check-in, huéspedes y folios a Alojamiento.
 4. Mover bar a Bar y servicios.
 
-**AceptaciÃ³n:**
-- [ ] El menÃº coincide con `design.md`.
-- [ ] Cada mÃ³dulo agrupa sus pantallas.
-- [ ] No hay pantallas sueltas en el menÃº principal.
+**Aceptación:**
+- [x] El menú coincide con `design.md`.
+- [x] Cada módulo agrupa sus pantallas.
+- [ ] Rutas anidadas `/alojamiento/...`, `/bar/...` y `/caja/...`.
 
-### T6.2 â€” Dashboard
+### T6.2 — Dashboard
 **Estado:** Pendiente
 **Requisitos:** FR-35
 
-**AceptaciÃ³n:**
-- [ ] OcupaciÃ³n, llegadas, salidas, caja y ventas del dÃ­a.
+**Aceptación:**
+- [ ] Ocupación, llegadas, salidas, caja y ventas del día.
 - [ ] Alertas de caja cerrada, stock bajo y habitaciones sucias.
 
-### T6.3 â€” Redirecciones y compatibilidad
-**Estado:** Pendiente
+### T6.3 — Redirecciones y compatibilidad
+**Estado:** Hecho
 
-**AceptaciÃ³n:**
-- [ ] `/checkin`, `/folios` y `/bar` siguen funcionando o redirigen.
-- [ ] No se rompen enlaces existentes.
+**Aceptación:**
+- [x] `/checkin`, `/folios` y `/bar` siguen funcionando.
+- [x] No se rompen enlaces existentes.
 
 ---
 
-## Bloque 7 â€” Reportes
+## Bloque 7 — Reportes
 
-### T7.1 â€” Ingresos, ocupaciÃ³n, libro y desayunos
+### T7.1 — Ingresos, ocupación, libro y desayunos
 **Estado:** Hecho
 **Requisitos:** FR-19, FR-20, FR-37
 
-**AceptaciÃ³n:**
+**Aceptación:**
 - [x] Reportes con fecha.
 - [x] Libro con debe y haber.
-- [x] Desayunos por habitaciÃ³n y pax.
+- [x] Desayunos por habitación y pax.
 
-### T7.2 â€” Cartera y resultado por centro
+### T7.2 — Cartera y resultado por centro
 **Estado:** Pendiente
 **Fase:** 1B
 **Requisitos:** FR-21, FR-22
 
-### T7.3 â€” Cuadre PDF
+### T7.3 — Cuadre PDF
 **Estado:** Pendiente
 **Requisitos:** FR-23
 
 ---
 
-## Bloque 8 â€” Pruebas manuales y cierre
+## Bloque 8 — Pruebas manuales y cierre
 
-### T8.1 â€” Guion de prueba de alojamiento
-**Estado:** Pendiente
+### T8.1 — Guion de prueba de alojamiento
+**Estado:** Parcial
 
 **Guion:**
 1. Crear reserva.
@@ -333,11 +336,13 @@ design, design-system y tasks.
 4. Hacer check-out.
 5. Generar recibo.
 
-**AceptaciÃ³n:**
-- [ ] El flujo completo funciona sin cargar datos a mano.
-- [ ] Los saldos y asientos cuadran.
+**Aceptación:**
+- [x] Crear reserva, check-in y check-out sin cargar datos a mano.
+- [x] Los saldos cuadran.
+- [ ] Cargo de bar al folio dentro del mismo guion.
+- [ ] Recibo del folio creado desde reserva.
 
-### T8.2 â€” Guion de bar
+### T8.2 — Guion de bar
 **Estado:** Pendiente
 
 **Guion:**
@@ -345,11 +350,11 @@ design, design-system y tasks.
 2. Registrar compra y entrada.
 3. Trasladar a subcentro.
 4. Vender en efectivo.
-5. Vender a crÃ©dito a empleado.
+5. Vender a crédito a empleado.
 6. Revisar stock y cartera.
 
-### T8.3 â€” Guion de caja
-**Estado:** Pendiente
+### T8.3 — Guion de caja
+**Estado:** Parcial
 
 **Guion:**
 1. Abrir caja.
@@ -358,16 +363,19 @@ design, design-system y tasks.
 4. Cambio de turno.
 5. Cierre y cuadre.
 
+**Aceptación:**
+- [x] Apertura, transferencia entre cajas y cambio de turno.
+- [ ] Cierre final del nuevo turno con cuadre.
+
 ---
 
-## Orden de ejecuciÃ³n
+## Orden de ejecución
 
-1. **T6.1 y T6.2:** organizar el frontend por mÃ³dulos y dashboard.
-2. **T3.1, T3.2 y T3.3:** reservas y tablero de habitaciones.
-3. **T4.1, T4.2, T4.3, T4.5 y T4.6:** almacenes, compras, traslados y crÃ©dito.
-4. **T5.2 y T5.3:** cambio de turno y traslados de caja.
-5. **T7.2 y T7.3:** reportes pendientes.
-6. **T8:** pruebas manuales y cierre de la fase.
+1. **T6.2 y T3.3:** dashboard y tablero de habitaciones.
+2. **T4.1, T4.2, T4.3, T4.5 y T4.6:** almacenes, compras, traslados y crédito.
+3. **T7.2 y T7.3:** reportes pendientes.
+4. **T8:** completar los guiones manuales y cerrar la 1A operativa.
+5. **1A financiera:** clientes, CxC, cuenta socio y reportes financieros.
 
 Cada tarea se marca como Hecha solo cuando cumple sus criterios y queda probada
 manualmente.

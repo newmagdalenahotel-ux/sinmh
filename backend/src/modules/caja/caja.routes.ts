@@ -25,13 +25,14 @@ type SesionCaja = {
   notas: string | null;
 };
 
-async function obtenerSesionAbierta(): Promise<SesionCaja | null> {
+async function obtenerSesionAbierta(puntoVentaCodigo = 'RECEPCION'): Promise<SesionCaja | null> {
   const { rows } = await db.query<SesionCaja>(
     `SELECT sc.*, pv.codigo AS punto_venta
      FROM sesion_caja sc
      JOIN punto_venta pv ON pv.id = sc.punto_venta_id
-     WHERE pv.codigo = 'RECEPCION' AND sc.estado = 'ABIERTA'
-     LIMIT 1`
+     WHERE pv.codigo = $1 AND sc.estado = 'ABIERTA'
+     LIMIT 1`,
+    [puntoVentaCodigo]
   );
   return rows[0] ?? null;
 }
@@ -82,6 +83,209 @@ cajaRouter.get('/sesion-actual', async (_req, res) => {
       movimientos: await movimientosDe(sesion.id),
     },
   });
+});
+
+cajaRouter.get('/puntos-venta', async (_req, res) => {
+  const { rows } = await db.query(
+    `SELECT pv.id, pv.codigo, pv.nombre, c.codigo AS centro
+     FROM punto_venta pv
+     JOIN centro c ON c.id = pv.centro_id
+     WHERE pv.activo = true
+     ORDER BY pv.id`
+  );
+  res.json({ puntos_venta: rows });
+});
+
+cajaRouter.get('/sesiones-abiertas', async (_req, res) => {
+  const { rows } = await db.query<SesionCaja>(
+    `SELECT sc.*, pv.codigo AS punto_venta, pv.nombre AS punto_venta_nombre
+     FROM sesion_caja sc
+     JOIN punto_venta pv ON pv.id = sc.punto_venta_id
+     WHERE sc.estado = 'ABIERTA'
+     ORDER BY sc.fecha_apertura`
+  );
+
+  const sesiones = [];
+  for (const sesion of rows) {
+    const neto = await calcularNeto(sesion.id);
+    sesiones.push({
+      ...sesion,
+      efectivo_esperado: Number(sesion.monto_apertura) + neto,
+    });
+  }
+
+  res.json({ sesiones });
+});
+
+const trasladoSchema = z.object({
+  sesion_origen_id: z.coerce.number().int().positive(),
+  sesion_destino_id: z.coerce.number().int().positive(),
+  monto: z.coerce.number().positive(),
+  descripcion: z.string().trim().min(2).max(300),
+});
+
+cajaRouter.post('/traslados', async (req, res) => {
+  const parsed = trasladoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Datos inválidos' });
+    return;
+  }
+
+  if (parsed.data.sesion_origen_id === parsed.data.sesion_destino_id) {
+    res.status(400).json({ error: 'La caja de origen y destino deben ser diferentes' });
+    return;
+  }
+
+  const usuarioId = Number(req.user?.sub);
+  if (!Number.isFinite(usuarioId)) {
+    res.status(401).json({ error: 'Usuario inválido' });
+    return;
+  }
+
+  const sesiones = await db.query<{ id: number; estado: string; monto_apertura: string }>(
+    'SELECT id, estado, monto_apertura FROM sesion_caja WHERE id = ANY($1::bigint[])',
+    [[parsed.data.sesion_origen_id, parsed.data.sesion_destino_id]]
+  );
+
+  const origen = sesiones.rows.find((sesion) => sesion.id === parsed.data.sesion_origen_id);
+  const destino = sesiones.rows.find((sesion) => sesion.id === parsed.data.sesion_destino_id);
+
+  if (!origen || !destino) {
+    res.status(404).json({ error: 'Una de las cajas no existe' });
+    return;
+  }
+
+  if (origen.estado !== 'ABIERTA' || destino.estado !== 'ABIERTA') {
+    res.status(409).json({ error: 'Las dos cajas deben estar abiertas' });
+    return;
+  }
+
+  const netoOrigen = await calcularNeto(origen.id);
+  const disponible = Number(origen.monto_apertura) + netoOrigen;
+  if (disponible < parsed.data.monto) {
+    res.status(400).json({ error: 'La caja de origen no tiene efectivo suficiente' });
+    return;
+  }
+
+  const resultado = await db.transaction(async (tx) => {
+    const salida = await tx.query<{ id: number }>(
+      `INSERT INTO movimiento_caja
+         (sesion_caja_id, tipo, monto, referencia_tipo, usuario_id, notas,
+          contraparte_sesion_id)
+       VALUES ($1, 'TRASLADO_SALIDA', $2, 'TRASLADO', $3, $4, $5)
+       RETURNING id`,
+      [
+        origen.id,
+        parsed.data.monto,
+        usuarioId,
+        parsed.data.descripcion,
+        destino.id,
+      ]
+    );
+
+    const entrada = await tx.query<{ id: number }>(
+      `INSERT INTO movimiento_caja
+         (sesion_caja_id, tipo, monto, referencia_tipo, usuario_id, notas,
+          contraparte_sesion_id, contraparte_movimiento_id)
+       VALUES ($1, 'TRASLADO_ENTRADA', $2, 'TRASLADO', $3, $4, $5, $6)
+       RETURNING id`,
+      [
+        destino.id,
+        parsed.data.monto,
+        usuarioId,
+        parsed.data.descripcion,
+        origen.id,
+        salida.rows[0]?.id ?? null,
+      ]
+    );
+
+    await tx.query(
+      'UPDATE movimiento_caja SET contraparte_movimiento_id = $1 WHERE id = $2',
+      [entrada.rows[0]?.id ?? null, salida.rows[0]?.id ?? null]
+    );
+
+    return { salida: salida.rows[0]?.id, entrada: entrada.rows[0]?.id };
+  });
+
+  res.status(201).json({ traslado: resultado });
+});
+
+const cambioTurnoSchema = z.object({
+  monto_declarado: z.coerce.number().min(0),
+  notas: z.string().trim().max(300).optional(),
+});
+
+cajaRouter.post('/sesiones/:id/cambio-turno', async (req, res) => {
+  const sesionId = Number(req.params.id);
+  if (!Number.isInteger(sesionId) || sesionId <= 0) {
+    res.status(400).json({ error: 'Sesión inválida' });
+    return;
+  }
+
+  const parsed = cambioTurnoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Datos inválidos' });
+    return;
+  }
+
+  const usuarioId = Number(req.user?.sub);
+  if (!Number.isFinite(usuarioId)) {
+    res.status(401).json({ error: 'Usuario inválido' });
+    return;
+  }
+
+  const sesion = await db.query<SesionCaja>('SELECT * FROM sesion_caja WHERE id = $1', [sesionId]);
+  const actual = sesion.rows[0];
+  if (!actual || actual.estado !== 'ABIERTA') {
+    res.status(409).json({ error: 'La caja no está abierta' });
+    return;
+  }
+
+  const neto = await calcularNeto(sesionId);
+  const efectivoEsperado = Number(actual.monto_apertura) + neto;
+  const diferencia = parsed.data.monto_declarado - efectivoEsperado;
+
+  const resultado = await db.transaction(async (tx) => {
+    const cierre = await tx.query<SesionCaja>(
+      `UPDATE sesion_caja
+       SET usuario_cierre_id = $1,
+           fecha_cierre = now(),
+           monto_sistema_efectivo = $2,
+           monto_declarado = $3,
+           diferencia = $4,
+           autorizado_por_id = $5,
+           estado = 'CERRADA',
+           notas = COALESCE($6, notas)
+       WHERE id = $7
+       RETURNING *`,
+      [
+        usuarioId,
+        efectivoEsperado,
+        parsed.data.monto_declarado,
+        diferencia,
+        diferencia !== 0 ? usuarioId : null,
+        parsed.data.notas ?? null,
+        sesionId,
+      ]
+    );
+
+    const nueva = await tx.query<SesionCaja>(
+      `INSERT INTO sesion_caja
+         (punto_venta_id, usuario_apertura_id, monto_apertura, notas)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [
+        actual.punto_venta_id,
+        usuarioId,
+        parsed.data.monto_declarado,
+        `Cambio de turno. Entrega sesión #${sesionId}`,
+      ]
+    );
+
+    return { cierre: cierre.rows[0], nueva: nueva.rows[0] };
+  });
+
+  res.json({ ...resultado, efectivo_esperado: efectivoEsperado, diferencia });
 });
 
 const movimientoSchema = z.object({
@@ -198,6 +402,7 @@ cajaRouter.post('/movimientos', async (req, res) => {
 
 const abrirSchema = z.object({
   monto_apertura: z.coerce.number().min(0),
+  punto_venta_codigo: z.string().trim().max(40).default('RECEPCION'),
   notas: z.string().trim().max(300).optional(),
 });
 
@@ -214,18 +419,19 @@ cajaRouter.post('/sesiones', async (req, res) => {
     return;
   }
 
-  const abierta = await obtenerSesionAbierta();
+  const abierta = await obtenerSesionAbierta(parsed.data.punto_venta_codigo);
   if (abierta) {
-    res.status(409).json({ error: 'Ya hay una caja abierta para recepción' });
+    res.status(409).json({ error: `Ya hay una caja abierta para ${parsed.data.punto_venta_codigo}` });
     return;
   }
 
-  const puntoVenta = await db.query<{ id: number }>(
-    "SELECT id FROM punto_venta WHERE codigo = 'RECEPCION' LIMIT 1"
+  const puntoVenta = await db.query<{ id: number; codigo: string }>(
+    'SELECT id, codigo FROM punto_venta WHERE codigo = $1 LIMIT 1',
+    [parsed.data.punto_venta_codigo]
   );
-  const puntoVentaId = puntoVenta.rows[0]?.id;
-  if (!puntoVentaId) {
-    res.status(500).json({ error: 'No está configurado el punto de venta de recepción' });
+  const puntoVentaActual = puntoVenta.rows[0];
+  if (!puntoVentaActual) {
+    res.status(400).json({ error: 'Punto de venta inválido' });
     return;
   }
 
@@ -235,20 +441,20 @@ cajaRouter.post('/sesiones', async (req, res) => {
          (punto_venta_id, usuario_apertura_id, monto_apertura, notas)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [puntoVentaId, usuarioId, parsed.data.monto_apertura, parsed.data.notas ?? null]
+      [puntoVentaActual.id, usuarioId, parsed.data.monto_apertura, parsed.data.notas ?? null]
     );
 
     res.status(201).json({
       sesion: {
         ...rows[0],
-        punto_venta: 'RECEPCION',
+        punto_venta: puntoVentaActual.codigo,
         efectivo_esperado: parsed.data.monto_apertura,
         movimientos: [],
       },
     });
   } catch (error) {
     if ((error as { code?: string }).code === '23505') {
-      res.status(409).json({ error: 'Ya hay una caja abierta para recepción' });
+      res.status(409).json({ error: `Ya hay una caja abierta para ${puntoVentaActual.codigo}` });
       return;
     }
     throw error;

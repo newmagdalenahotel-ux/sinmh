@@ -74,7 +74,11 @@ const centrosBase = [
   ['TOUR_REPRESA', 'Tour Represa de Prado', 'INGRESO'],
 ] as const;
 
-const puntosVentaBase = [['RECEPCION', 'Recepción', 'ALOJAMIENTO']] as const;
+const puntosVentaBase = [
+  ['RECEPCION', 'Recepción', 'ALOJAMIENTO'],
+  ['BAR_TERRAZA', 'Bar terraza', 'BAR_TERRAZA'],
+  ['RESTAURANTE', 'Restaurante', 'RESTAURANTE'],
+] as const;
 
 const cuentasBase = [
   ['1101', 'Caja', 'ACTIVO'],

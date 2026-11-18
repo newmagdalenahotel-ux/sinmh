@@ -3,9 +3,15 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import {
   abrirCajaApi,
+  cajaCambioTurnoApi,
   cajaMovimientoApi,
+  cajaPuntosVentaApi,
+  cajaSesionesAbiertasApi,
+  cajaTrasladoApi,
   cerrarCajaApi,
   sesionActualApi,
+  type PuntoVenta,
+  type SesionAbierta,
   type SesionCaja,
 } from '../lib/api';
 
@@ -32,6 +38,9 @@ export function CajaPage() {
   const { token } = useAuth();
   const [sesion, setSesion] = useState<SesionCaja | null>(null);
   const [cierre, setCierre] = useState<SesionCaja | null>(null);
+  const [sesionesAbiertas, setSesionesAbiertas] = useState<SesionAbierta[]>([]);
+  const [puntosVenta, setPuntosVenta] = useState<PuntoVenta[]>([]);
+  const [puntoVentaCodigo, setPuntoVentaCodigo] = useState('RECEPCION');
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
@@ -46,30 +55,53 @@ export function CajaPage() {
   const [movSoporte, setMovSoporte] = useState('');
   const [registrando, setRegistrando] = useState(false);
   const [exito, setExito] = useState('');
+  const [montoCambio, setMontoCambio] = useState('');
+  const [trasladoOrigen, setTrasladoOrigen] = useState('');
+  const [trasladoDestino, setTrasladoDestino] = useState('');
+  const [trasladoMonto, setTrasladoMonto] = useState('');
+  const [trasladoDescripcion, setTrasladoDescripcion] = useState('Traslado a caja central');
+  const [trasladando, setTrasladando] = useState(false);
 
   useEffect(() => {
-    if (!token) return;
-
-    let activo = true;
-    setCargando(true);
-
-    sesionActualApi(token)
-      .then((respuesta) => {
-        if (!activo) return;
-        setSesion(respuesta.sesion);
-        if (respuesta.sesion) setMontoDeclarado(String(respuesta.sesion.efectivo_esperado));
-      })
-      .catch((err) => {
-        if (activo) setError(err instanceof Error ? err.message : 'No se pudo consultar la caja');
-      })
-      .finally(() => {
-        if (activo) setCargando(false);
-      });
-
-    return () => {
-      activo = false;
-    };
+    if (token) void cargarTodo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  async function cargarTodo() {
+    if (!token) return;
+    setCargando(true);
+    setError('');
+
+    try {
+      const [actual, respuestaPuntos, respuestaAbiertas] = await Promise.all([
+        sesionActualApi(token),
+        cajaPuntosVentaApi(token),
+        cajaSesionesAbiertasApi(token),
+      ]);
+
+      setSesion(actual.sesion);
+      setPuntosVenta(respuestaPuntos.puntos_venta);
+      setSesionesAbiertas(respuestaAbiertas.sesiones);
+      if (actual.sesion) setMontoDeclarado(String(actual.sesion.efectivo_esperado));
+
+      if (respuestaAbiertas.sesiones.length >= 2) {
+        setTrasladoOrigen((actualOrigen) =>
+          actualOrigen && respuestaAbiertas.sesiones.some((item) => String(item.id) === actualOrigen)
+            ? actualOrigen
+            : String(respuestaAbiertas.sesiones[0].id)
+        );
+        setTrasladoDestino((actualDestino) =>
+          actualDestino && respuestaAbiertas.sesiones.some((item) => String(item.id) === actualDestino)
+            ? actualDestino
+            : String(respuestaAbiertas.sesiones[1].id)
+        );
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo consultar la caja');
+    } finally {
+      setCargando(false);
+    }
+  }
 
   async function abrir() {
     if (!token) return;
@@ -77,11 +109,11 @@ export function CajaPage() {
     setError('');
 
     try {
-      const respuesta = await abrirCajaApi(token, Number(montoApertura || 0));
-      setSesion(respuesta.sesion);
+      await abrirCajaApi(token, Number(montoApertura || 0), undefined, puntoVentaCodigo);
       setCierre(null);
-      setMontoDeclarado(String(respuesta.sesion.efectivo_esperado));
       setMontoApertura('');
+      setExito(`Caja ${puntoVentaCodigo} abierta`);
+      await cargarTodo();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo abrir la caja');
     } finally {
@@ -99,6 +131,7 @@ export function CajaPage() {
       setCierre(respuesta.sesion);
       setSesion(null);
       setMontoDeclarado('');
+      await cargarTodo();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cerrar la caja');
     } finally {
@@ -138,10 +171,67 @@ export function CajaPage() {
       setMovMonto('');
       setMovDescripcion('');
       setMovSoporte('');
+      await cargarTodo();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo registrar el movimiento');
     } finally {
       setRegistrando(false);
+    }
+  }
+
+  async function cambioTurno() {
+    if (!token || !sesion) return;
+
+    const monto = Number(montoCambio || montoDeclarado || 0);
+    setProcesando(true);
+    setError('');
+    setExito('');
+
+    try {
+      const respuesta = await cajaCambioTurnoApi(token, sesion.id, monto);
+      setExito(
+        `Cambio de turno: cierre #${respuesta.cierre.id}, nuevo turno #${respuesta.nueva.id}, diferencia ${formatoMoneda(respuesta.diferencia)}`
+      );
+      setMontoCambio('');
+      await cargarTodo();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo hacer el cambio de turno');
+    } finally {
+      setProcesando(false);
+    }
+  }
+
+  async function trasladar() {
+    if (!token) return;
+
+    if (!trasladoOrigen || !trasladoDestino || trasladoOrigen === trasladoDestino) {
+      setError('Selecciona dos cajas diferentes');
+      return;
+    }
+
+    if (Number(trasladoMonto || 0) <= 0) {
+      setError('El monto del traslado debe ser mayor a cero');
+      return;
+    }
+
+    setTrasladando(true);
+    setError('');
+    setExito('');
+
+    try {
+      await cajaTrasladoApi(token, {
+        sesion_origen_id: Number(trasladoOrigen),
+        sesion_destino_id: Number(trasladoDestino),
+        monto: Number(trasladoMonto),
+        descripcion: trasladoDescripcion.trim() || 'Traslado entre cajas',
+      });
+      setExito('Traslado registrado');
+      setTrasladoMonto('');
+      await cargarTodo();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo registrar el traslado');
+    } finally {
+      setTrasladando(false);
     }
   }
 
@@ -221,17 +311,34 @@ export function CajaPage() {
             cobrar pagos en efectivo.
           </p>
 
-          <div className="mt-4">
-            <label className="label" htmlFor="monto_apertura">Monto inicial en efectivo</label>
-            <input
-              id="monto_apertura"
-              type="number"
-              min="0"
-              className="input"
-              value={montoApertura}
-              onChange={(event) => setMontoApertura(event.target.value)}
-              placeholder="0"
-            />
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="label" htmlFor="punto_venta">Punto de venta</label>
+              <select
+                id="punto_venta"
+                className="input"
+                value={puntoVentaCodigo}
+                onChange={(event) => setPuntoVentaCodigo(event.target.value)}
+              >
+                {puntosVenta.map((punto) => (
+                  <option key={punto.codigo} value={punto.codigo}>
+                    {punto.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="monto_apertura">Monto inicial en efectivo</label>
+              <input
+                id="monto_apertura"
+                type="number"
+                min="0"
+                className="input"
+                value={montoApertura}
+                onChange={(event) => setMontoApertura(event.target.value)}
+                placeholder="0"
+              />
+            </div>
           </div>
 
           <button className="btn-primary mt-4" onClick={() => void abrir()} disabled={procesando}>
@@ -409,6 +516,34 @@ export function CajaPage() {
             </button>
           </section>
 
+          <section className="card">
+            <h2 className="font-display text-xl text-stone">Cambio de turno</h2>
+            <p className="mt-1 text-sm text-stone-light">
+              El entrante cuenta el efectivo, el saliente responde y el nuevo turno abre con lo contado.
+            </p>
+
+            <div className="mt-4">
+              <label className="label" htmlFor="monto_cambio">Efectivo contado por el entrante</label>
+              <input
+                id="monto_cambio"
+                type="number"
+                min="0"
+                className="input"
+                value={montoCambio}
+                onChange={(event) => setMontoCambio(event.target.value)}
+                placeholder={String(sesion.efectivo_esperado)}
+              />
+            </div>
+
+            <button
+              className="btn-primary mt-4 w-full"
+              onClick={() => void cambioTurno()}
+              disabled={procesando}
+            >
+              {procesando ? 'Entregando…' : 'Entregar turno y abrir nuevo'}
+            </button>
+          </section>
+
           <section className="card max-w-xl">
             <h2 className="font-display text-xl text-stone">Cerrar caja</h2>
             <p className="mt-1 text-sm text-stone-light">
@@ -435,6 +570,141 @@ export function CajaPage() {
             </button>
           </section>
         </>
+      )}
+      {sesionesAbiertas.length > 0 && (
+        <section className="card">
+          <h2 className="font-display text-xl text-stone">Cajas abiertas y traslados</h2>
+          <p className="mt-1 text-sm text-stone-light">
+            El efectivo de bar terraza o restaurante se traslada a la caja central.
+          </p>
+
+          <div className="mt-4 space-y-2">
+            {sesionesAbiertas.map((abierta) => (
+              <div
+                key={abierta.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-cream-dark px-3 py-2 text-sm"
+              >
+                <span className="font-medium">{abierta.punto_venta_nombre}</span>
+                <span className="text-stone-light">
+                  Turno #{abierta.id} · esperado {formatoMoneda(abierta.efectivo_esperado)}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {puntosVenta.some(
+            (punto) => !sesionesAbiertas.some((abierta) => abierta.punto_venta === punto.codigo)
+          ) && (
+            <div className="mt-5 rounded-xl border border-cream-dark bg-cream/50 p-4">
+              <h3 className="font-display text-lg text-stone">Abrir otra caja</h3>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="label" htmlFor="otro_punto">Punto de venta</label>
+                  <select
+                    id="otro_punto"
+                    className="input"
+                    value={puntoVentaCodigo}
+                    onChange={(event) => setPuntoVentaCodigo(event.target.value)}
+                  >
+                    {puntosVenta
+                      .filter(
+                        (punto) =>
+                          !sesionesAbiertas.some((abierta) => abierta.punto_venta === punto.codigo)
+                      )
+                      .map((punto) => (
+                        <option key={punto.codigo} value={punto.codigo}>
+                          {punto.nombre}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label" htmlFor="otro_monto">Monto inicial</label>
+                  <input
+                    id="otro_monto"
+                    type="number"
+                    min="0"
+                    className="input"
+                    value={montoApertura}
+                    onChange={(event) => setMontoApertura(event.target.value)}
+                  />
+                </div>
+              </div>
+              <button
+                className="btn-secondary mt-3"
+                onClick={() => void abrir()}
+                disabled={procesando}
+              >
+                Abrir caja
+              </button>
+            </div>
+          )}
+
+          {sesionesAbiertas.length >= 2 && (
+            <div className="mt-5 border-t border-cream-dark pt-4">
+              <h3 className="font-display text-lg text-stone">Registrar traslado</h3>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="label" htmlFor="traslado_origen">Desde</label>
+                  <select
+                    id="traslado_origen"
+                    className="input"
+                    value={trasladoOrigen}
+                    onChange={(event) => setTrasladoOrigen(event.target.value)}
+                  >
+                    {sesionesAbiertas.map((abierta) => (
+                      <option key={abierta.id} value={abierta.id}>
+                        {abierta.punto_venta_nombre} · {formatoMoneda(abierta.efectivo_esperado)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label" htmlFor="traslado_destino">Hacia</label>
+                  <select
+                    id="traslado_destino"
+                    className="input"
+                    value={trasladoDestino}
+                    onChange={(event) => setTrasladoDestino(event.target.value)}
+                  >
+                    {sesionesAbiertas.map((abierta) => (
+                      <option key={abierta.id} value={abierta.id}>
+                        {abierta.punto_venta_nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label" htmlFor="traslado_monto">Monto</label>
+                  <input
+                    id="traslado_monto"
+                    type="number"
+                    min="0"
+                    className="input"
+                    value={trasladoMonto}
+                    onChange={(event) => setTrasladoMonto(event.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="traslado_descripcion">Descripción</label>
+                  <input
+                    id="traslado_descripcion"
+                    className="input"
+                    value={trasladoDescripcion}
+                    onChange={(event) => setTrasladoDescripcion(event.target.value)}
+                  />
+                </div>
+              </div>
+              <button
+                className="btn-primary mt-3"
+                onClick={() => void trasladar()}
+                disabled={trasladando || Number(trasladoMonto || 0) <= 0}
+              >
+                {trasladando ? 'Trasladando…' : 'Registrar traslado'}
+              </button>
+            </div>
+          )}
+        </section>
       )}
     </div>
   );

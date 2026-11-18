@@ -2,10 +2,10 @@
 
 Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (caja y bar), con una sola fuente de verdad para la operación del hotel.
 
-**Estado:** Fase actual de operación base. Ya funcionan alojamiento walk-in,
-folios, cargos, check-out, caja, contabilidad, reportes, usuarios y bar recepción.
-Faltan reservas, tablero de habitaciones, compras/inventario, cambio de turno y
-traslados para cerrar las pruebas manuales.
+**Estado:** 1A operativa lista para pruebas manuales. Ya funcionan reservas,
+check-in, folios, cargos, check-out, caja con traslados y cambio de turno,
+contabilidad, reportes, usuarios y bar recepción. Faltan tablero de habitaciones,
+dashboard y la 1A financiera (clientes, CxC, cuenta socio).
 
 ## Documentos
 
@@ -39,8 +39,9 @@ npm run dev
 - Disponibilidad: `GET /disponibilidad?desde=2026-11-20&hasta=2026-11-22&pax=2`
 - Cotización: `GET /tarifas/cotizar?habitacion_id=1&pax=2&temporada=BAJA&escenario=NORMAL`
 - Check-in: `POST /checkin` (cliente, reserva, huésped, folio, cargos y cobro)
-- Caja: `GET /caja/sesion-actual`, `POST /caja/sesiones`, `POST /caja/sesiones/:id/cerrar`
-- Caja avanzada: `POST /caja/movimientos` (gastos, retiros, aportes y ajustes)
+- Reservas: `GET/POST /reservas`, `PUT /reservas/:id`, `POST /reservas/:id/cancelar`, `POST /reservas/:id/checkin`
+- Caja: `GET /caja/sesion-actual`, `GET /caja/puntos-venta`, `GET /caja/sesiones-abiertas`, `POST /caja/sesiones`, `POST /caja/sesiones/:id/cerrar`
+- Caja avanzada: `POST /caja/movimientos`, `POST /caja/traslados`, `POST /caja/sesiones/:id/cambio-turno`
 - Folios: `GET /folios`, `GET /folios/:id`, `POST /folios/:id/checkout`
 - Reportes: `GET /reportes/ingresos?fecha=...`, `GET /reportes/ocupacion`, `GET /reportes/libro?desde=...&hasta=...`, `GET /reportes/desayunos?fecha=...`
 - Recibo PDF: `GET /cobros/:id/recibo`
@@ -67,9 +68,13 @@ npm run dev
 
 ![Check-in](docs/capturas/checkin-form.png)
 
+![Reservas](docs/capturas/reservas.png)
+
 ![Caja](docs/capturas/caja-con-cobro.png)
 
 ![Caja avanzada](docs/capturas/caja-avanzada.png)
+
+![Cambio de turno y traslados](docs/capturas/caja-cambio-turno.png)
 
 ![Huéspedes en casa](docs/capturas/folios-detalle.png)
 
@@ -94,9 +99,10 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-Organizar el frontend por módulos y completar reservas y tablero de habitaciones.
-Después: compras, inventario y traslados del bar; cambio de turno y traslados de
-caja. El orden está en [tasks.md](docs/tasks.md).
+La 1A operativa está lista para probar: reservas, check-in, folios, cargos,
+check-out, caja con traslados y cambio de turno, bar ventas y reportes.
+Faltan tablero de habitaciones y dashboard. Después sigue la 1A financiera:
+clientes, CxC, cuenta socio y reportes financieros.
 
 ## Repositorio remoto
 

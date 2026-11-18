@@ -1,15 +1,46 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
-const navegacion = [
-  { to: '/dashboard', label: 'Recepción', activo: true },
-  { to: '/checkin', label: 'Check-in', activo: true },
-  { to: '/folios', label: 'Huéspedes', activo: true },
-  { to: '/bar', label: 'Bar', activo: true },
-  { to: '/habitaciones', label: 'Habitaciones', activo: false },
-  { to: '/caja', label: 'Caja', activo: true },
-  { to: '/reportes', label: 'Reportes', activo: true },
-  { to: '/configuracion', label: 'Configuración', activo: true },
+type ItemNavegacion = {
+  to: string;
+  label: string;
+  activo: boolean;
+};
+
+type SeccionNavegacion = {
+  titulo: string;
+  items: ItemNavegacion[];
+};
+
+const navegacion: SeccionNavegacion[] = [
+  {
+    titulo: 'Principal',
+    items: [{ to: '/dashboard', label: 'Dashboard', activo: true }],
+  },
+  {
+    titulo: 'Alojamiento',
+    items: [
+      { to: '/reservas', label: 'Reservas', activo: true },
+      { to: '/checkin', label: 'Check-in', activo: true },
+      { to: '/folios', label: 'Huéspedes y folios', activo: true },
+      { to: '/habitaciones', label: 'Habitaciones', activo: false },
+    ],
+  },
+  {
+    titulo: 'Bar y servicios',
+    items: [{ to: '/bar', label: 'Bar recepción', activo: true }],
+  },
+  {
+    titulo: 'Caja',
+    items: [{ to: '/caja', label: 'Caja y turnos', activo: true }],
+  },
+  {
+    titulo: 'Análisis',
+    items: [
+      { to: '/reportes', label: 'Reportes', activo: true },
+      { to: '/configuracion', label: 'Configuración', activo: true },
+    ],
+  },
 ];
 
 export function AppLayout() {
@@ -23,33 +54,44 @@ export function AppLayout() {
           <p className="mt-0.5 text-xs text-cream/60">SINMH · Recepción</p>
         </div>
 
-        <nav className="flex-1 space-y-1 p-3">
-          {navegacion.map((item) =>
-            item.activo ? (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `block rounded-lg px-3 py-2 text-sm transition ${
-                    isActive ? 'bg-gold font-semibold text-navy-dark' : 'text-cream/80 hover:bg-white/10'
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ) : (
-              <span
-                key={item.to}
-                className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-cream/40"
-              >
-                {item.label}
-                <span className="text-[10px] uppercase tracking-wide">pronto</span>
-              </span>
-            )
-          )}
+        <nav className="flex-1 space-y-4 overflow-y-auto p-3">
+          {navegacion.map((seccion) => (
+            <div key={seccion.titulo}>
+              <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-cream/40">
+                {seccion.titulo}
+              </p>
+              <div className="space-y-1">
+                {seccion.items.map((item) =>
+                  item.activo ? (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        `block rounded-lg px-3 py-2 text-sm transition ${
+                          isActive
+                            ? 'bg-gold font-semibold text-navy-dark'
+                            : 'text-cream/80 hover:bg-white/10'
+                        }`
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  ) : (
+                    <span
+                      key={item.to}
+                      className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-cream/40"
+                    >
+                      {item.label}
+                      <span className="text-[10px] uppercase tracking-wide">pronto</span>
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        <div className="border-t border-white/10 p-4 text-xs text-cream/50">v0.1 · Franja 0</div>
+        <div className="border-t border-white/10 p-4 text-xs text-cream/50">v0.1 · Fase 1A</div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
