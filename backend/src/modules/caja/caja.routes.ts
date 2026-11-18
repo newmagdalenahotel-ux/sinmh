@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db.js';
 import { requireAuth } from '../../middleware/auth.js';
+import { registrarAsiento } from '../contabilidad/contabilidad.service.js';
 
 export const cajaRouter = Router();
 
@@ -80,6 +81,118 @@ cajaRouter.get('/sesion-actual', async (_req, res) => {
       efectivo_esperado: efectivoEsperado,
       movimientos: await movimientosDe(sesion.id),
     },
+  });
+});
+
+const movimientoSchema = z.object({
+  tipo: z.enum([
+    'GASTO_EFECTIVO',
+    'RETIRO_DUENO',
+    'APORTE',
+    'AJUSTE_FALTANTE',
+    'AJUSTE_SOBRANTE',
+  ]),
+  monto: z.coerce.number().positive(),
+  descripcion: z.string().trim().min(2).max(300),
+  cuenta_codigo: z.string().trim().max(20).optional(),
+  soporte_url: z.string().trim().max(500).optional(),
+});
+
+cajaRouter.post('/movimientos', async (req, res) => {
+  const parsed = movimientoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.issues });
+    return;
+  }
+
+  const usuarioId = Number(req.user?.sub);
+  if (!Number.isFinite(usuarioId)) {
+    res.status(401).json({ error: 'Usuario inválido' });
+    return;
+  }
+
+  const sesion = await obtenerSesionAbierta();
+  if (!sesion) {
+    res.status(409).json({ error: 'No hay caja abierta' });
+    return;
+  }
+
+  let tipoMovimiento = parsed.data.tipo === 'APORTE' ? 'INGRESO' : parsed.data.tipo;
+  let lineas: Array<{ cuenta: string; debe?: number; haber?: number; descripcion?: string }>;
+
+  if (parsed.data.tipo === 'GASTO_EFECTIVO') {
+    const cuentaCodigo = parsed.data.cuenta_codigo ?? '6105';
+    const cuenta = await db.query<{ codigo: string }>(
+      "SELECT codigo FROM cuenta WHERE codigo = $1 AND tipo = 'GASTO'",
+      [cuentaCodigo]
+    );
+
+    if (!cuenta.rows[0]) {
+      res.status(400).json({ error: 'Cuenta de gasto inválida' });
+      return;
+    }
+
+    lineas = [
+      { cuenta: cuentaCodigo, debe: parsed.data.monto },
+      { cuenta: '1101', haber: parsed.data.monto },
+    ];
+  } else if (parsed.data.tipo === 'RETIRO_DUENO') {
+    lineas = [
+      { cuenta: '3102', debe: parsed.data.monto },
+      { cuenta: '1101', haber: parsed.data.monto },
+    ];
+  } else if (parsed.data.tipo === 'APORTE') {
+    lineas = [
+      { cuenta: '1101', debe: parsed.data.monto },
+      { cuenta: '3101', haber: parsed.data.monto },
+    ];
+  } else if (parsed.data.tipo === 'AJUSTE_FALTANTE') {
+    lineas = [
+      { cuenta: '6107', debe: parsed.data.monto },
+      { cuenta: '1101', haber: parsed.data.monto },
+    ];
+  } else {
+    lineas = [
+      { cuenta: '1101', debe: parsed.data.monto },
+      { cuenta: '4109', haber: parsed.data.monto },
+    ];
+  }
+
+  const movimiento = await db.transaction(async (tx) => {
+    const creado = await tx.query<{ id: number }>(
+      `INSERT INTO movimiento_caja
+         (sesion_caja_id, tipo, monto, referencia_tipo, usuario_id, notas,
+          autorizado_por_id, soporte_url)
+       VALUES ($1, $2, $3, 'MOVIMIENTO', $4, $5, $4, $6)
+       RETURNING id`,
+      [
+        sesion.id,
+        tipoMovimiento,
+        parsed.data.monto,
+        usuarioId,
+        parsed.data.descripcion,
+        parsed.data.soporte_url ?? null,
+      ]
+    );
+
+    const movimientoId = creado.rows[0]?.id;
+    if (!movimientoId) throw new Error('No se pudo crear el movimiento');
+
+    await registrarAsiento(tx, {
+      descripcion: parsed.data.descripcion,
+      origenTipo: 'MOVIMIENTO_CAJA',
+      origenId: movimientoId,
+      usuarioId,
+      lineas,
+    });
+
+    return movimientoId;
+  });
+
+  const neto = await calcularNeto(sesion.id);
+  res.status(201).json({
+    movimiento: { id: movimiento, tipo: tipoMovimiento, monto: parsed.data.monto },
+    efectivo_esperado: Number(sesion.monto_apertura) + neto,
   });
 });
 

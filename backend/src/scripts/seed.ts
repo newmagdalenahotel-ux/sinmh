@@ -94,6 +94,7 @@ const cuentasBase = [
   ['4106', 'Ingreso Piscina Pasadía', 'INGRESO'],
   ['4107', 'Ingreso Tour Represa', 'INGRESO'],
   ['4108', 'Ingreso Lavandería', 'INGRESO'],
+  ['4109', 'Ingreso Sobrante de Caja', 'INGRESO'],
   ['5101', 'Costo Bebidas', 'COSTO'],
   ['5102', 'Costo Alimentos', 'COSTO'],
   ['6101', 'Gasto Lavandería', 'GASTO'],
@@ -102,6 +103,8 @@ const cuentasBase = [
   ['6104', 'Gasto Mantenimiento', 'GASTO'],
   ['6105', 'Gasto Administración', 'GASTO'],
   ['6106', 'Gasto Cortesías', 'GASTO'],
+  ['6107', 'Gasto Faltante de Caja', 'GASTO'],
+  ['6108', 'Gasto General', 'GASTO'],
 ] as const;
 
 const productosBase = [

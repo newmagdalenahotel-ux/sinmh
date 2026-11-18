@@ -225,6 +225,26 @@ export function cerrarCajaApi(
   );
 }
 
+export type MovimientoCajaPayload = {
+  tipo:
+    | 'GASTO_EFECTIVO'
+    | 'RETIRO_DUENO'
+    | 'APORTE'
+    | 'AJUSTE_FALTANTE'
+    | 'AJUSTE_SOBRANTE';
+  monto: number;
+  descripcion: string;
+  cuenta_codigo?: string;
+  soporte_url?: string;
+};
+
+export function cajaMovimientoApi(token: string, payload: MovimientoCajaPayload) {
+  return request<{
+    movimiento: { id: number; tipo: string; monto: number };
+    efectivo_esperado: number;
+  }>('/caja/movimientos', { method: 'POST', body: JSON.stringify(payload) }, token);
+}
+
 export type FolioResumen = {
   id: number;
   reserva_id: number;

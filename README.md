@@ -42,6 +42,7 @@ npm run dev
 - Cotización: `GET /tarifas/cotizar?habitacion_id=1&pax=2&temporada=BAJA&escenario=NORMAL`
 - Check-in: `POST /checkin` (cliente, reserva, huésped, folio, cargos y cobro)
 - Caja: `GET /caja/sesion-actual`, `POST /caja/sesiones`, `POST /caja/sesiones/:id/cerrar`
+- Caja avanzada: `POST /caja/movimientos` (gastos, retiros, aportes y ajustes)
 - Folios: `GET /folios`, `GET /folios/:id`, `POST /folios/:id/checkout`
 - Reportes: `GET /reportes/ingresos?fecha=...`, `GET /reportes/ocupacion`, `GET /reportes/libro?desde=...&hasta=...`, `GET /reportes/desayunos?fecha=...`
 - Recibo PDF: `GET /cobros/:id/recibo`
@@ -70,6 +71,8 @@ npm run dev
 
 ![Caja](docs/capturas/caja-con-cobro.png)
 
+![Caja avanzada](docs/capturas/caja-avanzada.png)
+
 ![Huéspedes en casa](docs/capturas/folios-detalle.png)
 
 ![Cargos al folio](docs/capturas/cargos-folio.png)
@@ -93,7 +96,7 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-Bar recepción listo: productos, ventas, stock, efectivo/tarjeta y cargo a la habitación. Sigue **caja avanzada**: gastos, retiros del dueño, aportes y traslados.
+Caja avanzada lista salvo traslados entre cajas: gastos, retiros del dueño, aportes y ajustes ya funcionan. Sigue **traslados** y luego la Fase 1B (empresas, crédito, mensualidad y extensiones).
 
 ## Repositorio remoto
 

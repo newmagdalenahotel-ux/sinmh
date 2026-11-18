@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import {
   abrirCajaApi,
+  cajaMovimientoApi,
   cerrarCajaApi,
   sesionActualApi,
   type SesionCaja,
@@ -36,6 +37,15 @@ export function CajaPage() {
   const [error, setError] = useState('');
   const [montoApertura, setMontoApertura] = useState('');
   const [montoDeclarado, setMontoDeclarado] = useState('');
+  const [movTipo, setMovTipo] = useState<
+    'GASTO_EFECTIVO' | 'RETIRO_DUENO' | 'APORTE' | 'AJUSTE_FALTANTE' | 'AJUSTE_SOBRANTE'
+  >('GASTO_EFECTIVO');
+  const [movMonto, setMovMonto] = useState('');
+  const [movDescripcion, setMovDescripcion] = useState('');
+  const [movCuenta, setMovCuenta] = useState('6105');
+  const [movSoporte, setMovSoporte] = useState('');
+  const [registrando, setRegistrando] = useState(false);
+  const [exito, setExito] = useState('');
 
   useEffect(() => {
     if (!token) return;
@@ -96,6 +106,45 @@ export function CajaPage() {
     }
   }
 
+  async function registrarMovimiento() {
+    if (!token || !sesion) return;
+
+    if (!movDescripcion.trim()) {
+      setError('Escribe la descripción del movimiento');
+      return;
+    }
+
+    if (Number(movMonto || 0) <= 0) {
+      setError('El monto debe ser mayor a cero');
+      return;
+    }
+
+    setRegistrando(true);
+    setError('');
+    setExito('');
+
+    try {
+      await cajaMovimientoApi(token, {
+        tipo: movTipo,
+        monto: Number(movMonto),
+        descripcion: movDescripcion.trim(),
+        cuenta_codigo: movTipo === 'GASTO_EFECTIVO' ? movCuenta : undefined,
+        soporte_url: movSoporte.trim() || undefined,
+      });
+
+      const actual = await sesionActualApi(token);
+      setSesion(actual.sesion);
+      setExito('Movimiento registrado');
+      setMovMonto('');
+      setMovDescripcion('');
+      setMovSoporte('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo registrar el movimiento');
+    } finally {
+      setRegistrando(false);
+    }
+  }
+
   if (!token) return null;
 
   if (cargando) {
@@ -118,6 +167,7 @@ export function CajaPage() {
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+      {exito && <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{exito}</div>}
 
       {cierre && (
         <section className="card border-success/30 bg-success/5">
@@ -262,6 +312,101 @@ export function CajaPage() {
                 </table>
               </div>
             )}
+          </section>
+
+          <section className="card">
+            <h2 className="font-display text-xl text-stone">Registrar movimiento</h2>
+            <p className="mt-1 text-sm text-stone-light">
+              Gastos, retiros del dueño, aportes y ajustes del turno.
+            </p>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="mov_tipo">Tipo</label>
+                <select
+                  id="mov_tipo"
+                  className="input"
+                  value={movTipo}
+                  onChange={(event) =>
+                    setMovTipo(
+                      event.target.value as
+                        | 'GASTO_EFECTIVO'
+                        | 'RETIRO_DUENO'
+                        | 'APORTE'
+                        | 'AJUSTE_FALTANTE'
+                        | 'AJUSTE_SOBRANTE'
+                    )
+                  }
+                >
+                  <option value="GASTO_EFECTIVO">Gasto en efectivo</option>
+                  <option value="RETIRO_DUENO">Retiro del dueño</option>
+                  <option value="APORTE">Aporte del dueño</option>
+                  <option value="AJUSTE_FALTANTE">Ajuste por faltante</option>
+                  <option value="AJUSTE_SOBRANTE">Ajuste por sobrante</option>
+                </select>
+              </div>
+              <div>
+                <label className="label" htmlFor="mov_monto">Monto</label>
+                <input
+                  id="mov_monto"
+                  type="number"
+                  min="0"
+                  className="input"
+                  value={movMonto}
+                  onChange={(event) => setMovMonto(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label className="label" htmlFor="mov_descripcion">Descripción</label>
+              <input
+                id="mov_descripcion"
+                className="input"
+                value={movDescripcion}
+                onChange={(event) => setMovDescripcion(event.target.value)}
+                placeholder="Compra de nevera, retiro del dueño, ajuste…"
+              />
+            </div>
+
+            {movTipo === 'GASTO_EFECTIVO' && (
+              <div className="mt-3">
+                <label className="label" htmlFor="mov_cuenta">Cuenta del gasto</label>
+                <select
+                  id="mov_cuenta"
+                  className="input"
+                  value={movCuenta}
+                  onChange={(event) => setMovCuenta(event.target.value)}
+                >
+                  <option value="6101">Lavandería</option>
+                  <option value="6102">Servicios</option>
+                  <option value="6103">Nómina</option>
+                  <option value="6104">Mantenimiento</option>
+                  <option value="6105">Administración</option>
+                  <option value="6106">Cortesías</option>
+                  <option value="6108">General</option>
+                </select>
+              </div>
+            )}
+
+            <div className="mt-3">
+              <label className="label" htmlFor="mov_soporte">Soporte o factura (URL)</label>
+              <input
+                id="mov_soporte"
+                className="input"
+                value={movSoporte}
+                onChange={(event) => setMovSoporte(event.target.value)}
+                placeholder="Enlace al soporte digital"
+              />
+            </div>
+
+            <button
+              className="btn-primary mt-4 w-full"
+              onClick={() => void registrarMovimiento()}
+              disabled={registrando || !movDescripcion || Number(movMonto || 0) <= 0}
+            >
+              {registrando ? 'Registrando…' : 'Registrar movimiento'}
+            </button>
           </section>
 
           <section className="card max-w-xl">
