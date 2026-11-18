@@ -20,8 +20,8 @@ export default {
         info: '#3B82F6',
       },
       fontFamily: {
-        display: ['"Playfair Display"', 'serif'],
-        body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        display: ['"Inter"', 'system-ui', 'sans-serif'],
+        body: ['"Inter"', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         gold: '0 10px 30px rgba(200, 169, 110, 0.25)',

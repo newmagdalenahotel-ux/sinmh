@@ -54,7 +54,7 @@ export function AppLayout() {
   const location = useLocation();
   const [menuMovil, setMenuMovil] = useState(false);
   const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<string>>(
-    () => new Set(['Principal'])
+    () => new Set()
   );
 
   useEffect(() => {
@@ -99,11 +99,49 @@ export function AppLayout() {
   function renderNavegacion() {
     return (
       <nav className="flex-1 space-y-2 overflow-y-auto p-3" aria-label="Menú principal">
-        {navegacion.map((seccion) => {
-          const abierta = seccionesAbiertas.has(seccion.titulo);
+        {navegacion.map((seccion, indice) => {
           const tieneActiva = seccion.items.some(
             (item) => location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
           );
+
+          if (seccion.items.length === 1) {
+            const item = seccion.items[0];
+            const enlace = item.activo ? (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/dashboard'}
+                onClick={() => setMenuMovil(false)}
+                className={({ isActive }) =>
+                  `block rounded-lg px-3 py-2 text-sm transition ${
+                    isActive
+                      ? 'bg-gold font-semibold text-navy-dark'
+                      : 'text-cream/80 hover:bg-white/10'
+                  }`
+                }
+              >
+                {item.label}
+              </NavLink>
+            ) : (
+              <span
+                key={item.to}
+                className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-cream/40"
+              >
+                {item.label}
+                <span className="text-[10px] uppercase tracking-wide">pronto</span>
+              </span>
+            );
+
+            if (indice === 0) return enlace;
+
+            return (
+              <div key={seccion.titulo} className="mt-3 border-t border-white/10 pt-3">
+                {enlace}
+              </div>
+            );
+          }
+
+          const abierta = seccionesAbiertas.has(seccion.titulo);
 
           return (
             <div key={seccion.titulo}>
@@ -130,7 +168,6 @@ export function AppLayout() {
                       <NavLink
                         key={item.to}
                         to={item.to}
-                        end={item.to === '/dashboard'}
                         onClick={() => setMenuMovil(false)}
                         className={({ isActive }) =>
                           `block rounded-lg px-3 py-2 text-sm transition ${

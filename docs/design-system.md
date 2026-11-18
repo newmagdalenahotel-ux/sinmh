@@ -1,4 +1,4 @@
-﻿# Design System — Hotel New Magdalena
+# Design System — Hotel New Magdalena
 
 **Versión:** 2.0
 **Fecha:** 2026-11-13
@@ -42,25 +42,26 @@
 
 ## 2. Tipografía
 
-### Display (títulos y acentos editoriales)
-- **Fuente:** `Playfair Display` (serif)
+### Display (títulos y jerarquía)
+- **Fuente:** `Inter` (sans-serif)
 - **Uso en el sistema:** Encabezados de página (`h1`, `h2`), títulos de modales, cifras destacadas del dashboard (KPIs).
-- **Pesos:** 400 (regular), 600 (semibold), 700 (bold).
+- **Pesos:** 500 (medium), 600 (semibold), 700 (bold).
 - **Escala:**
   - `display-xl`: `clamp(2.5rem, 6vw, 5rem)` — solo para el dashboard principal.
   - `display-md`: `clamp(2rem, 4vw, 3.5rem)` — títulos de página.
   - `section-title`: `clamp(1.75rem, 3vw, 2.75rem)` — títulos de sección.
 
 ### Body (lectura, interfaces y micro-copia)
-- **Fuente:** `DM Sans` (sans-serif)
+- **Fuente:** `Inter` (sans-serif)
 - **Uso en el sistema:** Párrafos, botones, inputs, tablas, mensajes de error, tooltips.
-- **Pesos:** 400 (regular), 500 (medium), 700 (bold).
+- **Pesos:** 400 (regular), 500 (medium), 600 (semibold), 700 (bold).
 - **Escala:**
   - `text-xs`: 12px — notas al pie, ayudas contextuales.
   - `text-sm`: 14px — texto secundario, labels de formulario.
   - `text-base`: 16px — cuerpo principal, celdas de tabla.
   - `text-lg`: 18px — subtítulos, énfasis.
   - `text-xl`: 20px — títulos de cards.
+- **Números:** `font-variant-numeric: tabular-nums` en tablas y montos.
 
 ### Monoespaciada (para códigos y montos)
 - **Fuente:** `JetBrains Mono` (opcional, si se necesita alinear montos en tablas).
@@ -71,7 +72,8 @@
 ## 3. Layout y estructura
 
 - **Contenedor global (`.container-hotel`):** `max-width: 1280px`, `padding-inline: 1.5rem` (24px).
-- **Sidebar:** 240px de ancho en desktop, colapsable a 64px. Fondo `navy-dark`, texto `cream`.
+- **Sidebar:** 240px de ancho en desktop. Fondo `navy-dark`, texto `cream`. Las secciones con varios ítems se despliegan; los módulos de un solo ítem se muestran como enlace directo.
+- **Móvil:** la sidebar se oculta y se abre como drawer de 288px con botón hamburguesa, overlay y cierre al elegir una pantalla.
 - **Topbar:** 64px de alto, fondo `navy`, texto `cream`. Contiene usuario, rol y notificaciones.
 - **Contenido:** fondo `cream`, cards con fondo `cream-dark` y bordes sutiles.
 - **Ritmo vertical:**
@@ -120,7 +122,7 @@
 - **Fondo:** `cream` (o `white` si el formulario está sobre `cream-dark`).
 - **Borde:** 1px `gold` (10% opacidad) o `cream-dark`.
 - **Focus:** borde `gold`, ring de 2px `rgba(200, 169, 110, 0.2)`.
-- **Label:** `DM Sans`, `text-sm`, color `stone`.
+- **Label:** `Inter`, `text-sm`, color `stone`.
 - **Error:** borde `error`, mensaje debajo en `text-sm` `error`.
 
 ### 4.3 Cards (`.glass-card`)
@@ -134,7 +136,7 @@
 
 ### 4.4 Tablas
 
-- **Header:** fondo `navy`, texto `cream`, `DM Sans`, `text-sm`, `font-semibold`.
+- **Header:** fondo `navy`, texto `cream`, `Inter`, `text-sm`, `font-semibold`.
 - **Filas:** borde inferior `cream-dark`, hover `cream-dark` con opacidad 50%.
 - **Celdas:** `text-base`, padding 12px, color `stone`.
 - **Montos:** alineados a la derecha, fuente monoespaciada si está disponible.
@@ -152,7 +154,7 @@
 
 - **Overlay:** `navy-dark` con opacidad 70%.
 - **Contenedor:** fondo `cream`, `rounded-lg`, sombra `shadow-xl`.
-- **Header:** título en `Playfair Display`, `text-xl`, color `stone`.
+- **Header:** título en `Inter`, `text-xl`, color `stone`.
 - **Footer:** botones alineados a la derecha (Outline + Primary).
 
 ### 4.7 Divisores editoriales (`.gold-divider`)
