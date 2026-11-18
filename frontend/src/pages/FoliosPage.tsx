@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import {
+  centrosApi,
   checkoutApi,
+  crearCargoApi,
   folioApi,
   foliosApi,
+  type Centro,
   type FolioDetalle,
   type FolioResumen,
 } from '../lib/api';
@@ -33,12 +36,22 @@ function formatoFechaHora(valor: string) {
 export function FoliosPage() {
   const { token } = useAuth();
   const [folios, setFolios] = useState<FolioResumen[]>([]);
+  const [centros, setCentros] = useState<Centro[]>([]);
   const [seleccion, setSeleccion] = useState<FolioDetalle | null>(null);
   const [cargando, setCargando] = useState(true);
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
   const [procesando, setProcesando] = useState(false);
+  const [agregando, setAgregando] = useState(false);
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
+  const [cargo, setCargo] = useState({
+    concepto: '',
+    centro_codigo: 'ALOJAMIENTO',
+    cantidad: '1',
+    precio_unitario: '0',
+    es_cortesia: false,
+    motivo_cortesia: '',
+  });
   const [metodoPago, setMetodoPago] = useState<'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'>(
     'EFECTIVO'
   );
@@ -57,8 +70,12 @@ export function FoliosPage() {
     setError('');
 
     try {
-      const respuesta = await foliosApi(token);
+      const [respuesta, respuestaCentros] = await Promise.all([
+        foliosApi(token),
+        centrosApi(token),
+      ]);
       setFolios(respuesta.folios);
+      setCentros(respuestaCentros.centros);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar los folios');
     } finally {
@@ -105,6 +122,47 @@ export function FoliosPage() {
       setError(err instanceof Error ? err.message : 'No se pudo hacer el check-out');
     } finally {
       setProcesando(false);
+    }
+  }
+
+  async function agregarCargo() {
+    if (!token || !seleccion) return;
+
+    if (!cargo.concepto.trim()) {
+      setError('Escribe el concepto del cargo');
+      return;
+    }
+
+    setAgregando(true);
+    setError('');
+    setExito('');
+
+    try {
+      await crearCargoApi(token, seleccion.folio.id, {
+        concepto: cargo.concepto.trim(),
+        centro_codigo: cargo.centro_codigo,
+        cantidad: Number(cargo.cantidad || 1),
+        precio_unitario: cargo.es_cortesia ? 0 : Number(cargo.precio_unitario || 0),
+        es_cortesia: cargo.es_cortesia,
+        motivo_cortesia: cargo.motivo_cortesia.trim() || undefined,
+      });
+
+      const detalle = await folioApi(token, seleccion.folio.id);
+      setSeleccion(detalle);
+      setCargo({
+        ...cargo,
+        concepto: '',
+        cantidad: '1',
+        precio_unitario: '0',
+        es_cortesia: false,
+        motivo_cortesia: '',
+      });
+      setExito('Cargo agregado al folio');
+      await cargar();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo agregar el cargo');
+    } finally {
+      setAgregando(false);
     }
   }
 
@@ -233,6 +291,106 @@ export function FoliosPage() {
                   <dd>{formatoMoneda(seleccion.totales.saldo)}</dd>
                 </div>
               </dl>
+
+              <div className="mt-5 rounded-xl border border-cream-dark bg-cream/50 p-4">
+                <h3 className="font-display text-lg text-stone">Agregar cargo</h3>
+
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <label className="label" htmlFor="cargo_concepto">Concepto</label>
+                    <input
+                      id="cargo_concepto"
+                      className="input"
+                      value={cargo.concepto}
+                      onChange={(event) => setCargo({ ...cargo, concepto: event.target.value })}
+                      placeholder="Minibar, noche extra, huésped adicional…"
+                    />
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="cargo_centro">Centro</label>
+                      <select
+                        id="cargo_centro"
+                        className="input"
+                        value={cargo.centro_codigo}
+                        onChange={(event) =>
+                          setCargo({ ...cargo, centro_codigo: event.target.value })
+                        }
+                      >
+                        {centros.map((centro) => (
+                          <option key={centro.codigo} value={centro.codigo}>
+                            {centro.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="cargo_cantidad">Cantidad</label>
+                      <input
+                        id="cargo_cantidad"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        className="input"
+                        value={cargo.cantidad}
+                        onChange={(event) => setCargo({ ...cargo, cantidad: event.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="cargo_precio">Precio unitario</label>
+                      <input
+                        id="cargo_precio"
+                        type="number"
+                        min="0"
+                        className="input"
+                        value={cargo.es_cortesia ? '0' : cargo.precio_unitario}
+                        onChange={(event) =>
+                          setCargo({ ...cargo, precio_unitario: event.target.value })
+                        }
+                        disabled={cargo.es_cortesia}
+                      />
+                    </div>
+                    <div className="flex items-end pb-2">
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={cargo.es_cortesia}
+                          onChange={(event) =>
+                            setCargo({ ...cargo, es_cortesia: event.target.checked })
+                          }
+                        />
+                        Cortesía (monto 0)
+                      </label>
+                    </div>
+                  </div>
+
+                  {cargo.es_cortesia && (
+                    <div>
+                      <label className="label" htmlFor="cargo_motivo">Motivo de la cortesía</label>
+                      <input
+                        id="cargo_motivo"
+                        className="input"
+                        value={cargo.motivo_cortesia}
+                        onChange={(event) =>
+                          setCargo({ ...cargo, motivo_cortesia: event.target.value })
+                        }
+                      />
+                    </div>
+                  )}
+
+                  <button
+                    className="btn-primary w-full"
+                    onClick={() => void agregarCargo()}
+                    disabled={agregando || !cargo.concepto.trim()}
+                  >
+                    {agregando ? 'Agregando…' : 'Agregar cargo'}
+                  </button>
+                </div>
+              </div>
 
               {seleccion.totales.saldo > 0 && (
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">

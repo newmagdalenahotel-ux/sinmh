@@ -403,3 +403,41 @@ export function actualizarUsuarioApi(token: string, usuarioId: number, payload: 
     token
   );
 }
+
+export type Centro = {
+  id: number;
+  codigo: string;
+  nombre: string;
+  tipo: string;
+};
+
+export type CargoManualPayload = {
+  concepto: string;
+  centro_codigo: string;
+  cantidad: number;
+  precio_unitario: number;
+  es_cortesia: boolean;
+  motivo_cortesia?: string;
+};
+
+export type CargoManualResultado = {
+  cargo: {
+    cargoId: number;
+    folioId: number;
+    monto: number;
+    saldo: number;
+    centro: string;
+  };
+};
+
+export function centrosApi(token: string) {
+  return request<{ centros: Centro[] }>('/catalogos/centros', {}, token);
+}
+
+export function crearCargoApi(token: string, folioId: number, payload: CargoManualPayload) {
+  return request<CargoManualResultado>(
+    `/folios/${folioId}/cargos`,
+    { method: 'POST', body: JSON.stringify(payload) },
+    token
+  );
+}

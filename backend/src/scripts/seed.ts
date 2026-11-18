@@ -93,6 +93,7 @@ const cuentasBase = [
   ['4105', 'Ingreso Eventos', 'INGRESO'],
   ['4106', 'Ingreso Piscina Pasadía', 'INGRESO'],
   ['4107', 'Ingreso Tour Represa', 'INGRESO'],
+  ['4108', 'Ingreso Lavandería', 'INGRESO'],
   ['5101', 'Costo Bebidas', 'COSTO'],
   ['5102', 'Costo Alimentos', 'COSTO'],
   ['6101', 'Gasto Lavandería', 'GASTO'],

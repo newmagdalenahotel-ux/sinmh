@@ -42,7 +42,7 @@ Un solo sistema para reemplazar el SIMP y las planillas de Excel, cubriendo toda
 | Módulo | Qué incluye | Fase original | Estado |
 |---|---|---|---|
 | Núcleo | Login, JWT, roles, usuarios, centros, configuración, auditoría | 1A | Parcial (auth y usuarios/roles) |
-| Alojamiento | Habitaciones, tarifas, disponibilidad, reservas, check-in, folios, check-out, cargos, desayuno | 1A | Parcial |
+| Alojamiento | Habitaciones, tarifas, disponibilidad, reservas, check-in, folios, check-out, cargos, desayuno | 1A | Parcial (check-in/out y cargos manuales) |
 | Alojamiento avanzado | Mensualidad, por horas, extensiones, cambios de habitación, contrato | 1A/1B | Pendiente |
 | Caja | Apertura, cierre, arqueo, ventas en efectivo | 1A | Hecho |
 | Caja avanzada | Gastos, retiros del dueño, aportes, traslados, ajustes | 1A | Pendiente |
@@ -130,7 +130,6 @@ La Fase 1A original incluye además:
 | **Contabilidad de doble partida** | Base hecha: cuentas, asientos automáticos y libro. Falta cuenta socio y cierre contable. |
 | **Plan de cuentas y cuenta socio** | El plan está cargado; falta la cuenta socio y sus movimientos. |
 | **Reportes mínimos** | Ingresos, ocupación y libro hechos; faltan cartera, resultado por centro y cuadre. |
-| **Cargos manuales al folio** | Consumos, noches extra, huésped adicional, cortesías. |
 | **Bar recepción** | Está en la v1 por decisión, pero no se ha construido. |
 | **Caja avanzada** | Gastos, retiros del dueño, aportes y traslados. |
 | **Desayunos del día** | Reporte para cocina. |
@@ -197,7 +196,7 @@ No se implementan hasta que su fase esté aprobada.
 
 1. Alcance aprobado.
 2. **Franja 2 — contabilidad y reportes base:** hecha (cuentas, libro, asientos automáticos, ingresos, ocupación y libro).
-3. **Franja 3 — usuarios/roles, cargos manuales, desayunos del día y PDF de recibo.** Usuarios/roles hechos; faltan cargos manuales, desayunos y PDF.
+3. **Franja 3 — usuarios/roles, cargos manuales, desayunos del día y PDF de recibo.** Usuarios/roles y cargos manuales hechos; faltan desayunos y PDF.
 4. **Franja 4 — bar recepción y caja avanzada** (gastos, retiros, traslados).
 5. Pasar a 1B: empresas, crédito, mensualidad, extensiones y cambios.
 6. Pasar a 1C: POS, inventario, piscina y compras.

@@ -117,6 +117,139 @@ foliosRouter.get('/:id', async (req, res) => {
   });
 });
 
+const centroCuenta: Record<string, string> = {
+  ALOJAMIENTO: '4101',
+  BAR_RECEPCION: '4102',
+  BAR_TERRAZA: '4103',
+  RESTAURANTE: '4104',
+  EVENTOS: '4105',
+  PISCINA_PASADIA: '4106',
+  TOUR_REPRESA: '4107',
+  LAVANDERIA: '4108',
+};
+
+const cargoSchema = z.object({
+  concepto: z.string().trim().min(2).max(200),
+  centro_codigo: z.string().trim().min(1),
+  cantidad: z.coerce.number().positive().max(1000).default(1),
+  precio_unitario: z.coerce.number().min(0).default(0),
+  es_cortesia: z.boolean().default(false),
+  motivo_cortesia: z.string().trim().max(300).optional(),
+});
+
+foliosRouter.post('/:id/cargos', async (req, res) => {
+  const folioId = Number(req.params.id);
+  if (!Number.isInteger(folioId) || folioId <= 0) {
+    res.status(400).json({ error: 'Folio inválido' });
+    return;
+  }
+
+  const parsed = cargoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.issues });
+    return;
+  }
+
+  const usuarioId = Number(req.user?.sub);
+  if (!Number.isFinite(usuarioId)) {
+    res.status(401).json({ error: 'Usuario inválido' });
+    return;
+  }
+
+  const folio = await db.query<{ id: number; saldo: string; estado: string }>(
+    'SELECT id, saldo, estado FROM folio WHERE id = $1',
+    [folioId]
+  );
+
+  const actual = folio.rows[0];
+  if (!actual) {
+    res.status(404).json({ error: 'Folio no encontrado' });
+    return;
+  }
+
+  if (actual.estado !== 'ABIERTO') {
+    res.status(409).json({ error: 'El folio está cerrado' });
+    return;
+  }
+
+  const centro = await db.query<{ id: number; codigo: string; nombre: string }>(
+    'SELECT id, codigo, nombre FROM centro WHERE codigo = $1 AND activo = true',
+    [parsed.data.centro_codigo]
+  );
+
+  const centroActual = centro.rows[0];
+  if (!centroActual) {
+    res.status(400).json({ error: 'Centro inválido' });
+    return;
+  }
+
+  const monto = parsed.data.es_cortesia
+    ? 0
+    : Math.round(parsed.data.cantidad * parsed.data.precio_unitario * 100) / 100;
+
+  if (!parsed.data.es_cortesia && monto <= 0) {
+    res.status(400).json({ error: 'El cargo debe tener un valor mayor a cero' });
+    return;
+  }
+
+  const cuentaCodigo = centroCuenta[centroActual.codigo] ?? '4101';
+
+  const resultado = await db.transaction(async (tx) => {
+    const cargo = await tx.query<{ id: number }>(
+      `INSERT INTO folio_cargo
+         (folio_id, concepto, centro_id, cantidad, precio_unitario, monto,
+          es_cortesia, autorizado_por_id, motivo_cortesia, usuario_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING id`,
+      [
+        folioId,
+        parsed.data.concepto,
+        centroActual.id,
+        parsed.data.cantidad,
+        parsed.data.precio_unitario,
+        monto,
+        parsed.data.es_cortesia,
+        parsed.data.es_cortesia ? usuarioId : null,
+        parsed.data.motivo_cortesia ?? null,
+        usuarioId,
+      ]
+    );
+
+    const cargoId = cargo.rows[0]?.id;
+    if (!cargoId) throw new Error('No se pudo crear el cargo');
+
+    if (monto > 0) {
+      await registrarAsiento(tx, {
+        descripcion: `Cargo manual folio ${folioId}`,
+        origenTipo: 'CARGO_MANUAL',
+        origenId: cargoId,
+        usuarioId,
+        lineas: [
+          { cuenta: '1103', debe: monto, descripcion: parsed.data.concepto },
+          {
+            cuenta: cuentaCodigo,
+            centro: centroActual.codigo,
+            haber: monto,
+            descripcion: parsed.data.concepto,
+          },
+        ],
+      });
+    }
+
+    await tx.query('UPDATE folio SET saldo = saldo + $1 WHERE id = $2', [monto, folioId]);
+
+    return {
+      cargoId,
+      folioId,
+      monto,
+      saldo: Number(actual.saldo) + monto,
+      centro: centroActual.codigo,
+    };
+  });
+
+  res.status(201).json({ cargo: resultado });
+});
+
 const checkoutSchema = z.object({
   metodo_pago: z.enum(['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'CREDITO']).optional(),
   tipo_documento: z
