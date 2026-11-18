@@ -76,7 +76,7 @@ npm run dev
 
 ![Dashboard](docs/capturas/dashboard.png)
 
-![Menú desplegable](docs/capturas/menu-desktop.png)
+![Menú y breadcrumb](docs/capturas/menu-desktop.png)
 
 ![Menú móvil](docs/capturas/menu-mobile.png)
 

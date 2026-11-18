@@ -49,9 +49,33 @@ const navegacion: SeccionNavegacion[] = [
   },
 ];
 
+const breadcrumbs: Array<{ prefijo: string; modulo: string; pantalla: string }> = [
+  { prefijo: '/dashboard', modulo: 'Principal', pantalla: 'Dashboard' },
+  { prefijo: '/reservas', modulo: 'Alojamiento', pantalla: 'Reservas' },
+  { prefijo: '/checkin', modulo: 'Alojamiento', pantalla: 'Check-in' },
+  { prefijo: '/folios', modulo: 'Alojamiento', pantalla: 'Huéspedes y folios' },
+  { prefijo: '/clientes', modulo: 'Alojamiento', pantalla: 'Clientes' },
+  { prefijo: '/habitaciones', modulo: 'Alojamiento', pantalla: 'Habitaciones' },
+  { prefijo: '/bar', modulo: 'Bar y servicios', pantalla: 'Bar recepción' },
+  { prefijo: '/caja', modulo: 'Caja', pantalla: 'Caja y turnos' },
+  { prefijo: '/cartera', modulo: 'Caja', pantalla: 'Cartera' },
+  { prefijo: '/cuenta-socio', modulo: 'Caja', pantalla: 'Cuenta socio' },
+  { prefijo: '/reportes', modulo: 'Análisis', pantalla: 'Reportes' },
+  { prefijo: '/configuracion', modulo: 'Análisis', pantalla: 'Configuración' },
+];
+
+function obtenerBreadcrumb(pathname: string) {
+  const encontrado = breadcrumbs.find(
+    (item) => pathname === item.prefijo || pathname.startsWith(`${item.prefijo}/`)
+  );
+
+  return encontrado ?? { modulo: 'SINMH', pantalla: 'Recepción' };
+}
+
 export function AppLayout() {
   const { usuario, cerrarSesion } = useAuth();
   const location = useLocation();
+  const breadcrumb = obtenerBreadcrumb(location.pathname);
   const [menuMovil, setMenuMovil] = useState(false);
   const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<string>>(
     () => new Set()
@@ -202,8 +226,11 @@ export function AppLayout() {
     <div className="flex min-h-screen bg-cream">
       <aside className="hidden w-60 shrink-0 flex-col bg-navy-dark text-cream lg:flex">
         <div className="border-b border-white/10 px-6 py-5">
-          <p className="font-display text-lg text-gold">New Magdalena</p>
-          <p className="mt-0.5 text-xs text-cream/60">SINMH · Recepción</p>
+          <p className="font-display text-sm font-semibold leading-snug text-gold">
+            Sistema de Información
+            <br />
+            New Magdalena Hotel
+          </p>
         </div>
 
         {renderNavegacion()}
@@ -222,8 +249,11 @@ export function AppLayout() {
           <aside className="relative flex h-full w-72 max-w-[85vw] flex-col bg-navy-dark text-cream shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
               <div>
-                <p className="font-display text-lg text-gold">New Magdalena</p>
-                <p className="mt-0.5 text-xs text-cream/60">SINMH · Recepción</p>
+                <p className="font-display text-sm font-semibold leading-snug text-gold">
+                  Sistema de Información
+                  <br />
+                  New Magdalena Hotel
+                </p>
               </div>
               <button
                 type="button"
@@ -254,9 +284,12 @@ export function AppLayout() {
             >
               ☰
             </button>
-            <div>
-              <p className="text-sm font-medium">Recepción</p>
-              <p className="text-xs text-cream/60">Hotel New Magdalena</p>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-cream">
+                <span className="hidden text-cream/50 sm:inline">{breadcrumb.modulo} / </span>
+                <span className="text-gold">{breadcrumb.pantalla}</span>
+              </p>
+              <p className="text-[11px] text-cream/45">Hotel New Magdalena</p>
             </div>
           </div>
 

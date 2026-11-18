@@ -72,9 +72,9 @@
 ## 3. Layout y estructura
 
 - **Contenedor global (`.container-hotel`):** `max-width: 1280px`, `padding-inline: 1.5rem` (24px).
-- **Sidebar:** 240px de ancho en desktop. Fondo `navy-dark`, texto `cream`. Las secciones con varios ítems se despliegan; los módulos de un solo ítem se muestran como enlace directo.
+- **Sidebar:** 240px de ancho en desktop. Fondo `navy-dark`, texto `cream`. Marca: **Sistema de Información New Magdalena Hotel**. Las secciones con varios ítems se despliegan; los módulos de un solo ítem se muestran como enlace directo.
+- **Topbar:** 64px de alto, fondo `navy`, texto `cream`. Muestra el breadcrumb módulo / pantalla y a la derecha el usuario y su rol.
 - **Móvil:** la sidebar se oculta y se abre como drawer de 288px con botón hamburguesa, overlay y cierre al elegir una pantalla.
-- **Topbar:** 64px de alto, fondo `navy`, texto `cream`. Contiene usuario, rol y notificaciones.
 - **Contenido:** fondo `cream`, cards con fondo `cream-dark` y bordes sutiles.
 - **Ritmo vertical:**
   - `.section-pad`: `6rem` (96px) arriba/abajo — para páginas de dashboard.

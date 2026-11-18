@@ -126,7 +126,7 @@ export function ConfiguracionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-gold-dark">Recepción</p>
+        <p className="text-sm font-medium text-gold-dark">Análisis</p>
         <h1 className="font-display text-3xl text-stone">Usuarios y roles</h1>
         <p className="mt-1 text-sm text-stone-light">
           Crea las cuentas de recepción, caja y gerencia.

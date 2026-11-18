@@ -171,7 +171,7 @@ export function BarPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-gold-dark">Recepción</p>
+          <p className="text-sm font-medium text-gold-dark">Bar y servicios</p>
           <h1 className="font-display text-3xl text-stone">Bar recepción</h1>
           <p className="mt-1 text-sm text-stone-light">
             Venta de productos, cobro directo o cargo a la habitación.

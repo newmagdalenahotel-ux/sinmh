@@ -46,9 +46,15 @@ La navegación es por módulos, no por pantallas sueltas. El sidebar mantiene el
 diseño de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar de
 64 px con usuario y rol.
 
+La marca del sidebar es **Sistema de Información New Magdalena Hotel**, sin
+abreviaturas. El topbar muestra un breadcrumb del módulo y la pantalla actual
+(`Alojamiento / Check-in`), no un “Recepción” genérico. El título y la
+descripción grande quedan en el contenido de la página.
+
 Las secciones del menú son desplegables: se abre la que se está usando y las
-demás quedan cerradas. En móvil el sidebar se convierte en un drawer con botón
-hamburguesa, overlay y cierre al elegir una pantalla o al presionar Escape.
+demás quedan cerradas. Los módulos con un solo ítem se muestran como enlace
+directo. En móvil el sidebar se convierte en un drawer con botón hamburguesa,
+overlay y cierre al elegir una pantalla o al presionar Escape.
 
 ### Pantallas por módulo
 

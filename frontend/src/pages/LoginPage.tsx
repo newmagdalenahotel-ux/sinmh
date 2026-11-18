@@ -31,8 +31,11 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-navy-dark p-4">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <p className="font-display text-4xl text-gold">New Magdalena</p>
-          <p className="mt-2 text-sm text-cream/60">Sistema Integral · Recepción 24 horas</p>
+          <p className="font-display text-2xl font-semibold text-cream/70">
+            Sistema de Información
+          </p>
+          <p className="font-display text-3xl font-semibold text-gold">New Magdalena Hotel</p>
+          <p className="mt-2 text-sm text-cream/60">Recepción 24 horas</p>
         </div>
 
         <form onSubmit={onSubmit} className="rounded-2xl border border-gold/20 bg-cream p-8 shadow-2xl">

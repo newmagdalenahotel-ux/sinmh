@@ -286,9 +286,12 @@ design, design-system y tasks.
 
 **Aceptación:**
 - [x] El menú coincide con `design.md`.
+- [x] La marca del sidebar es “Sistema de Información New Magdalena Hotel”.
+- [x] El topbar muestra el breadcrumb módulo / pantalla.
 - [x] Cada módulo agrupa sus pantallas.
 - [x] Las rutas actuales siguen funcionando.
 - [x] Las secciones se despliegan y conservan su estado.
+- [x] Los módulos de un solo ítem son enlace directo.
 - [x] En móvil el menú funciona como drawer.
 
 ### T6.2 — Dashboard
