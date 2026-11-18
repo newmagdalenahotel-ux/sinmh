@@ -2,7 +2,7 @@
 
 Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (caja y bar), con una sola fuente de verdad para la operación del hotel.
 
-**Estado:** descubrimiento y planeación. La primera versión es **recepción 24 horas**: alojamiento walk-in, reservas simples, folios, cobros, caja con turnos, bar recepción y roles. El código arranca en la Franja 0.
+**Estado:** Franja 0 en marcha. Backend con login JWT, health y base embebida funcionando. La primera versión es **recepción 24 horas**: alojamiento walk-in, reservas simples, folios, cobros, caja con turnos, bar recepción y roles.
 
 ## Documentos
 
@@ -22,9 +22,25 @@ Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (
 
 Los archivos con datos personales (`datos y procesos/`) no se versionan.
 
+## Backend
+
+```bash
+cd backend
+npm install
+npm run migrate
+npm run seed
+npm run dev
+```
+
+- API: `http://localhost:3000`
+- Health: `GET /health`
+- Login: `POST /auth/login` con `admin` / `admin123`
+- Base: PostgreSQL embebido (PGlite) en `backend/.data`; el mismo esquema corre en PostgreSQL real.
+- Los datos de `datos y procesos/` no se versionan.
+
 ## Siguiente paso
 
-Franja 0: repositorio, PostgreSQL local, runner de migraciones, login y shell. Después, check-in walk-in con cobro y cierre de caja.
+Completar la Franja 0 con el frontend de login y el shell. Después, check-in walk-in con cobro, folio y cierre de caja.
 
 ## Repositorio remoto
 

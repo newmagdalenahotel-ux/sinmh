@@ -4,6 +4,9 @@ datos y procesos/
 # Temporales de análisis
 .tmp/
 
+# Base de datos local embebida
+backend/.data/
+
 # Node
 node_modules/
 dist/
