@@ -1,6 +1,6 @@
 # Tarifas y política de precios — Hotel New Magdalena
 
-**Estado:** borrador validado con el dueño el 18-nov-2026. Pendiente el conteo exacto de ventilador y confirmar el precio de sextuple/suite.
+**Estado:** borrador validado con el dueño el 18-nov-2026. Pendiente confirmar el conteo de desayunos y algunos precios de empresa.
 **Fuentes:** tabla del dueño, `bd_hpm.sql` (tarifas del SIMP) y SOP de check-in.
 
 **Principio:** todos los precios son cerrados y redondos, para no tener que devolver monedas.
@@ -9,25 +9,24 @@
 
 ## 1. Inventario
 
-- **33 espacios confirmados:** **31 habitaciones rentables + 103 bodega + Admin oficina**.
-- La **206** es sencilla o doble, A/C.
-- **22 con A/C y 8 con ventilador** según la lista; el dueño y la tabla dicen 7. `[C]` cuál de las 8 no cuenta.
-- La **106** es la suite (6 personas o suite para 2) y se cobra como sextuple. La **105** se vende para 5 o 6; `[C]` si también se configura como suite.
+- **33 espacios:** **31 habitaciones rentables + 103 bodega + Admin oficina**.
+- **23 con A/C y 8 con ventilador:** 108, 205, 207, 209, 301, 303, 305, 405.
+- La **105 es la suite** (dos espacios, dos baños, dos TV, dos A/C); hoy tiene 6 camas y se vende para 5 o 6, o como suite para 2.
+- La **106 es quintuple** (máximo 5 personas), sin suite.
 - La **climatización es dinámica**: si se repara el A/C se vende como A/C; si se pone un ventilador en una de A/C y se baja el taco, se cobra como ventilador.
-- La tarifa depende de **climatización vendida + acomodación + temporada + escenario**.
+- La tarifa depende de **climatización vendida + pax + temporada + escenario**.
 - Ver `inventario-habitaciones.md` y `seeds/habitaciones.csv`.
 
 ## 2. Temporadas
 
 - **Base:** baja; alta en festivos y del **15 de diciembre al 15 de enero**.
 - **El admin ajusta cada día**: si el festivo está flojo, lo pasa a baja; si ve demanda, lo deja alto.
-- **Regla de ejemplo, configurable, para ir probando:**
+- **Regla de ejemplo, configurable:**
   - A las **3 pm** se mira la ocupación.
   - Si hay **15 habitaciones ocupadas o menos**, el día va en **baja** y se habilitan A/B/C.
   - Si se llega a **15 habitaciones**, se activa la **alta para las siguientes** y se cierran los descuentos, salvo autorización.
-  - El sistema muestra la ocupación y sugiere; **el admin confirma**.
-- `[C]` El umbral de 15 es el mismo del SOP; se deja como parámetro para ajustarlo con datos.
-- `[C]` Si el festivo no tiene reservas, se maneja en baja; si las tiene, en alta.
+  - El sistema sugiere y **el admin confirma**.
+- `[C]` El umbral de 15 es el mismo del SOP; se deja como parámetro.
 - El calendario vive en una tabla de fechas, no en el código.
 
 ## 3. Escenarios y reglas de descuento
@@ -49,7 +48,7 @@
 6. Las habitaciones con **ventilador no tienen ningún descuento**, ni por llegada tarde, ni por estadía, ni por grupo.
 7. **Descuento manual** solo con motivo y autorización; queda registrado.
 8. **A, B y C no se acumulan**; se elige uno.
-9. **La tarifa es por pax**, no por habitación. Una triple vendida para 1 se cobra como sencilla; para 2, como doble; para 3, como triple. Igual para 105, 109, 208 y 403. La suite 106 es la excepción: se cobra como sextuple aunque vaya para 2.
+9. **La tarifa es por pax**, no por habitación. Una triple vendida para 1 se cobra como sencilla; para 2, como doble; para 3, como triple. Igual para 105, 109, 208 y 403. La suite 105 es la excepción: se cobra como sextuple aunque vaya para 2.
 
 ## 4. A/C — Temporada baja
 
@@ -75,36 +74,47 @@
 | 5 personas | 360.000 | 305.000 | 305.000 | 325.000 |
 | 6 personas / suite | 400.000 | 345.000 | 345.000 | 360.000 |
 
-## 6. Sextuple y suite (106)
+## 6. Sextuple y suite (105)
 
-- La **106** es la suite: dos espacios, dos baños, dos televisores y dos aires acondicionados; un espacio con cama y el otro con sofá, comedor y nevera.
-- Se vende como **6 personas** o como **suite para 2**.
-- **La suite se cobra como sextuple**, aunque vaya para 2.
-- La **105** se vende para 5 o 6; `[C]` confirmar si también se configura como suite.
+- La **105** es la suite: dos espacios, dos baños, dos TV y dos A/C. Hoy tiene 6 camas; se vende para **5 o 6**.
+- Si piden suite, se arregla: un espacio con cama y el otro con sofá, comedor y nevera.
+- **La suite se vende para 2 personas y se cobra como sextuple**, aunque vayan 2.
+- La **106 es quintuple**: máximo 5 personas, sin suite.
 - Precios: **290.000 / 400.000** normal, **250.000 / 345.000** con A o B, **260.000 / 360.000** con C.
 - Son precios cerrados, sin monedas. `[C]` confirmar.
 
-## 7. Habitaciones con ventilador
+## 7. Desayuno
+
+- **Precio: 15.000 por desayuno por persona.**
+- Las tarifas públicas **no incluyen desayuno**. Si el huésped lo pide, se suman **15.000 × desayunos** a la tarifa.
+- Las tarifas de empresa pueden **incluirlo** en el convenio (no se suma) o **no incluirlo** (se suma si se pide).
+- Cantidad: **pax × noches**. Ejemplo: 2 personas, 3 noches = 6 desayunos = 90.000.
+- `[C]` Confirmar si se cuenta por noche o por día, y qué pasa si no lo consumen.
+- **Reporte diario para cocina:** habitación, pax, si va incluido o pagado, y total de desayunos del día.
+- Si va incluido, no se cobra aparte; el costo es del restaurante.
+- Si se cobra, se registra como cargo al folio con centro **RESTAURANTE**.
+
+## 8. Habitaciones con ventilador
 
 | Acomodación | Tarifa única | Descuentos |
 |---:|---:|---|
 | 1 persona | 50.000 | No aplica ninguno |
 | 2 personas | 80.000 | No aplica ninguno |
 
-- `[C]` Capacidad máxima de las 7 y si existe tarifa para 3 o más.
+- `[C]` Capacidad máxima de las 8 y si existe tarifa para 3 o más.
 
-## 8. Tarifas corporativas y convenios
+## 9. Tarifas corporativas y convenios
 
 El SIMP ya maneja **tarifas por empresa**, distintas de la matriz pública:
 
 - Por empresa: Chemicals 80.000, Eiatec 80.000, BDB 60.000, Novomet 148.000, Rosen 120.000, OMIA 147.500, Borets 75.000, Aviatur 170.000, Smartstar 90.000.
 - Genéricas: ventilador sin parqueadero 55.000, ventilador con parqueadero 60.000, A/C sin parqueadero 75.000, A/C con parqueadero 80.000 (1 persona); 85.000 / 90.000 / 105.000 / 110.000 para 2 personas.
 - **El parqueadero cambia el precio.**
-- El convenio incluye tarifa, **plazo de pago** (8, 15 o 30 días) y **cupo configurable** por empresa.
+- El convenio incluye tarifa, **plazo de pago** (8, 15 o 30 días), **cupo configurable** y **si incluye desayuno o no**.
 
 **Conclusión:** el modelo necesita `convenio_tarifa` por cliente/empresa, no solo la matriz pública.
 
-## 9. Impuestos y documentos
+## 10. Impuestos y documentos
 
 - A las empresas o a quien pida **factura electrónica** se le suma **19 %**.
 - `[C]` Si la lista es con IVA incluido o sin IVA.
@@ -112,7 +122,7 @@ El SIMP ya maneja **tarifas por empresa**, distintas de la matriz pública:
 - `[C]` El hotel ya emite factura electrónica. Falta NIT, régimen, resolución y proveedor.
 - **Impresoras:** por ahora solo **Kyocera láser en hoja grande (carta u oficio)**. La térmica para tirilla queda para después.
 
-## 10. Reglas de estadía
+## 11. Reglas de estadía
 
 - **Check-in 3 pm, check-out 1 pm.**
 - Entrada desde las **12 pm sin cobro**; antes de las 12 se cobra por horas.
@@ -124,25 +134,28 @@ El SIMP ya maneja **tarifas por empresa**, distintas de la matriz pública:
 - **Mensualidad:** prepagada, con contrato impreso distinto al registro de hospedaje.
 - **Reservas:** abono 50 %, sin devolución, reprogramable `[C]` condiciones.
 
-## 11. Modelo de datos propuesto
+## 12. Modelo de datos propuesto
 
 ```sql
-temporada(id, codigo, nombre)                  -- BAJA, ALTA
+temporada(id, codigo, nombre)
 temporada_fecha(id, temporada_id, desde, hasta)
-tarifa(id, tipo_habitacion_id, temporada_id, acomodacion, escenario, valor)
-convenio_tarifa(id, cliente_id, tipo_habitacion_id, acomodacion, valor, dias_credito, cupo)
+tarifa(id, tipo_habitacion_id, temporada_id, acomodacion, escenario, valor, incluye_desayuno)
+convenio_tarifa(id, cliente_id, tipo_habitacion_id, acomodacion, valor, dias_credito, cupo, incluye_desayuno)
+reserva(..., incluye_desayuno, desayunos_pax, desayunos_total)
+configuracion(clave='desayuno_precio', valor='15000')
 ```
 
 - `acomodacion`: 1 a 6.
 - `escenario`: `NORMAL`, `A`, `B`, `C`.
 - El cargo guarda `tarifa_id`, `precio_lista` y `precio_cobrado`.
-- El convenio guarda tarifa, plazo y cupo por empresa.
-- La suite usa la tarifa de 6 personas.
+- El convenio guarda tarifa, plazo, cupo y desayuno.
+- La suite 105 usa la tarifa de 6 personas.
+- El desayuno puede ir incluido en la tarifa o cobrarse como cargo.
 
-## 12. Pendientes
+## 13. Pendientes
 
-1. Confirmar si la **105** también se configura como suite y si la **106** se vende para 5.
-2. Confirmar **290.000 / 400.000** para sextuple y suite, y sus descuentos.
+1. Confirmar **290.000 / 400.000** para sextuple y suite, y sus descuentos.
+2. Confirmar si el desayuno se cuenta por **noche o por día** y qué pasa si no se consume.
 3. Confirmar **130.000 vs 125.000** en 2 personas temporada baja.
 4. IVA incluido o adicional; bar impoconsumo; datos de facturación.
 5. Modelo de la **Kyocera** y tamaño de hoja.

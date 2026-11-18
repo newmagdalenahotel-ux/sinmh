@@ -19,13 +19,13 @@
 | 4 | 401, 402, 403, 404, 405 |
 | Otros | 103 (bodega), Admin (oficina) |
 
-## 2. La suite: 106
+## 2. La suite: 105
 
-- La **106** es la suite: **dos espacios, dos baños, dos televisores y dos aires acondicionados**.
-- Un espacio va con cama y el otro con sofá, comedor y nevera cuando se configura como suite.
-- Se puede vender como **6 personas** o como **suite para 2**.
-- **Se cobra como sextuple**, aunque vaya para 2 personas.
-- La **105** se vende para 5 o 6; `[C]` confirmar si también se puede configurar como suite.
+- La **105** es la suite: **dos espacios, dos baños, dos televisores y dos aires acondicionados**.
+- Hoy está configurada con **6 camas**, por eso se vende para **5 o 6 personas**.
+- Si piden suite, se arregla: un espacio con cama y el otro con sofá, comedor y nevera.
+- **La suite se vende para 2 personas y se cobra como sextuple.**
+- La **106** es **quintuple**: máximo 5 personas, sin suite.
 
 ## 3. Capacidad y tarifa por pax
 
@@ -33,9 +33,8 @@ La tarifa es **por persona**, no por habitación. Una triple vendida para 1 se c
 
 | Habitación | Configuración | Se vende para | Tarifa |
 |---|---|---|---|
-| 105 | 5 o 6 | 5 o 6 | Según pax (quintuple o sextuple) |
-| 106 | 6 o suite | 6, o suite para 2 | Sextuple en ambos casos |
-| 106 | — | suite para 2 | Sextuple |
+| 105 | 6 camas o suite | 5, 6, o suite para 2 | Según pax; suite como sextuple |
+| 106 | 5 | 5 | Quintuple |
 | 201 | 5 | 5 o 4 | Según pax |
 | 109, 208, 403 | 4 o 5 | 4 o 3; 5 o 4 | Según pax |
 | Triples | 3 | 3, 2 o 1 | Triple, doble o sencilla |
@@ -62,6 +61,5 @@ La tarifa es **por persona**, no por habitación. Una triple vendida para 1 se c
 
 ## 6. Pendientes
 
-1. Confirmar si la **105** también se puede configurar como suite.
-2. Confirmar si la **106** se vende para 5 o solo 6 y suite.
-3. Confirmar si la suite incluye algo especial además de los dos espacios.
+1. Confirmar si la suite incluye algo especial además de los dos espacios.
+2. Confirmar si la 105 puede venderse para 1 a 4 personas o solo 5, 6 y suite.

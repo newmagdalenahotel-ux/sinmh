@@ -1,7 +1,7 @@
 numero,tipo_uso,clima,capacidad_max,es_suite,piso,activo,notas
 104,HABITACION,AC,2,false,1,true,"Sencilla o doble"
-105,HABITACION,AC,6,false,1,true,"5 o 6; confirmar si tambien es suite"
-106,HABITACION,AC,6,true,1,true,"Suite: 2 banos, 2 TV, 2 A/C, dos espacios; se cobra como sextuple"
+105,HABITACION,AC,6,true,1,true,"Suite: 2 banos, 2 TV, 2 A/C, dos espacios; 6 camas; se vende 5 o 6, o suite para 2 al precio de sextuple"
+106,HABITACION,AC,5,false,1,true,"Quintuple"
 107,HABITACION,AC,3,false,1,true,"Triple"
 108,HABITACION,VENTILADOR,2,false,1,true,"Sencilla o doble; A/C no funciona"
 109,HABITACION,AC,5,false,1,true,"4 o 5; 3 si se configura para 4"

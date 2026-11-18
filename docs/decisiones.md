@@ -185,15 +185,27 @@
 
 ---
 
-## ADR-019 — Tarifa por pax y suite 106
+## ADR-019 — Tarifa por pax y suite 105
 
 **Estado:** aceptada
 
-**Contexto:** la tarifa se cobra por persona: una triple vendida para 1 se cobra como sencilla, para 2 como doble y para 3 como triple. La 106 es la suite y se cobra como sextuple aunque vaya para 2 personas.
+**Contexto:** la tarifa se cobra por persona: una triple vendida para 1 se cobra como sencilla, para 2 como doble y para 3 como triple. La 105 es la suite y se cobra como sextuple aunque vaya para 2 personas; la 106 es quintuple.
 
-**Decisión:** el precio se selecciona por **número de pax** (1 a 6) + clima + temporada + escenario. La suite 106 usa la tarifa de 6 pax sin importar cuántos vayan. Las acomodaciones permitidas por habitación limitan los pax vendibles.
+**Decisión:** el precio se selecciona por **número de pax** (1 a 6) + clima + temporada + escenario. La suite 105 usa la tarifa de 6 pax sin importar cuántos vayan. Las acomodaciones permitidas por habitación limitan los pax vendibles.
 
 **Consecuencia:** no se cobra por la capacidad de la habitación sino por los pax; la suite es un producto de precio fijo.
+
+---
+
+## ADR-020 — Desayuno como dato y como cargo
+
+**Estado:** aceptada
+
+**Contexto:** el desayuno vale 15.000 por persona; algunas tarifas de empresa lo incluyen y otras no; la cocina necesita saber cuántos desayunos hay y en qué habitaciones.
+
+**Decisión:** la reserva guarda si el desayuno va **incluido, pagado o no**, los pax con desayuno y el total. Si no va incluido y se pide, se cobra 15.000 por desayuno por persona. El convenio de empresa define si lo incluye. Se genera un reporte diario para cocina.
+
+**Consecuencia:** no se construye el módulo de restaurante en la v1, pero el dato queda desde el check-in y la cocina puede planear.
 
 ---
 
