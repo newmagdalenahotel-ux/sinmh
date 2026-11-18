@@ -1,0 +1,19 @@
+# Datos sensibles del hotel: no versionar
+datos y procesos/
+
+# Temporales de análisis
+.tmp/
+
+# Node
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*
+!.env.example
+
+# Logs y sistema
+*.log
+.DS_Store
+Thumbs.db
