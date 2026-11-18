@@ -36,7 +36,7 @@
 | 16 o más | Alta | 180.000 | No |
 
 - Si un **grupo** hace cruzar el umbral, se le respeta la tarifa vigente al momento de la cotización; la alta aplica a las ventas siguientes.
-- `[C]` El umbral de 15 es el mismo del SOP; se deja como parámetro y se ajusta con datos de ocupación, ADR y RevPAR.
+- `[C]` **Confirmado:** el umbral es de **15 habitaciones**. Se revisa a las 6 u 8 semanas con ocupación, ADR y RevPAR.
 - El calendario vive en una tabla de fechas, no en el código.
 
 ## 3. Escenarios y reglas de descuento
@@ -173,4 +173,3 @@ configuracion(clave='desayuno_impuesto', valor='POR_CONFIRMAR')
 2. Confirmar **IVA 19 % o impoconsumo 8 %** del desayuno de 15.000 (pendiente con el contador).
 3. IVA incluido o adicional; bar impoconsumo; datos de facturación.
 4. Modelo de la **Kyocera** y tamaño de hoja.
-5. Confirmar el umbral de **15 habitaciones** y si se activa la alta para las siguientes.

@@ -1,5 +1,43 @@
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
+import { parse } from 'csv-parse/sync';
 import { db } from '../db.js';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const seedsDir = path.resolve(here, '../../../seeds');
+
+type HabitacionCsv = {
+  numero: string;
+  tipo_uso: string;
+  clima: string;
+  capacidad_max: string;
+  es_suite: string;
+  piso: string;
+  activo: string;
+  notas: string;
+};
+
+type TarifaCsv = {
+  tipo: string;
+  temporada: string;
+  acomodacion: string;
+  escenario: string;
+  valor: string;
+};
+
+const habitaciones = parse(await readFile(path.join(seedsDir, 'habitaciones.csv'), 'utf8'), {
+  columns: true,
+  skip_empty_lines: true,
+  trim: true,
+}) as HabitacionCsv[];
+
+const tarifas = parse(await readFile(path.join(seedsDir, 'tarifas.csv'), 'utf8'), {
+  columns: true,
+  skip_empty_lines: true,
+  trim: true,
+}) as TarifaCsv[];
 
 const roles = [
   ['ADMIN', 'Administrador'],
@@ -15,7 +53,14 @@ const configuracion: Array<[string, string]> = [
   ['zona_horaria', 'America/Bogota'],
   ['desayuno_precio', '15000'],
   ['temporada_umbral', '15'],
+  ['hora_decision_temporada', '15:00'],
 ];
+
+const temporadasBase = [
+  ['BAJA', 'Temporada baja'],
+  ['ALTA', 'Temporada alta'],
+  ['UNICA', 'Tarifa única'],
+] as const;
 
 const adminUsername = 'admin';
 const adminPassword = 'admin123';
@@ -32,6 +77,59 @@ await db.transaction(async (tx) => {
     await tx.query(
       'INSERT INTO configuracion (clave, valor) VALUES ($1, $2) ON CONFLICT (clave) DO NOTHING',
       [clave, valor]
+    );
+  }
+
+  for (const [codigo, nombre] of temporadasBase) {
+    await tx.query(
+      'INSERT INTO temporada (codigo, nombre) VALUES ($1, $2) ON CONFLICT (codigo) DO NOTHING',
+      [codigo, nombre]
+    );
+  }
+
+  const temporadas = new Map(
+    (await tx.query<{ id: number; codigo: string }>('SELECT id, codigo FROM temporada')).rows.map(
+      (row) => [row.codigo, row.id]
+    )
+  );
+
+  for (const habitacion of habitaciones) {
+    await tx.query(
+      `INSERT INTO habitacion
+         (numero, tipo_uso, clima, capacidad_max, es_suite, piso, activo, notas)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       ON CONFLICT (numero) DO UPDATE SET
+         tipo_uso = EXCLUDED.tipo_uso,
+         clima = EXCLUDED.clima,
+         capacidad_max = EXCLUDED.capacidad_max,
+         es_suite = EXCLUDED.es_suite,
+         piso = EXCLUDED.piso,
+         activo = EXCLUDED.activo,
+         notas = EXCLUDED.notas,
+         updated_at = now()`,
+      [
+        habitacion.numero,
+        habitacion.tipo_uso,
+        habitacion.clima,
+        Number(habitacion.capacidad_max),
+        habitacion.es_suite === 'true',
+        Number(habitacion.piso),
+        habitacion.activo === 'true',
+        habitacion.notas,
+      ]
+    );
+  }
+
+  for (const tarifa of tarifas) {
+    const temporadaId = temporadas.get(tarifa.temporada);
+    if (!temporadaId) throw new Error(`Temporada desconocida: ${tarifa.temporada}`);
+
+    await tx.query(
+      `INSERT INTO tarifa (tipo_clima, temporada_id, acomodacion, escenario, valor)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (tipo_clima, temporada_id, acomodacion, escenario)
+       DO UPDATE SET valor = EXCLUDED.valor`,
+      [tarifa.tipo, temporadaId, Number(tarifa.acomodacion), tarifa.escenario, Number(tarifa.valor)]
     );
   }
 
@@ -64,7 +162,7 @@ await db.transaction(async (tx) => {
   );
 });
 
-console.log('Semilla aplicada.');
+console.log(`Semilla aplicada: ${habitaciones.length} habitaciones y ${tarifas.length} tarifas.`);
 console.log(`Usuario: ${adminUsername}`);
 console.log(`Contraseña: ${adminPassword} (cambiar en producción)`);
 await db.close();

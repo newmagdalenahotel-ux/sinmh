@@ -163,11 +163,11 @@
 
 ## ADR-015 — Temporada por demanda, no solo por calendario
 
-**Estado:** propuesta (pendiente confirmar umbral)
+**Estado:** aceptada (18-nov-2026)
 
 **Contexto:** hay festivos buenos y festivos malos; si se marca alta por calendario y no llega gente, se pierden ventas.
 
-**Decisión:** calendario base (festivos y 15-dic a 15-ene) más una **decisión diaria a las 3 pm**. Si hay reservas y la ocupación llega a **15 habitaciones**, se activa la **alta para las siguientes** y se cierran los descuentos; si no se llega a 15, el día va en **baja** y se habilitan A/B/C. El sistema sugiere y el admin confirma. La regla queda como **ejemplo configurable** para ir probando.
+**Decisión:** calendario base (festivos y 15-dic a 15-ene) más una **decisión diaria a las 3 pm**. El umbral queda confirmado en **15 habitaciones**: debajo de 15 el día va en **baja** y se habilitan A/B/C; con **15 o más** se activa la alta para las siguientes y se cierran los descuentos. El sistema sugiere y el admin confirma. Se revisa a las 6 u 8 semanas con ocupación, ADR y RevPAR.
 
 **Consecuencia:** el precio de la noche se cierra a las 3 pm; después de esa hora solo se aplica A si hay cupo y autorización.
 
