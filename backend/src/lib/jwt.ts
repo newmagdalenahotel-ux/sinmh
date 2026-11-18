@@ -4,6 +4,7 @@ import { config } from '../config.js';
 export type JwtUser = {
   sub: string;
   username: string;
+  nombre: string;
   rol: string;
 };
 

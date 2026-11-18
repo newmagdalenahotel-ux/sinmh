@@ -29,6 +29,7 @@ authRouter.post('/login', async (req, res) => {
   const token = signToken({
     sub: String(usuario.id),
     username: usuario.username,
+    nombre: usuario.nombre_completo,
     rol: usuario.rol,
   });
 

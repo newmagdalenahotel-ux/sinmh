@@ -38,6 +38,27 @@ npm run dev
 - Base: PostgreSQL embebido (PGlite) en `backend/.data`; el mismo esquema corre en PostgreSQL real.
 - Los datos de `datos y procesos/` no se versionan.
 
+## Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+- URL: `http://127.0.0.1:5173`
+- Login: `admin` / `admin123`
+- Consume la API en `http://localhost:3000`.
+
+## Todo desde la raíz
+
+```bash
+npm install
+npm run dev
+```
+
+Levanta la API y la web al mismo tiempo con `concurrently`.
+
 ## Siguiente paso
 
 Completar la Franja 0 con el frontend de login y el shell. Después, check-in walk-in con cobro, folio y cierre de caja.
