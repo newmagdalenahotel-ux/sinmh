@@ -5,6 +5,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { CheckinPage } from './pages/CheckinPage';
 import { CajaPage } from './pages/CajaPage';
+import { FoliosPage } from './pages/FoliosPage';
 
 export function App() {
   return (
@@ -15,6 +16,7 @@ export function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/checkin" element={<CheckinPage />} />
           <Route path="/caja" element={<CajaPage />} />
+          <Route path="/folios" element={<FoliosPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

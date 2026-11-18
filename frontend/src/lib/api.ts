@@ -224,3 +224,77 @@ export function cerrarCajaApi(
     token
   );
 }
+
+export type FolioResumen = {
+  id: number;
+  reserva_id: number;
+  saldo: string;
+  estado: string;
+  fecha_apertura: string;
+  fecha_cierre: string | null;
+  codigo: string;
+  fecha_entrada: string;
+  fecha_salida: string;
+  titular_cliente_id: number | null;
+  habitacion: string;
+  huesped: string | null;
+};
+
+export type CargoFolio = {
+  id: number;
+  fecha: string;
+  concepto: string;
+  cantidad: string;
+  precio_unitario: string;
+  monto: string;
+};
+
+export type CobroFolio = {
+  id: number;
+  fecha: string;
+  monto: string;
+  metodo_pago: string;
+  tipo_documento: string;
+  estado: string;
+};
+
+export type FolioDetalle = {
+  folio: FolioResumen;
+  cargos: CargoFolio[];
+  cobros: CobroFolio[];
+  totales: { cargos: number; cobros: number; saldo: number };
+};
+
+export type CheckoutPayload = {
+  metodo_pago?: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CREDITO';
+  tipo_documento?: 'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA';
+  notas?: string;
+};
+
+export type CheckoutResultado = {
+  folio: { id: number; estado: string };
+  reserva: { id: number; codigo: string; estado: string };
+  cobro: {
+    id: number;
+    monto: number;
+    metodo_pago?: string;
+    sesion_caja_id: number | null;
+  } | null;
+  totales: { cargos: number; cobros: number; saldo: number };
+};
+
+export function foliosApi(token: string) {
+  return request<{ folios: FolioResumen[] }>('/folios', {}, token);
+}
+
+export function folioApi(token: string, folioId: number) {
+  return request<FolioDetalle>(`/folios/${folioId}`, {}, token);
+}
+
+export function checkoutApi(token: string, folioId: number, payload: CheckoutPayload) {
+  return request<CheckoutResultado>(
+    `/folios/${folioId}/checkout`,
+    { method: 'POST', body: JSON.stringify(payload) },
+    token
+  );
+}

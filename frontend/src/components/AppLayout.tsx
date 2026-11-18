@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 const navegacion = [
   { to: '/dashboard', label: 'Recepción', activo: true },
   { to: '/checkin', label: 'Check-in', activo: true },
+  { to: '/folios', label: 'Huéspedes', activo: true },
   { to: '/habitaciones', label: 'Habitaciones', activo: false },
   { to: '/caja', label: 'Caja', activo: true },
   { to: '/reportes', label: 'Reportes', activo: false },

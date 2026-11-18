@@ -41,6 +41,7 @@ npm run dev
 - Cotización: `GET /tarifas/cotizar?habitacion_id=1&pax=2&temporada=BAJA&escenario=NORMAL`
 - Check-in: `POST /checkin` (cliente, reserva, huésped, folio, cargos y cobro)
 - Caja: `GET /caja/sesion-actual`, `POST /caja/sesiones`, `POST /caja/sesiones/:id/cerrar`
+- Folios: `GET /folios`, `GET /folios/:id`, `POST /folios/:id/checkout`
 - Semilla: 33 habitaciones, 31 rentables y 50 tarifas
 - Base: PostgreSQL embebido (PGlite) en `backend/.data`; el mismo esquema corre en PostgreSQL real.
 - Los datos de `datos y procesos/` no se versionan.
@@ -63,6 +64,8 @@ npm run dev
 
 ![Caja](docs/capturas/caja-con-cobro.png)
 
+![Huéspedes en casa](docs/capturas/folios-detalle.png)
+
 ## Todo desde la raíz
 
 ```bash
@@ -74,7 +77,7 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-La caja ya abre, enlaza los cobros en efectivo y cierra con arqueo. Sigue el **check-out con cierre de folio** y el listado de folios abiertos.
+La Franja 1 operativa está cerrada: check-in, caja, folios y check-out. Sigue **consolidar el alcance completo del sistema** y completar lo que falta de la v1: reportes, contabilidad de doble partida, usuarios/roles y bar recepción.
 
 ## Repositorio remoto
 

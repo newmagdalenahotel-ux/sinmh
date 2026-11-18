@@ -6,6 +6,7 @@ import { authRouter } from './modules/auth/auth.routes.js';
 import { cajaRouter } from './modules/caja/caja.routes.js';
 import { checkinRouter } from './modules/checkin/checkin.routes.js';
 import { disponibilidadRouter } from './modules/disponibilidad/disponibilidad.routes.js';
+import { foliosRouter } from './modules/folios/folios.routes.js';
 import { habitacionesRouter } from './modules/habitaciones/habitaciones.routes.js';
 import { tarifasRouter } from './modules/tarifas/tarifas.routes.js';
 
@@ -30,6 +31,7 @@ app.use('/tarifas', tarifasRouter);
 app.use('/disponibilidad', disponibilidadRouter);
 app.use('/checkin', checkinRouter);
 app.use('/caja', cajaRouter);
+app.use('/folios', foliosRouter);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);
