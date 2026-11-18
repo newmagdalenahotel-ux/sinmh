@@ -7,7 +7,7 @@ const navegacion = [
   { to: '/folios', label: 'Huéspedes', activo: true },
   { to: '/habitaciones', label: 'Habitaciones', activo: false },
   { to: '/caja', label: 'Caja', activo: true },
-  { to: '/reportes', label: 'Reportes', activo: false },
+  { to: '/reportes', label: 'Reportes', activo: true },
   { to: '/configuracion', label: 'Configuración', activo: false },
 ];
 

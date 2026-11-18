@@ -46,7 +46,7 @@ Un solo sistema para reemplazar el SIMP y las planillas de Excel, cubriendo toda
 | Alojamiento avanzado | Mensualidad, por horas, extensiones, cambios de habitación, contrato | 1A/1B | Pendiente |
 | Caja | Apertura, cierre, arqueo, ventas en efectivo | 1A | Hecho |
 | Caja avanzada | Gastos, retiros del dueño, aportes, traslados, ajustes | 1A | Pendiente |
-| Contabilidad | Cuentas, libro de doble partida, asientos, cuenta socio | 1A | Pendiente |
+| Contabilidad | Cuentas, libro de doble partida, asientos, cuenta socio | 1A | Parcial |
 | Clientes y crédito | Particulares, empresas, empleados, grupos, cupos, CxC, abonos, consolidados | 1A/1B | Pendiente |
 | Bar recepción | Productos, ventas, créditos de empleados, stock | 1A/1C | Pendiente |
 | Bar terraza y restaurante | Mesas, comandas, pagos divididos, propinas | 1C | Pendiente |
@@ -55,7 +55,7 @@ Un solo sistema para reemplazar el SIMP y las planillas de Excel, cubriendo toda
 | Paquetes y tours | Represa de Prado, habitación + almuerzo + piscina | 2 | Pendiente |
 | Gimnasio y lavandería | Servicios y ventas | 1C | Pendiente |
 | Compras y proveedores | Compras, gastos, cuentas por pagar | 1C | Pendiente |
-| Reportes | Ingresos, ocupación, cartera, resultado por centro, cuadre, cortesías, desayunos | 1A/1B | Pendiente |
+| Reportes | Ingresos, ocupación, cartera, resultado por centro, cuadre, cortesías, desayunos | 1A/1B | Parcial |
 | Facturación electrónica | DIAN, resolución, XML, PDF | 3 | Pendiente |
 | WhatsApp y web | Mensajes, reservas online | 2/3 | Pendiente |
 | Impresión | PDF para láser (v1), tirilla térmica (después) | 1A | Pendiente |
@@ -127,9 +127,9 @@ La Fase 1A original incluye además:
 
 | Pendiente | Por qué importa |
 |---|---|
-| **Contabilidad de doble partida** | Es la regla no negociable del SPEC original; hoy solo hay cargos y cobros, no libro. |
-| **Plan de cuentas y cuenta socio** | Sin esto no hay retiros del dueño ni estados financieros. |
-| **Reportes mínimos** | Ingresos del día, ocupación, cartera y cuadre de caja. |
+| **Contabilidad de doble partida** | Base hecha: cuentas, asientos automáticos y libro. Falta cuenta socio y cierre contable. |
+| **Plan de cuentas y cuenta socio** | El plan está cargado; falta la cuenta socio y sus movimientos. |
+| **Reportes mínimos** | Ingresos, ocupación y libro hechos; faltan cartera, resultado por centro y cuadre. |
 | **Usuarios y roles CRUD** | Hoy solo existe el usuario admin. |
 | **Cargos manuales al folio** | Consumos, noches extra, huésped adicional, cortesías. |
 | **Bar recepción** | Está en la v1 por decisión, pero no se ha construido. |
@@ -196,10 +196,12 @@ No se implementan hasta que su fase esté aprobada.
 
 ## 9. Próximo paso propuesto
 
-1. Aprobar este alcance.
-2. Cerrar la v1 con: contabilidad básica, reportes mínimos, usuarios/roles, cargos manuales, bar recepción y PDF de recibo.
-3. Pasar a 1B: empresas, crédito, mensualidad, extensiones y cambios.
-4. Pasar a 1C: POS, inventario, piscina y compras.
-5. Seguir con 2 y 3.
+1. Alcance aprobado.
+2. **Franja 2 — contabilidad y reportes base:** hecha (cuentas, libro, asientos automáticos, ingresos, ocupación y libro).
+3. **Franja 3 — usuarios/roles, cargos manuales, desayunos del día y PDF de recibo.**
+4. **Franja 4 — bar recepción y caja avanzada** (gastos, retiros, traslados).
+5. Pasar a 1B: empresas, crédito, mensualidad, extensiones y cambios.
+6. Pasar a 1C: POS, inventario, piscina y compras.
+7. Seguir con 2 y 3.
 
 Cada paso se ejecuta como franja con su propia lista de tareas y criterios de aceptación.

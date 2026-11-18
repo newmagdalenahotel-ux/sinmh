@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db.js';
 import { requireAuth } from '../../middleware/auth.js';
+import { registrarAsiento } from '../contabilidad/contabilidad.service.js';
 import { cotizarHabitacion } from '../tarifas/tarifas.service.js';
 
 export const checkinRouter = Router();
@@ -277,6 +278,36 @@ checkinRouter.post('/', async (req, res) => {
       );
     }
 
+    await registrarAsiento(tx, {
+      descripcion: `Check-in ${codigo}`,
+      origenTipo: 'CHECKIN',
+      origenId: reservaId,
+      usuarioId,
+      lineas: [
+        {
+          cuenta: '1103',
+          debe: total,
+          descripcion: `Cargo folio ${folioId}`,
+        },
+        {
+          cuenta: '4101',
+          centro: 'ALOJAMIENTO',
+          haber: totalAlojamiento,
+          descripcion: `Alojamiento hab. ${cotizacion.cotizacion.habitacion.numero}`,
+        },
+        ...(totalDesayuno > 0
+          ? [
+              {
+                cuenta: '4104',
+                centro: 'RESTAURANTE',
+                haber: totalDesayuno,
+                descripcion: 'Desayuno',
+              },
+            ]
+          : []),
+      ],
+    });
+
     let cobroId: number | null = null;
 
     if (montoPagado > 0 && datos.pago) {
@@ -305,6 +336,21 @@ checkinRouter.post('/', async (req, res) => {
            VALUES ($1, 'VENTA_EFECTIVO', $2, 'COBRO', $3, $4)`,
           [sesionCajaId, montoPagado, cobroId, usuarioId]
         );
+      }
+
+      if (cobroId) {
+        const cuentaPago = datos.pago.metodo_pago === 'EFECTIVO' ? '1101' : '1102';
+
+        await registrarAsiento(tx, {
+          descripcion: `Cobro check-in ${codigo}`,
+          origenTipo: 'COBRO',
+          origenId: cobroId,
+          usuarioId,
+          lineas: [
+            { cuenta: cuentaPago, debe: montoPagado },
+            { cuenta: '1103', haber: montoPagado },
+          ],
+        });
       }
     }
 

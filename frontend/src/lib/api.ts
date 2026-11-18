@@ -298,3 +298,51 @@ export function checkoutApi(token: string, folioId: number, payload: CheckoutPay
     token
   );
 }
+
+export type IngresoDetalle = {
+  centro_codigo: string;
+  centro: string;
+  cuenta_codigo: string;
+  cuenta: string;
+  total: string;
+};
+
+export type ReporteIngresos = {
+  fecha: string;
+  total: number;
+  detalle: IngresoDetalle[];
+};
+
+export type ReporteOcupacion = {
+  total: number;
+  ocupadas: number;
+  porcentaje: number;
+};
+
+export type LibroMovimiento = {
+  id: number;
+  fecha: string;
+  cuenta_codigo: string;
+  cuenta: string;
+  centro: string;
+  debe: string;
+  haber: string;
+  descripcion: string | null;
+  origen_tipo: string;
+};
+
+export function reporteIngresosApi(token: string, fecha: string) {
+  return request<ReporteIngresos>(`/reportes/ingresos?fecha=${fecha}`, {}, token);
+}
+
+export function reporteOcupacionApi(token: string) {
+  return request<ReporteOcupacion>('/reportes/ocupacion', {}, token);
+}
+
+export function reporteLibroApi(token: string, desde: string, hasta: string) {
+  return request<{ desde: string; hasta: string; movimientos: LibroMovimiento[] }>(
+    `/reportes/libro?desde=${desde}&hasta=${hasta}`,
+    {},
+    token
+  );
+}

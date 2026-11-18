@@ -8,6 +8,7 @@ import { checkinRouter } from './modules/checkin/checkin.routes.js';
 import { disponibilidadRouter } from './modules/disponibilidad/disponibilidad.routes.js';
 import { foliosRouter } from './modules/folios/folios.routes.js';
 import { habitacionesRouter } from './modules/habitaciones/habitaciones.routes.js';
+import { reportesRouter } from './modules/reportes/reportes.routes.js';
 import { tarifasRouter } from './modules/tarifas/tarifas.routes.js';
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/disponibilidad', disponibilidadRouter);
 app.use('/checkin', checkinRouter);
 app.use('/caja', cajaRouter);
 app.use('/folios', foliosRouter);
+app.use('/reportes', reportesRouter);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);

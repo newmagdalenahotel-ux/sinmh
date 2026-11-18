@@ -76,6 +76,33 @@ const centrosBase = [
 
 const puntosVentaBase = [['RECEPCION', 'Recepción', 'ALOJAMIENTO']] as const;
 
+const cuentasBase = [
+  ['1101', 'Caja', 'ACTIVO'],
+  ['1102', 'Bancos', 'ACTIVO'],
+  ['1103', 'Cuentas por cobrar', 'ACTIVO'],
+  ['1104', 'Inventario', 'ACTIVO'],
+  ['2101', 'IVA por pagar', 'PASIVO'],
+  ['2102', 'Cuentas por pagar proveedores', 'PASIVO'],
+  ['2103', 'Ingreso diferido', 'PASIVO'],
+  ['3101', 'Patrimonio', 'PATRIMONIO'],
+  ['3102', 'Retiros del socio', 'PATRIMONIO'],
+  ['4101', 'Ingreso Alojamiento', 'INGRESO'],
+  ['4102', 'Ingreso Bar Recepción', 'INGRESO'],
+  ['4103', 'Ingreso Bar Terraza', 'INGRESO'],
+  ['4104', 'Ingreso Restaurante', 'INGRESO'],
+  ['4105', 'Ingreso Eventos', 'INGRESO'],
+  ['4106', 'Ingreso Piscina Pasadía', 'INGRESO'],
+  ['4107', 'Ingreso Tour Represa', 'INGRESO'],
+  ['5101', 'Costo Bebidas', 'COSTO'],
+  ['5102', 'Costo Alimentos', 'COSTO'],
+  ['6101', 'Gasto Lavandería', 'GASTO'],
+  ['6102', 'Gasto Servicios', 'GASTO'],
+  ['6103', 'Gasto Nómina', 'GASTO'],
+  ['6104', 'Gasto Mantenimiento', 'GASTO'],
+  ['6105', 'Gasto Administración', 'GASTO'],
+  ['6106', 'Gasto Cortesías', 'GASTO'],
+] as const;
+
 const adminUsername = 'admin';
 const adminPassword = 'admin123';
 
@@ -114,6 +141,13 @@ await db.transaction(async (tx) => {
        VALUES ($1, $2, (SELECT id FROM centro WHERE codigo = $3))
        ON CONFLICT (codigo) DO NOTHING`,
       [codigo, nombre, centroCodigo]
+    );
+  }
+
+  for (const [codigo, nombre, tipo] of cuentasBase) {
+    await tx.query(
+      'INSERT INTO cuenta (codigo, nombre, tipo) VALUES ($1, $2, $3) ON CONFLICT (codigo) DO NOTHING',
+      [codigo, nombre, tipo]
     );
   }
 

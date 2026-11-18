@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../../db.js';
 import { requireAuth } from '../../middleware/auth.js';
+import { registrarAsiento } from '../contabilidad/contabilidad.service.js';
 
 export const foliosRouter = Router();
 
@@ -246,6 +247,21 @@ foliosRouter.post('/:id/checkout', async (req, res) => {
            VALUES ($1, 'VENTA_EFECTIVO', $2, 'COBRO', $3, $4)`,
           [sesionCajaId, saldo, cobroId, usuarioId]
         );
+      }
+
+      if (cobroId && saldo > 0 && parsed.data.metodo_pago) {
+        const cuentaPago = parsed.data.metodo_pago === 'EFECTIVO' ? '1101' : '1102';
+
+        await registrarAsiento(tx, {
+          descripcion: `Check-out ${folio.codigo}`,
+          origenTipo: 'CHECKOUT_COBRO',
+          origenId: cobroId,
+          usuarioId,
+          lineas: [
+            { cuenta: cuentaPago, debe: saldo },
+            { cuenta: '1103', haber: saldo },
+          ],
+        });
       }
     }
 
