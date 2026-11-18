@@ -85,13 +85,15 @@
 
 ## 7. Desayuno
 
-- **Precio: 15.000 por desayuno por persona.**
-- Las tarifas públicas **no incluyen desayuno**. Si el huésped lo pide, se suman **15.000 × desayunos** a la tarifa.
-- Las tarifas de empresa pueden **incluirlo** en el convenio (no se suma) o **no incluirlo** (se suma si se pide).
-- Cantidad: **pax × noches**. Ejemplo: 2 personas, 3 noches = 6 desayunos = 90.000.
-- `[C]` Confirmar si se cuenta por noche o por día, y qué pasa si no lo consumen.
-- **Reporte diario para cocina:** habitación, pax, si va incluido o pagado, y total de desayunos del día.
-- Si va incluido, no se cobra aparte; el costo es del restaurante.
+- **Costo del restaurante: 12.000.**
+- **Recomendación: venderlo a 18.000 con impuesto incluido**, o a **15.000 + impuesto**. No venderlo a 15.000 con impuesto incluido: con IVA del 19 % el neto sería 12.605 y el margen quedaría en 605, casi nada.
+- **15.000 + IVA (19 %) = 17.850**, que se redondea a 18.000. Si se maneja como restaurante con impoconsumo del 8 %, 15.000 + 8 % = 16.200; también se puede dejar en 18.000.
+- Las tarifas públicas **no incluyen desayuno**. Si el huésped lo pide, se suman **15.000 × desayunos** a la tarifa, más el impuesto.
+- Las tarifas de empresa pueden **incluirlo** (no se suma, pero la tarifa negociada debe cubrir el costo de 12.000) o **no incluirlo** (se suma si se pide).
+- Cantidad: **pax × noches**. Ejemplo: 2 personas, 3 noches = 6 desayunos.
+- **Incluido y no consumido:** no se devuelve; se cobra igual y se cuenta para la cocina.
+- **Pagado y no consumido:** no se devuelve automáticamente; el admin puede anular el cargo con motivo y autorización antes del corte del día.
+- **Reporte diario para cocina:** habitación, pax, incluido o pagado, y total de desayunos del día.
 - Si se cobra, se registra como cargo al folio con centro **RESTAURANTE**.
 
 ## 8. Habitaciones con ventilador
@@ -142,7 +144,10 @@ temporada_fecha(id, temporada_id, desde, hasta)
 tarifa(id, tipo_habitacion_id, temporada_id, acomodacion, escenario, valor, incluye_desayuno)
 convenio_tarifa(id, cliente_id, tipo_habitacion_id, acomodacion, valor, dias_credito, cupo, incluye_desayuno)
 reserva(..., incluye_desayuno, desayunos_pax, desayunos_total)
-configuracion(clave='desayuno_precio', valor='15000')
+configuracion(clave='desayuno_costo', valor='12000')
+configuracion(clave='desayuno_precio', valor='18000')
+configuracion(clave='desayuno_precio_neto', valor='15000')
+configuracion(clave='desayuno_impuesto', valor='19')
 ```
 
 - `acomodacion`: 1 a 6.
@@ -155,7 +160,7 @@ configuracion(clave='desayuno_precio', valor='15000')
 ## 13. Pendientes
 
 1. Confirmar **290.000 / 400.000** para sextuple y suite, y sus descuentos.
-2. Confirmar si el desayuno se cuenta por **noche o por día** y qué pasa si no se consume.
+2. Confirmar si el desayuno se factura con **IVA 19 %** o **impoconsumo 8 %**.
 3. Confirmar **130.000 vs 125.000** en 2 personas temporada baja.
 4. IVA incluido o adicional; bar impoconsumo; datos de facturación.
 5. Modelo de la **Kyocera** y tamaño de hoja.

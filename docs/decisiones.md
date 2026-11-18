@@ -201,9 +201,9 @@
 
 **Estado:** aceptada
 
-**Contexto:** el desayuno vale 15.000 por persona; algunas tarifas de empresa lo incluyen y otras no; la cocina necesita saber cuántos desayunos hay y en qué habitaciones.
+**Contexto:** el restaurante deja el desayuno en 12.000; algunas tarifas de empresa lo incluyen y otras no; la cocina necesita saber cuántos desayunos hay y en qué habitaciones.
 
-**Decisión:** la reserva guarda si el desayuno va **incluido, pagado o no**, los pax con desayuno y el total. Si no va incluido y se pide, se cobra 15.000 por desayuno por persona. El convenio de empresa define si lo incluye. Se genera un reporte diario para cocina.
+**Decisión:** el desayuno se vende a **18.000 con impuesto incluido** (equivalente a 15.000 + impuesto), nunca a 15.000 con impuesto incluido, porque el margen quedaría casi en cero. La reserva guarda si va **incluido, pagado o no**, los pax con desayuno y el total. La cantidad es **pax × noches**. Si va incluido y no se consume, no se devuelve; si es pagado, no se devuelve automáticamente, pero el admin puede anular el cargo con motivo. El convenio de empresa define si lo incluye y la tarifa debe cubrir el costo. Se genera un reporte diario para cocina.
 
 **Consecuencia:** no se construye el módulo de restaurante en la v1, pero el dato queda desde el check-in y la cocina puede planear.
 
