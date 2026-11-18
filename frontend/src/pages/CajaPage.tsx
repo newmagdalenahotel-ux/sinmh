@@ -9,6 +9,7 @@ import {
   cajaSesionesAbiertasApi,
   cajaTrasladoApi,
   cerrarCajaApi,
+  cuadreCajaPdfApi,
   sesionActualApi,
   type PuntoVenta,
   type SesionAbierta,
@@ -203,7 +204,6 @@ export function CajaPage() {
 
   async function trasladar() {
     if (!token) return;
-
     if (!trasladoOrigen || !trasladoDestino || trasladoOrigen === trasladoDestino) {
       setError('Selecciona dos cajas diferentes');
       return;
@@ -232,6 +232,20 @@ export function CajaPage() {
       setError(err instanceof Error ? err.message : 'No se pudo registrar el traslado');
     } finally {
       setTrasladando(false);
+    }
+  }
+
+  async function descargarCuadre() {
+    if (!token || !sesion) return;
+    setError('');
+
+    try {
+      const blob = await cuadreCajaPdfApi(token, sesion.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo generar el cuadre');
     }
   }
 
@@ -363,6 +377,12 @@ export function CajaPage() {
               <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
                 {sesion.movimientos.length} movimiento(s)
               </span>
+              <button
+                className="rounded-lg border border-gold/40 px-3 py-1 text-xs text-gold-dark"
+                onClick={() => void descargarCuadre()}
+              >
+                Cuadre PDF
+              </button>
             </div>
 
             <dl className="mt-5 grid gap-3 sm:grid-cols-3">

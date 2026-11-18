@@ -141,6 +141,33 @@ export function disponibilidadApi(
   return request<DisponibilidadResponse>(`/disponibilidad?${params.toString()}`, {}, token);
 }
 
+export type HabitacionTablero = {
+  id: number;
+  numero: string;
+  piso: number | null;
+  clima: 'AC' | 'VENTILADOR' | 'N/A';
+  capacidad_max: number;
+  es_suite: boolean;
+  estado_operativo: 'LIMPIA' | 'SUCIA' | 'MANTENIMIENTO';
+  estado: 'LIBRE' | 'OCUPADA' | 'RESERVADA' | 'SUCIA' | 'MANTENIMIENTO';
+};
+
+export function tableroHabitacionesApi(token: string) {
+  return request<{ habitaciones: HabitacionTablero[] }>('/habitaciones/tablero', {}, token);
+}
+
+export function actualizarEstadoHabitacionApi(
+  token: string,
+  habitacionId: number,
+  estado: 'LIMPIA' | 'SUCIA' | 'MANTENIMIENTO'
+) {
+  return request<{ habitacion: { id: number; numero: string; estado_operativo: string } }>(
+    `/habitaciones/${habitacionId}/estado`,
+    { method: 'PUT', body: JSON.stringify({ estado_operativo: estado }) },
+    token
+  );
+}
+
 export function cotizarApi(
   token: string,
   habitacionId: number,
@@ -304,6 +331,18 @@ export function cajaCambioTurnoApi(
     method: 'POST',
     body: JSON.stringify({ monto_declarado: montoDeclarado, notas }),
   }, token);
+}
+
+export async function cuadreCajaPdfApi(token: string, sesionId: number): Promise<Blob> {
+  const respuesta = await fetch(`${API_URL}/caja/sesiones/${sesionId}/cuadre.pdf`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!respuesta.ok) {
+    throw new Error('No se pudo generar el cuadre de caja');
+  }
+
+  return respuesta.blob();
 }
 
 export type FolioResumen = {

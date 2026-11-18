@@ -1,0 +1,3 @@
+ALTER TABLE habitacion
+  ADD COLUMN IF NOT EXISTS estado_operativo VARCHAR(20) NOT NULL DEFAULT 'LIMPIA'
+    CHECK (estado_operativo IN ('LIMPIA', 'SUCIA', 'MANTENIMIENTO'));

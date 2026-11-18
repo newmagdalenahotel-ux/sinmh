@@ -23,6 +23,10 @@
     @apply inline-flex items-center justify-center rounded-lg bg-gradient-to-b from-gold-dark to-gold px-4 py-2.5 text-sm font-semibold text-navy-dark shadow-gold transition hover:from-gold hover:to-gold-dark disabled:cursor-not-allowed disabled:opacity-60;
   }
 
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-gold/40 bg-white/70 px-4 py-2.5 text-sm font-medium text-navy transition hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
   .input {
     @apply h-11 w-full rounded-lg border border-cream-dark bg-white px-3 text-sm text-stone outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20;
   }

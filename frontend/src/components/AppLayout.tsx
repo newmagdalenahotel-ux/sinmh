@@ -24,7 +24,7 @@ const navegacion: SeccionNavegacion[] = [
       { to: '/checkin', label: 'Check-in', activo: true },
       { to: '/folios', label: 'Huéspedes y folios', activo: true },
       { to: '/clientes', label: 'Clientes', activo: true },
-      { to: '/habitaciones', label: 'Habitaciones', activo: false },
+      { to: '/habitaciones', label: 'Habitaciones', activo: true },
     ],
   },
   {

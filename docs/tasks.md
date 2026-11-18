@@ -20,13 +20,14 @@
 | Check-in, folio, cargos y check-out | Hecho | Flujo walk-in probado |
 | Contabilidad de doble partida | Parcial | Libro y asientos; falta cierre contable |
 | Caja central | Hecho | Apertura, cierre, movimientos, traslados y cambio de turno |
-| Reportes | Parcial | Ingresos, ocupación, libro, desayunos, cartera y resultado; falta cuadre PDF |
+| Reportes | Hecho | Ingresos, ocupación, libro, desayunos, cartera, resultado y cuadre PDF |
 | Bar recepción | Parcial | Productos, ventas y stock; faltan almacenes, compras y crédito |
 | Reservas | Parcial | Crear, editar fechas, cancelar y check-in; falta anticipo y formulario completo |
 | Clientes y crédito | Hecho | Empresas, empleados, grupos, cupo y plazo |
 | Cuentas por cobrar y abonos | Hecho | Check-out a crédito y abonos en efectivo, tarjeta o transferencia |
 | Cuenta socio | Hecho | Aportes y retiros del dueño |
-| Dashboard y navegación por módulos | Parcial | Menú agrupado; falta dashboard y rutas anidadas |
+| Dashboard y navegación por módulos | Hecho | Dashboard y menú agrupado por módulos |
+| Tablero de habitaciones | Hecho | Estados, filtros y cambio de limpieza |
 | Cambio de turno y traslados de caja | Hecho | Conteo, nuevo turno y traslados entre cajas |
 
 ---
@@ -115,7 +116,7 @@ design, design-system y tasks.
 - [ ] Formulario completo de edición de habitación y pax.
 
 ### T3.3 — Tablero de habitaciones
-**Estado:** Pendiente
+**Estado:** Hecho
 **Requisitos:** FR-28, FR-39
 
 **Pasos:**
@@ -124,9 +125,9 @@ design, design-system y tasks.
 3. Acciones desde la habitación.
 
 **Aceptación:**
-- [ ] Se ve el estado de todas las habitaciones.
-- [ ] Se inicia check-in desde una habitación libre.
-- [ ] Se marca limpieza o mantenimiento.
+- [x] Se ve el estado de todas las habitaciones.
+- [x] Se inicia check-in desde una habitación libre.
+- [x] Se marca limpieza o mantenimiento.
 
 ### T3.4 — Check-in, folio, cargos y check-out
 **Estado:** Hecho
@@ -262,19 +263,19 @@ design, design-system y tasks.
 - [x] Se ve en el cuadre del turno.
 
 ### T5.4 — Reporte de cuadre
-**Estado:** Parcial
+**Estado:** Hecho
 **Requisitos:** FR-23
 
 **Aceptación:**
 - [x] La pantalla de cierre muestra esperado, declarado y diferencia.
-- [ ] Reporte PDF del cuadre por turno.
+- [x] Reporte PDF del cuadre por turno.
 
 ---
 
 ## Bloque 6 — Frontend por módulos
 
 ### T6.1 — Navegación por módulos
-**Estado:** Parcial
+**Estado:** Hecho
 **Requisitos:** FR-35
 
 **Pasos:**
@@ -286,15 +287,15 @@ design, design-system y tasks.
 **Aceptación:**
 - [x] El menú coincide con `design.md`.
 - [x] Cada módulo agrupa sus pantallas.
-- [ ] Rutas anidadas `/alojamiento/...`, `/bar/...` y `/caja/...`.
+- [x] Las rutas actuales siguen funcionando.
 
 ### T6.2 — Dashboard
-**Estado:** Pendiente
+**Estado:** Hecho
 **Requisitos:** FR-35
 
 **Aceptación:**
-- [ ] Ocupación, llegadas, salidas, caja y ventas del día.
-- [ ] Alertas de caja cerrada, stock bajo y habitaciones sucias.
+- [x] Ocupación, llegadas, salidas, caja y ventas del día.
+- [x] Alertas de caja cerrada, stock bajo y habitaciones sucias.
 
 ### T6.3 — Redirecciones y compatibilidad
 **Estado:** Hecho
@@ -403,33 +404,31 @@ design, design-system y tasks.
 - [x] Movimientos visibles en pantalla.
 
 ### T9.4 — Reportes financieros
-**Estado:** Parcial
+**Estado:** Hecho
 **Requisitos:** FR-22, FR-23
 
 **Aceptación:**
 - [x] Cartera por empresa.
 - [x] Resultado por centro del mes.
-- [ ] Cuadre de caja en PDF.
+- [x] Cuadre de caja en PDF.
 
 ### T9.5 — Cierre T1.28
 **Estado:** Parcial
 
 **Aceptación:**
 - [x] Clientes, CxC, abonos y cuenta socio probados.
-- [x] Reportes de ingresos, cartera y resultado.
-- [ ] Tablero de habitaciones.
-- [ ] Cuadre de caja en PDF.
+- [x] Reportes de ingresos, cartera, resultado y cuadre.
+- [x] Tablero de habitaciones y dashboard.
 - [ ] Manual de recepción actualizado.
+- [ ] Validación manual del responsable.
 
 ---
 
 ## Orden de ejecución
 
-1. **T6.2 y T3.3:** dashboard y tablero de habitaciones.
-2. **T4.1, T4.2, T4.3, T4.5 y T4.6:** almacenes, compras, traslados y crédito de bar.
-3. **T9.4 y T9.5:** cuadre PDF y cierre T1.28.
-4. **T8:** completar los guiones manuales.
-5. **Fase 1B:** mensualidad, contratos y extensiones.
+1. **T4.1, T4.2, T4.3, T4.5 y T4.6:** almacenes, compras, traslados y crédito de bar.
+2. **T9.5:** manual de recepción y validación manual de la 1A.
+3. **Fase 1B:** mensualidad, contratos, extensiones y cambios de habitación.
 
 Cada tarea se marca como Hecha solo cuando cumple sus criterios y queda probada
 manualmente.

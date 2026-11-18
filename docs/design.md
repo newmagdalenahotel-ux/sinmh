@@ -87,13 +87,14 @@ diseño de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar 
 | Cargos manuales | Hecho | — |
 | Caja central | Hecho | — |
 | Contabilidad | Parcial | Cierre contable y estados |
-| Reportes | Parcial | Cuadre de caja en PDF |
+| Reportes | Hecho | — |
 | Clientes y crédito | Hecho | — |
 | Cuentas por cobrar y abonos | Hecho | — |
 | Cuenta socio | Hecho | — |
 | Bar recepción | Parcial | Almacenes, compras, traslados y crédito |
-| Reservas | Parcial | Crear, listar, editar fechas, cancelar y check-in; faltan anticipo y tablero |
-| Dashboard y navegación por módulos | Parcial | Menú agrupado; faltan dashboard y rutas anidadas |
+| Reservas | Parcial | Crear, listar, editar fechas, cancelar y check-in; faltan anticipo y formulario completo |
+| Tablero de habitaciones | Hecho | — |
+| Dashboard y navegación por módulos | Hecho | — |
 | Restaurante, eventos, DIAN | Fuera de la fase | Fases 1C, 2 y 3 |
 
 ### Esquema implementado

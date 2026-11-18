@@ -177,7 +177,7 @@ y anticipo opcional.
 - Si había anticipo, se registra la devolución o retención.
 
 ### FR-28 — Tablero de habitaciones
-**Fase:** actual · **Estado:** Pendiente
+**Fase:** actual · **Estado:** Hecho
 **Descripción:** Ver el estado de las 31 habitaciones rentables en una sola pantalla.
 
 **Aceptación:**
@@ -317,7 +317,7 @@ la habitación.
 ## Módulo: Frontend
 
 ### FR-35 — Dashboard y navegación por módulos
-**Fase:** actual · **Estado:** Parcial
+**Fase:** actual · **Estado:** Hecho
 **Descripción:** El frontend se organiza por módulos y muestra un dashboard con
 la información principal del día.
 
@@ -338,7 +338,7 @@ la información principal del día.
 - Editar y cancelar.
 
 ### FR-39 — Tablero de habitaciones en la pantalla
-**Fase:** actual · **Estado:** Pendiente
+**Fase:** actual · **Estado:** Hecho
 **Descripción:** Pantalla visual del estado de las habitaciones.
 
 **Aceptación:**
@@ -367,7 +367,7 @@ la información principal del día.
 **Aceptación:** Ingresos, costos y margen por centro y mes.
 
 ### FR-23 — Cuadre de caja
-**Fase:** actual · **Estado:** Parcial
+**Fase:** actual · **Estado:** Hecho
 **Aceptación:** Detalle de movimientos, esperado, declarado y diferencia.
 
 ### FR-37 — Libro y desayunos

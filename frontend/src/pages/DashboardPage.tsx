@@ -1,96 +1,222 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import {
+  productosApi,
+  reporteIngresosApi,
+  reporteOcupacionApi,
+  reservasApi,
+  sesionActualApi,
+  tableroHabitacionesApi,
+  ventasBarApi,
+  type Producto,
+  type ReservaResumen,
+  type SesionCaja,
+  type VentaBar,
+} from '../lib/api';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+function fechaLocal() {
+  const fecha = new Date();
+  const anio = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  return `${anio}-${mes}-${dia}`;
+}
 
-type EstadoApi = 'cargando' | 'ok' | 'error';
+function formatoMoneda(valor: number) {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+  }).format(valor);
+}
 
 export function DashboardPage() {
-  const { usuario } = useAuth();
-  const [estadoApi, setEstadoApi] = useState<EstadoApi>('cargando');
+  const { token, usuario } = useAuth();
+  const [ocupacion, setOcupacion] = useState({ ocupadas: 0, total: 0, porcentaje: 0 });
+  const [ingresos, setIngresos] = useState(0);
+  const [sesion, setSesion] = useState<SesionCaja | null>(null);
+  const [ventas, setVentas] = useState<VentaBar[]>([]);
+  const [reservas, setReservas] = useState<ReservaResumen[]>([]);
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [sucias, setSucias] = useState(0);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch(`${API_URL}/health`)
-      .then((respuesta) => setEstadoApi(respuesta.ok ? 'ok' : 'error'))
-      .catch(() => setEstadoApi('error'));
-  }, []);
+    if (!token) return;
+
+    let activo = true;
+    setCargando(true);
+
+    Promise.all([
+      reporteOcupacionApi(token),
+      reporteIngresosApi(token, fechaLocal()),
+      sesionActualApi(token),
+      ventasBarApi(token),
+      reservasApi(token),
+      productosApi(token),
+      tableroHabitacionesApi(token),
+    ])
+      .then(([ocu, ing, caja, bar, res, pro, tablero]) => {
+        if (!activo) return;
+        setOcupacion(ocu);
+        setIngresos(ing.total);
+        setSesion(caja.sesion);
+        setVentas(bar.ventas);
+        setReservas(res.reservas);
+        setProductos(pro.productos);
+        setSucias(tablero.habitaciones.filter((h) => h.estado === 'SUCIA').length);
+      })
+      .catch((err) => {
+        if (activo) setError(err instanceof Error ? err.message : 'No se pudo cargar el dashboard');
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, [token]);
+
+  if (!token) return null;
+
+  const hoy = fechaLocal();
+  const llegadas = reservas.filter(
+    (reserva) =>
+      reserva.fecha_entrada.slice(0, 10) === hoy &&
+      ['PENDIENTE', 'CONFIRMADA'].includes(reserva.estado)
+  );
+  const salidas = reservas.filter(
+    (reserva) => reserva.fecha_salida.slice(0, 10) === hoy && reserva.estado === 'CHECKIN'
+  );
+  const stockBajo = productos.filter(
+    (producto) => Number(producto.stock) <= Number(producto.stock_minimo)
+  );
+  const totalVentasBar = ventas.reduce((suma, venta) => suma + Number(venta.total), 0);
 
   const tarjetas = [
-    { titulo: 'Ocupación', valor: '—', detalle: 'Se activa con check-in' },
-    { titulo: 'Ingresos de hoy', valor: '—', detalle: 'Se activa con caja' },
-    { titulo: 'Llegadas hoy', valor: '—', detalle: 'Se activa con reservas' },
-    { titulo: 'Caja', valor: '—', detalle: 'Se activa con apertura' },
+    {
+      titulo: 'Ocupación',
+      valor: `${ocupacion.ocupadas} / ${ocupacion.total}`,
+      detalle: `${ocupacion.porcentaje}% de habitaciones`,
+      enlace: '/habitaciones',
+    },
+    {
+      titulo: 'Ingresos de hoy',
+      valor: formatoMoneda(ingresos),
+      detalle: 'Alojamiento, bar y servicios',
+      enlace: '/reportes',
+    },
+    {
+      titulo: 'Caja',
+      valor: sesion ? formatoMoneda(sesion.efectivo_esperado) : 'Cerrada',
+      detalle: sesion ? `Turno #${sesion.id}` : 'Abre la caja para cobrar efectivo',
+      enlace: '/caja',
+    },
+    {
+      titulo: 'Ventas de bar',
+      valor: formatoMoneda(totalVentasBar),
+      detalle: `${ventas.length} venta(s) registradas`,
+      enlace: '/bar',
+    },
   ];
-
-  const estadoClase =
-    estadoApi === 'ok'
-      ? 'bg-success/10 text-success'
-      : estadoApi === 'error'
-        ? 'bg-error/10 text-error'
-        : 'bg-cream-dark text-stone-light';
-
-  const estadoTexto =
-    estadoApi === 'ok' ? 'API: conectada' : estadoApi === 'error' ? 'API: sin conexión' : 'API: verificando…';
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-gold-dark">Recepción</p>
-          <h1 className="font-display text-3xl text-stone">
-            Buen día, {usuario?.nombre?.split(' ')[0] ?? 'equipo'}
-          </h1>
-          <p className="mt-1 text-sm text-stone-light">
-            Franja 0: base y acceso funcionando. El check-in entra en la siguiente franja.
-          </p>
-        </div>
-        <div className={`rounded-full px-3 py-1 text-xs font-medium ${estadoClase}`}>{estadoTexto}</div>
+      <div>
+        <p className="text-sm font-medium text-gold-dark">Principal</p>
+        <h1 className="font-display text-3xl text-stone">
+          Buen día, {usuario?.nombre?.split(' ')[0] ?? 'equipo'}
+        </h1>
+        <p className="mt-1 text-sm text-stone-light">
+          Resumen de la operación de hoy, {hoy}.
+        </p>
       </div>
+
+      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {tarjetas.map((tarjeta) => (
-          <div key={tarjeta.titulo} className="card">
+          <Link key={tarjeta.titulo} to={tarjeta.enlace} className="card transition hover:border-gold/50">
             <p className="text-sm text-stone-light">{tarjeta.titulo}</p>
-            <p className="mt-2 font-display text-4xl text-navy">{tarjeta.valor}</p>
+            <p className="mt-2 font-display text-3xl text-navy">{tarjeta.valor}</p>
             <p className="mt-2 text-xs text-stone-light">{tarjeta.detalle}</p>
-          </div>
+          </Link>
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="card lg:col-span-2">
-          <h2 className="font-display text-xl text-stone">Siguiente paso</h2>
-          <p className="mt-2 text-sm text-stone-light">
-            Check-in walk-in: tarifa por pax, descuento, datos del huésped, habitación, cobro y folio.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2 text-xs">
-            <span className="rounded-full bg-gold/10 px-3 py-1 text-gold-dark">Tarifa por pax</span>
-            <span className="rounded-full bg-gold/10 px-3 py-1 text-gold-dark">Suite 105</span>
-            <span className="rounded-full bg-gold/10 px-3 py-1 text-gold-dark">Desayuno 15.000</span>
-          </div>
-          <Link to="/checkin" className="btn-primary mt-4">
-            Nuevo check-in
-          </Link>
-        </div>
+      {!cargando && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <section className="card">
+            <h2 className="font-display text-xl text-stone">Llegadas de hoy</h2>
+            {llegadas.length === 0 ? (
+              <p className="mt-3 text-sm text-stone-light">No hay llegadas pendientes.</p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {llegadas.slice(0, 6).map((reserva) => (
+                  <div key={reserva.id} className="flex justify-between gap-2 text-sm">
+                    <span>
+                      {reserva.cliente ?? 'Sin titular'}
+                      <span className="block text-xs text-stone-light">Hab. {reserva.habitacion}</span>
+                    </span>
+                    <Link to="/reservas" className="text-xs text-gold-dark">Ver</Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
 
-        <div className="card">
-          <h2 className="font-display text-xl text-stone">Sesión</h2>
-          <dl className="mt-3 space-y-2 text-sm">
-            <div className="flex justify-between gap-3">
-              <dt className="text-stone-light">Usuario</dt>
-              <dd className="font-medium">{usuario?.username}</dd>
+          <section className="card">
+            <h2 className="font-display text-xl text-stone">Salidas de hoy</h2>
+            {salidas.length === 0 ? (
+              <p className="mt-3 text-sm text-stone-light">No hay salidas pendientes.</p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {salidas.slice(0, 6).map((reserva) => (
+                  <div key={reserva.id} className="flex justify-between gap-2 text-sm">
+                    <span>
+                      {reserva.cliente ?? 'Sin titular'}
+                      <span className="block text-xs text-stone-light">Hab. {reserva.habitacion}</span>
+                    </span>
+                    <Link to="/folios" className="text-xs text-gold-dark">Folio</Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="card">
+            <h2 className="font-display text-xl text-stone">Alertas</h2>
+            <div className="mt-3 space-y-2 text-sm">
+              {!sesion && (
+                <Link to="/caja" className="block rounded-lg bg-warning/10 px-3 py-2 text-warning">
+                  Caja cerrada. Abre el turno.
+                </Link>
+              )}
+              {sucias > 0 && (
+                <Link to="/habitaciones" className="block rounded-lg bg-warning/10 px-3 py-2 text-warning">
+                  {sucias} habitación(es) sucia(s).
+                </Link>
+              )}
+              {stockBajo.length > 0 && (
+                <Link to="/bar" className="block rounded-lg bg-warning/10 px-3 py-2 text-warning">
+                  {stockBajo.length} producto(s) bajo stock mínimo.
+                </Link>
+              )}
+              {sesion && sucias === 0 && stockBajo.length === 0 && (
+                <p className="text-stone-light">Sin alertas pendientes.</p>
+              )}
             </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-stone-light">Rol</dt>
-              <dd className="font-medium text-gold-dark">{usuario?.rol}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-stone-light">Base</dt>
-              <dd className="font-medium">PGlite local</dd>
-            </div>
-          </dl>
+          </section>
         </div>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        <Link to="/reservas" className="btn-primary">Nueva reserva</Link>
+        <Link to="/checkin" className="btn-secondary">Check-in directo</Link>
+        <Link to="/bar" className="btn-secondary">Vender en bar</Link>
       </div>
     </div>
   );

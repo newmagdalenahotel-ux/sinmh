@@ -13,6 +13,7 @@ import { ReservasPage } from './pages/ReservasPage';
 import { ClientesPage } from './pages/ClientesPage';
 import { CarteraPage } from './pages/CarteraPage';
 import { CuentaSocioPage } from './pages/CuentaSocioPage';
+import { HabitacionesPage } from './pages/HabitacionesPage';
 
 export function App() {
   return (
@@ -26,6 +27,7 @@ export function App() {
           <Route path="/clientes" element={<ClientesPage />} />
           <Route path="/cartera" element={<CarteraPage />} />
           <Route path="/cuenta-socio" element={<CuentaSocioPage />} />
+          <Route path="/habitaciones" element={<HabitacionesPage />} />
           <Route path="/caja" element={<CajaPage />} />
           <Route path="/folios" element={<FoliosPage />} />
           <Route path="/reportes" element={<ReportesPage />} />

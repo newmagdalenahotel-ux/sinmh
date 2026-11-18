@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import PDFDocument from 'pdfkit';
 import { z } from 'zod';
 import { db } from '../../db.js';
 import { requireAuth } from '../../middleware/auth.js';
@@ -591,4 +592,82 @@ cajaRouter.get('/sesiones/:id', async (req, res) => {
       movimientos: await movimientosDe(sesionId),
     },
   });
+});
+
+cajaRouter.get('/sesiones/:id/cuadre.pdf', async (req, res) => {
+  const sesionId = Number(req.params.id);
+  if (!Number.isInteger(sesionId) || sesionId <= 0) {
+    res.status(400).json({ error: 'Sesión inválida' });
+    return;
+  }
+
+  const consulta = await db.query<SesionCaja & { punto_venta_nombre: string }>(
+    `SELECT sc.*, pv.nombre AS punto_venta_nombre
+     FROM sesion_caja sc
+     JOIN punto_venta pv ON pv.id = sc.punto_venta_id
+     WHERE sc.id = $1`,
+    [sesionId]
+  );
+
+  const sesion = consulta.rows[0];
+  if (!sesion) {
+    res.status(404).json({ error: 'Sesión no encontrada' });
+    return;
+  }
+
+  const neto = await calcularNeto(sesionId);
+  const esperado = Number(sesion.monto_apertura) + neto;
+  const declarado = Number(sesion.monto_declarado ?? esperado);
+  const diferencia = declarado - esperado;
+  const movimientos = await movimientosDe(sesionId);
+
+  const doc = new PDFDocument({ size: 'A4', margin: 50 });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="cuadre-caja-${sesionId}.pdf"`);
+  doc.pipe(res);
+
+  doc.fontSize(20).text('Hotel New Magdalena', { align: 'center' });
+  doc.fontSize(10).text('NIT 901.088.516-5', { align: 'center' });
+  doc.moveDown();
+  doc.fontSize(14).text('CUADRE DE CAJA', { align: 'center' });
+  doc.moveDown();
+
+  doc.fontSize(10).text(`Turno: #${sesion.id}`);
+  doc.text(`Punto de venta: ${sesion.punto_venta_nombre}`);
+  doc.text(`Apertura: ${new Date(sesion.fecha_apertura).toLocaleString('es-CO')}`);
+  doc.text(
+    `Cierre: ${sesion.fecha_cierre ? new Date(sesion.fecha_cierre).toLocaleString('es-CO') : 'Turno abierto'}`
+  );
+  doc.text(`Estado: ${sesion.estado}`);
+  doc.moveDown();
+
+  doc.font('Helvetica-Bold').text('Movimientos', { underline: true });
+  doc.moveDown(0.5);
+  doc.font('Helvetica');
+
+  if (movimientos.length === 0) {
+    doc.text('Sin movimientos.');
+  } else {
+    for (const movimiento of movimientos.slice(0, 40)) {
+      const fila = movimiento as {
+        tipo: string;
+        monto: string;
+        notas: string | null;
+      };
+      doc.fontSize(9).text(
+        `${fila.tipo.padEnd(22)} ${fila.monto.padStart(12)}   ${fila.notas ?? ''}`,
+        { lineGap: 2 }
+      );
+    }
+  }
+
+  doc.moveDown();
+  doc.fontSize(11).text(`Monto inicial: ${esperado - neto}`, { align: 'right' });
+  doc.text(`Efectivo esperado: ${esperado}`, { align: 'right' });
+  doc.text(`Efectivo declarado: ${declarado}`, { align: 'right' });
+  doc.font('Helvetica-Bold').text(`Diferencia: ${diferencia}`, { align: 'right' });
+  doc.moveDown();
+  doc.fontSize(9).fillColor('#777777').text('Firma del saliente: ____________________');
+  doc.text('Firma del entrante: ____________________');
+  doc.end();
 });
