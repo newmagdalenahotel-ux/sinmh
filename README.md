@@ -6,7 +6,8 @@ Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (
 
 ## Documentos
 
-- [SPEC.md](docs/SPEC.md) — alcance original de la Fase 1A (se está reescribiendo con los hallazgos).
+- [alcance-sistema.md](docs/alcance-sistema.md) — **alcance vigente de todo el sistema**.
+- [SPEC.md](docs/SPEC.md) — documento histórico; el alcance vigente manda.
 - [procesos-operativos.md](docs/procesos-operativos.md) — cómo opera hoy el hotel.
 - [datos-existentes.md](docs/datos-existentes.md) — qué hay en el SIMP y en las planillas, y cómo migrarlo.
 - [tarifas.md](docs/tarifas.md) — matriz de precios, escenarios y temporadas.
@@ -77,7 +78,7 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-La Franja 1 operativa está cerrada: check-in, caja, folios y check-out. Sigue **consolidar el alcance completo del sistema** y completar lo que falta de la v1: reportes, contabilidad de doble partida, usuarios/roles y bar recepción.
+El alcance completo está en [alcance-sistema.md](docs/alcance-sistema.md). La Franja 1 operativa está cerrada. Para cerrar la v1 faltan: contabilidad de doble partida, reportes, usuarios/roles, cargos manuales, bar recepción y PDF de recibo.
 
 ## Repositorio remoto
 

@@ -1,5 +1,7 @@
 # Design — Sistema Hotel New Magdalena
 
+> **Documento histórico.** El alcance vigente está en [alcance-sistema.md](alcance-sistema.md). El esquema real está en `backend/migrations/`. Se reescribirá al cerrar la v1.
+
 **Versión:** 2.0  
 **Fecha:** 2026-11-13  
 **Estado:** Aprobado para implementación  

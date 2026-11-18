@@ -1,5 +1,7 @@
 # Tasks — Fase 1A: Núcleo Financiero + Alojamiento Mínimo
 
+> **Documento histórico.** El alcance vigente está en [alcance-sistema.md](alcance-sistema.md). Las tareas reales se organizan por franjas; este archivo se reescribirá al cerrar la v1.
+
 **Versión:** 1.0  
 **Fecha:** 2026-11-13  
 **Basado en:** SPEC.md v1.0
