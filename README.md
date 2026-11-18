@@ -6,8 +6,8 @@ Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (
 anticipo, edición y contrato, check-in, folios, cargos, check-out, caja con
 traslados y cambio de turno, contabilidad, reportes, usuarios, bar recepción,
 clientes con crédito, cuentas por cobrar, abonos, cuenta socio, tablero de
-habitaciones, dashboard y cuadre de caja en PDF. Falta la validación manual y
-compras/inventario del bar.
+habitaciones, dashboard, menú desplegable y móvil, y cuadre de caja en PDF.
+Falta la validación manual y compras/inventario del bar.
 
 ## Documentos
 
@@ -75,6 +75,10 @@ npm run dev
 ![Check-in](docs/capturas/checkin-form.png)
 
 ![Dashboard](docs/capturas/dashboard.png)
+
+![Menú desplegable](docs/capturas/menu-desktop.png)
+
+![Menú móvil](docs/capturas/menu-mobile.png)
 
 ![Tablero de habitaciones](docs/capturas/habitaciones.png)
 

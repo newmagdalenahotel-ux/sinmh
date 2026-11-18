@@ -288,6 +288,8 @@ design, design-system y tasks.
 - [x] El menú coincide con `design.md`.
 - [x] Cada módulo agrupa sus pantallas.
 - [x] Las rutas actuales siguen funcionando.
+- [x] Las secciones se despliegan y conservan su estado.
+- [x] En móvil el menú funciona como drawer.
 
 ### T6.2 — Dashboard
 **Estado:** Hecho

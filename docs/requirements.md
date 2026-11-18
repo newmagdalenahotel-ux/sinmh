@@ -326,6 +326,8 @@ la información principal del día.
 - Menú: Dashboard, Alojamiento, Bar y servicios, Caja, Reportes, Configuración.
 - Dashboard muestra ocupación, llegadas, salidas, caja y ventas.
 - Cada módulo agrupa sus pantallas y acciones.
+- Las secciones del menú se despliegan y conservan su estado abierto.
+- En móvil el menú se abre como drawer y se cierra al elegir una pantalla.
 - Se usa `design-system.md` sin cambiar la identidad visual.
 
 ### FR-38 — Reserva desde la pantalla

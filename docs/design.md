@@ -46,6 +46,10 @@ La navegación es por módulos, no por pantallas sueltas. El sidebar mantiene el
 diseño de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar de
 64 px con usuario y rol.
 
+Las secciones del menú son desplegables: se abre la que se está usando y las
+demás quedan cerradas. En móvil el sidebar se convierte en un drawer con botón
+hamburguesa, overlay y cierre al elegir una pantalla o al presionar Escape.
+
 ### Pantallas por módulo
 
 **Dashboard**
