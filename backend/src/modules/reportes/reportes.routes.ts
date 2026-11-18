@@ -85,3 +85,35 @@ reportesRouter.get('/libro', async (req, res) => {
 
   res.json({ desde: parsed.data.desde, hasta: parsed.data.hasta, movimientos: rows });
 });
+
+reportesRouter.get('/desayunos', async (req, res) => {
+  const parsed = z.object({ fecha: fechaSchema }).safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Fecha inválida' });
+    return;
+  }
+
+  const { rows } = await db.query<{
+    codigo: string;
+    habitacion: string;
+    huesped: string | null;
+    modo: string;
+    pax: string;
+  }>(
+    `SELECT r.codigo, h.numero AS habitacion, hu.nombre_completo AS huesped,
+            r.desayuno_modo AS modo, r.desayunos_pax AS pax
+     FROM reserva r
+     JOIN reserva_habitacion rh ON rh.reserva_id = r.id
+     JOIN habitacion h ON h.id = rh.habitacion_id
+     LEFT JOIN huesped hu ON hu.reserva_habitacion_id = rh.id AND hu.es_titular
+     WHERE r.estado IN ('CHECKIN', 'CHECKOUT')
+       AND r.fecha_entrada <= $1::date
+       AND r.fecha_salida >= $1::date
+       AND r.desayuno_modo IN ('PAGADO', 'INCLUIDO')
+     ORDER BY h.numero`,
+    [parsed.data.fecha]
+  );
+
+  const total = rows.reduce((suma, fila) => suma + Number(fila.pax), 0);
+  res.json({ fecha: parsed.data.fecha, total, habitaciones: rows });
+});

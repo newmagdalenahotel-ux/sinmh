@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import {
+  reporteDesayunosApi,
   reporteIngresosApi,
   reporteLibroApi,
   reporteOcupacionApi,
   type LibroMovimiento,
+  type ReporteDesayunos,
   type ReporteIngresos,
   type ReporteOcupacion,
 } from '../lib/api';
@@ -42,6 +44,7 @@ export function ReportesPage() {
   const [ingresos, setIngresos] = useState<ReporteIngresos | null>(null);
   const [ocupacion, setOcupacion] = useState<ReporteOcupacion | null>(null);
   const [libro, setLibro] = useState<LibroMovimiento[]>([]);
+  const [desayunos, setDesayunos] = useState<ReporteDesayunos | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
@@ -56,12 +59,14 @@ export function ReportesPage() {
       reporteIngresosApi(token, fecha),
       reporteOcupacionApi(token),
       reporteLibroApi(token, fecha, fecha),
+      reporteDesayunosApi(token, fecha),
     ])
-      .then(([respuestaIngresos, respuestaOcupacion, respuestaLibro]) => {
+      .then(([respuestaIngresos, respuestaOcupacion, respuestaLibro, respuestaDesayunos]) => {
         if (!activo) return;
         setIngresos(respuestaIngresos);
         setOcupacion(respuestaOcupacion);
         setLibro(respuestaLibro.movimientos);
+        setDesayunos(respuestaDesayunos);
       })
       .catch((err) => {
         if (activo) setError(err instanceof Error ? err.message : 'No se pudieron cargar los reportes');
@@ -224,6 +229,46 @@ export function ReportesPage() {
           )}
         </section>
       </div>
+
+      <section className="card">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-display text-xl text-stone">Desayunos del día</h2>
+          <span className="rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold-dark">
+            {desayunos?.total ?? 0} desayunos
+          </span>
+        </div>
+
+        {cargando ? (
+          <p className="mt-4 text-sm text-stone-light">Cargando…</p>
+        ) : !desayunos || desayunos.habitaciones.length === 0 ? (
+          <p className="mt-4 text-sm text-stone-light">
+            No hay desayunos incluidos o pagados para la fecha.
+          </p>
+        ) : (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-cream-dark text-xs uppercase tracking-wide text-stone-light">
+                  <th className="py-2 pr-3">Habitación</th>
+                  <th className="py-2 pr-3">Huésped</th>
+                  <th className="py-2 pr-3">Modo</th>
+                  <th className="py-2 text-right">Pax</th>
+                </tr>
+              </thead>
+              <tbody>
+                {desayunos.habitaciones.map((fila) => (
+                  <tr key={`${fila.codigo}-${fila.habitacion}`} className="border-b border-cream-dark/60">
+                    <td className="py-2 pr-3 font-medium">{fila.habitacion}</td>
+                    <td className="py-2 pr-3 text-stone-light">{fila.huesped ?? 'Sin titular'}</td>
+                    <td className="py-2 pr-3">{fila.modo}</td>
+                    <td className="py-2 text-right">{Number(fila.pax)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       <p className="text-xs text-stone-light">
         Última actualización {ingresos ? formatoFechaHora(new Date().toISOString()) : '—'}.

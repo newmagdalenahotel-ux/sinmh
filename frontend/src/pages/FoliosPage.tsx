@@ -7,6 +7,7 @@ import {
   crearCargoApi,
   folioApi,
   foliosApi,
+  reciboPdfApi,
   type Centro,
   type FolioDetalle,
   type FolioResumen,
@@ -44,6 +45,7 @@ export function FoliosPage() {
   const [agregando, setAgregando] = useState(false);
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
+  const [ultimoCobroId, setUltimoCobroId] = useState<number | null>(null);
   const [cargo, setCargo] = useState({
     concepto: '',
     centro_codigo: 'ALOJAMIENTO',
@@ -88,6 +90,7 @@ export function FoliosPage() {
     setCargandoDetalle(true);
     setError('');
     setExito('');
+    setUltimoCobroId(null);
 
     try {
       setSeleccion(await folioApi(token, folio.id));
@@ -114,6 +117,7 @@ export function FoliosPage() {
       setExito(
         `Check-out de ${seleccion.folio.huesped ?? 'huésped'} · reserva ${respuesta.reserva.codigo} · saldo ${formatoMoneda(0)}`
       );
+      setUltimoCobroId(respuesta.cobro?.id ?? null);
       setSeleccion(null);
       setMetodoPago('EFECTIVO');
       setTipoDocumento('NINGUNO');
@@ -122,6 +126,20 @@ export function FoliosPage() {
       setError(err instanceof Error ? err.message : 'No se pudo hacer el check-out');
     } finally {
       setProcesando(false);
+    }
+  }
+
+  async function imprimirRecibo(cobroId: number) {
+    if (!token) return;
+    setError('');
+
+    try {
+      const blob = await reciboPdfApi(token, cobroId);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo generar el recibo');
     }
   }
 
@@ -184,7 +202,19 @@ export function FoliosPage() {
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-      {exito && <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{exito}</div>}
+      {exito && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-success/10 px-4 py-3 text-sm text-success">
+          <span>{exito}</span>
+          {ultimoCobroId && (
+            <button
+              className="rounded-lg border border-gold/40 px-3 py-1 text-xs text-gold-dark transition hover:bg-gold hover:text-navy-dark"
+              onClick={() => void imprimirRecibo(ultimoCobroId)}
+            >
+              Imprimir recibo
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
         <section className="card">
@@ -291,6 +321,32 @@ export function FoliosPage() {
                   <dd>{formatoMoneda(seleccion.totales.saldo)}</dd>
                 </div>
               </dl>
+
+              {seleccion.cobros.length > 0 && (
+                <div className="mt-4 rounded-xl border border-cream-dark p-3">
+                  <h3 className="text-sm font-semibold text-stone">Pagos registrados</h3>
+                  <div className="mt-2 space-y-2">
+                    {seleccion.cobros.map((cobro) => (
+                      <div
+                        key={cobro.id}
+                        className="flex flex-wrap items-center justify-between gap-2 text-sm"
+                      >
+                        <span className="text-stone-light">
+                          {formatoFechaHora(cobro.fecha)} · {cobro.metodo_pago}
+                        </span>
+                        <span className="font-medium">{formatoMoneda(Number(cobro.monto))}</span>
+                        <button
+                          type="button"
+                          className="rounded-lg border border-gold/40 px-2.5 py-1 text-xs text-gold-dark transition hover:bg-gold hover:text-navy-dark"
+                          onClick={() => void imprimirRecibo(cobro.id)}
+                        >
+                          Recibo
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-5 rounded-xl border border-cream-dark bg-cream/50 p-4">
                 <h3 className="font-display text-lg text-stone">Agregar cargo</h3>

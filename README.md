@@ -43,7 +43,8 @@ npm run dev
 - Check-in: `POST /checkin` (cliente, reserva, huésped, folio, cargos y cobro)
 - Caja: `GET /caja/sesion-actual`, `POST /caja/sesiones`, `POST /caja/sesiones/:id/cerrar`
 - Folios: `GET /folios`, `GET /folios/:id`, `POST /folios/:id/checkout`
-- Reportes: `GET /reportes/ingresos?fecha=...`, `GET /reportes/ocupacion`, `GET /reportes/libro?desde=...&hasta=...`
+- Reportes: `GET /reportes/ingresos?fecha=...`, `GET /reportes/ocupacion`, `GET /reportes/libro?desde=...&hasta=...`, `GET /reportes/desayunos?fecha=...`
+- Recibo PDF: `GET /cobros/:id/recibo`
 - Administración: `GET /admin/usuarios`, `GET /admin/roles`, `POST /admin/usuarios`, `PUT /admin/usuarios/:id`
 - Cargos manuales: `POST /folios/:id/cargos`, `GET /catalogos/centros`
 - Semilla: 33 habitaciones, 31 rentables y 50 tarifas
@@ -74,6 +75,8 @@ npm run dev
 
 ![Reportes](docs/capturas/reportes.png)
 
+![Desayunos del día](docs/capturas/reportes-desayunos.png)
+
 ![Usuarios y roles](docs/capturas/configuracion.png)
 
 ## Todo desde la raíz
@@ -87,7 +90,7 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-Usuarios, roles y cargos manuales ya funcionan. Siguen: reporte de desayunos del día, PDF de recibo, bar recepción y caja avanzada.
+Franja 3 cerrada: usuarios/roles, cargos manuales, desayunos del día y recibo PDF. Sigue **Franja 4**: bar recepción y caja avanzada (gastos, retiros y traslados).
 
 ## Repositorio remoto
 

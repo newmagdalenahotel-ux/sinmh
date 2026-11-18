@@ -441,3 +441,33 @@ export function crearCargoApi(token: string, folioId: number, payload: CargoManu
     token
   );
 }
+
+export type DesayunoFila = {
+  codigo: string;
+  habitacion: string;
+  huesped: string | null;
+  modo: string;
+  pax: string;
+};
+
+export type ReporteDesayunos = {
+  fecha: string;
+  total: number;
+  habitaciones: DesayunoFila[];
+};
+
+export function reporteDesayunosApi(token: string, fecha: string) {
+  return request<ReporteDesayunos>(`/reportes/desayunos?fecha=${fecha}`, {}, token);
+}
+
+export async function reciboPdfApi(token: string, cobroId: number): Promise<Blob> {
+  const respuesta = await fetch(`${API_URL}/cobros/${cobroId}/recibo`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!respuesta.ok) {
+    throw new Error('No se pudo generar el recibo');
+  }
+
+  return respuesta.blob();
+}

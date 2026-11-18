@@ -55,10 +55,10 @@ Un solo sistema para reemplazar el SIMP y las planillas de Excel, cubriendo toda
 | Paquetes y tours | Represa de Prado, habitación + almuerzo + piscina | 2 | Pendiente |
 | Gimnasio y lavandería | Servicios y ventas | 1C | Pendiente |
 | Compras y proveedores | Compras, gastos, cuentas por pagar | 1C | Pendiente |
-| Reportes | Ingresos, ocupación, cartera, resultado por centro, cuadre, cortesías, desayunos | 1A/1B | Parcial |
+| Reportes | Ingresos, ocupación, cartera, resultado por centro, cuadre, cortesías, desayunos | 1A/1B | Parcial (ingresos, ocupación, libro y desayunos) |
 | Facturación electrónica | DIAN, resolución, XML, PDF | 3 | Pendiente |
 | WhatsApp y web | Mensajes, reservas online | 2/3 | Pendiente |
-| Impresión | PDF para láser (v1), tirilla térmica (después) | 1A | Pendiente |
+| Impresión | PDF para láser (v1), tirilla térmica (después) | 1A | Parcial (PDF hecho; térmica después) |
 | Operación | Backups, restauración, monitoreo, auditoría | 1A | Pendiente |
 
 ---
@@ -129,11 +129,9 @@ La Fase 1A original incluye además:
 |---|---|
 | **Contabilidad de doble partida** | Base hecha: cuentas, asientos automáticos y libro. Falta cuenta socio y cierre contable. |
 | **Plan de cuentas y cuenta socio** | El plan está cargado; falta la cuenta socio y sus movimientos. |
-| **Reportes mínimos** | Ingresos, ocupación y libro hechos; faltan cartera, resultado por centro y cuadre. |
+| **Reportes mínimos** | Ingresos, ocupación, libro y desayunos hechos; faltan cartera, resultado por centro y cuadre. |
 | **Bar recepción** | Está en la v1 por decisión, pero no se ha construido. |
 | **Caja avanzada** | Gastos, retiros del dueño, aportes y traslados. |
-| **Desayunos del día** | Reporte para cocina. |
-| **PDF de recibo** | Impresión en la Kyocera. |
 | **Temporada y precios editables** | Hoy la matriz está en la semilla; falta pantalla. |
 | **Respaldos** | Copia diaria y restauración probada. |
 | **Pruebas y CI** | No hay suite automatizada ni integración continua. |
@@ -196,7 +194,7 @@ No se implementan hasta que su fase esté aprobada.
 
 1. Alcance aprobado.
 2. **Franja 2 — contabilidad y reportes base:** hecha (cuentas, libro, asientos automáticos, ingresos, ocupación y libro).
-3. **Franja 3 — usuarios/roles, cargos manuales, desayunos del día y PDF de recibo.** Usuarios/roles y cargos manuales hechos; faltan desayunos y PDF.
+3. **Franja 3 — usuarios/roles, cargos manuales, desayunos del día y PDF de recibo.** Hecha.
 4. **Franja 4 — bar recepción y caja avanzada** (gastos, retiros, traslados).
 5. Pasar a 1B: empresas, crédito, mensualidad, extensiones y cambios.
 6. Pasar a 1C: POS, inventario, piscina y compras.
