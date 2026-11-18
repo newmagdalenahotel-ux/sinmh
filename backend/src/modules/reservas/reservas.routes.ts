@@ -19,6 +19,12 @@ const clienteSchema = z.object({
   email: z.string().trim().max(150).optional(),
 });
 
+const anticipoSchema = z.object({
+  monto: z.coerce.number().positive(),
+  metodo_pago: z.enum(['EFECTIVO', 'TARJETA', 'TRANSFERENCIA']),
+  tipo_documento: z.enum(['NINGUNO', 'RECIBO_CAJA', 'FACTURA_ELECTRONICA']).default('NINGUNO'),
+});
+
 function calcularNoches(desde: string, hasta: string): number {
   const a = Date.UTC(Number(desde.slice(0, 4)), Number(desde.slice(5, 7)) - 1, Number(desde.slice(8, 10)));
   const b = Date.UTC(Number(hasta.slice(0, 4)), Number(hasta.slice(5, 7)) - 1, Number(hasta.slice(8, 10)));
@@ -82,7 +88,7 @@ reservasRouter.get('/', async (req, res) => {
 
   const { rows } = await db.query(
     `SELECT r.id, r.codigo, r.estado, r.fecha_entrada, r.fecha_salida,
-            r.total, r.saldo, r.desayuno_modo, r.desayunos_total,
+            r.total, r.saldo, r.anticipo, r.desayuno_modo, r.desayunos_total,
             r.temporada, r.escenario,
             c.razon_social AS cliente, c.numero_documento,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche,
@@ -109,7 +115,7 @@ reservasRouter.get('/:id', async (req, res) => {
 
   const { rows } = await db.query(
     `SELECT r.id, r.codigo, r.estado, r.fecha_entrada, r.fecha_salida,
-            r.modalidad, r.total, r.saldo, r.notas,
+            r.modalidad, r.total, r.saldo, r.anticipo, r.notas,
             r.incluye_desayuno, r.desayuno_modo, r.desayunos_pax, r.desayunos_total,
             r.total_desayuno, r.temporada, r.escenario,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche, rh.estado AS rh_estado,
@@ -142,6 +148,7 @@ const crearSchema = z.object({
   escenario: z.enum(['NORMAL', 'A', 'B', 'C']).default('NORMAL'),
   cliente: clienteSchema,
   desayuno: z.enum(['NO', 'PAGADO', 'INCLUIDO']).default('NO'),
+  anticipo: anticipoSchema.optional(),
   notas: z.string().trim().max(500).optional(),
 });
 
@@ -153,6 +160,12 @@ reservasRouter.post('/', async (req, res) => {
   }
 
   const datos = parsed.data;
+  const usuarioId = Number(req.user?.sub);
+  if (!Number.isFinite(usuarioId)) {
+    res.status(401).json({ error: 'Usuario inválido' });
+    return;
+  }
+
   const noches = calcularNoches(datos.fecha_entrada, datos.fecha_salida);
   if (noches < 1) {
     res.status(400).json({ error: 'La fecha de salida debe ser posterior a la de entrada' });
@@ -182,6 +195,32 @@ reservasRouter.post('/', async (req, res) => {
   const desayunosTotal = datos.desayuno === 'NO' ? 0 : datos.pax * noches;
   const totalDesayuno = datos.desayuno === 'PAGADO' ? desayunosTotal * 15_000 : 0;
   const total = totalAlojamiento + totalDesayuno;
+  const montoAnticipo = datos.anticipo?.monto ?? 0;
+
+  if (montoAnticipo > total) {
+    res.status(400).json({ error: 'El anticipo no puede ser mayor al total' });
+    return;
+  }
+
+  let sesionAnticipoId: number | null = null;
+  if (montoAnticipo > 0 && datos.anticipo?.metodo_pago === 'EFECTIVO') {
+    const caja = await db.query<{ id: number }>(
+      `SELECT sc.id
+       FROM sesion_caja sc
+       JOIN punto_venta pv ON pv.id = sc.punto_venta_id
+       WHERE pv.codigo = 'RECEPCION' AND sc.estado = 'ABIERTA'
+       LIMIT 1`
+    );
+
+    if (!caja.rows[0]) {
+      res.status(409).json({ error: 'No hay caja abierta para recibir el anticipo en efectivo' });
+      return;
+    }
+
+    sesionAnticipoId = caja.rows[0].id;
+  }
+
+  const saldoInicial = total - montoAnticipo;
 
   const resultado = await db.transaction(async (tx) => {
     let clienteId: number | undefined = datos.cliente_id;
@@ -253,6 +292,57 @@ reservasRouter.post('/', async (req, res) => {
     const reservaId = reserva.rows[0]?.id;
     if (!reservaId) throw new Error('No se pudo crear la reserva');
 
+    if (montoAnticipo > 0 && datos.anticipo && clienteId) {
+      const cobro = await tx.query<{ id: number }>(
+        `INSERT INTO cobro
+           (folio_id, cliente_id, reserva_id, tipo_documento, monto, metodo_pago,
+            sesion_caja_id, usuario_id, notas, es_anticipo)
+         VALUES (NULL, $1, $2, $3, $4, $5, $6, $7, $8, true)
+         RETURNING id`,
+        [
+          clienteId,
+          reservaId,
+          datos.anticipo.tipo_documento,
+          montoAnticipo,
+          datos.anticipo.metodo_pago,
+          sesionAnticipoId,
+          usuarioId,
+          `Anticipo reserva ${codigo}`,
+        ]
+      );
+
+      const cobroId = cobro.rows[0]?.id;
+      if (!cobroId) throw new Error('No se pudo registrar el anticipo');
+
+      if (sesionAnticipoId !== null) {
+        await tx.query(
+          `INSERT INTO movimiento_caja
+             (sesion_caja_id, tipo, monto, referencia_tipo, referencia_id, usuario_id)
+           VALUES ($1, 'VENTA_EFECTIVO', $2, 'COBRO', $3, $4)`,
+          [sesionAnticipoId, montoAnticipo, cobroId, usuarioId]
+        );
+      }
+
+      const cuentaPago = datos.anticipo.metodo_pago === 'EFECTIVO' ? '1101' : '1102';
+
+      await registrarAsiento(tx, {
+        descripcion: `Anticipo reserva ${codigo}`,
+        origenTipo: 'ANTICIPO_RESERVA',
+        origenId: cobroId,
+        usuarioId,
+        lineas: [
+          { cuenta: cuentaPago, debe: montoAnticipo },
+          { cuenta: '2103', haber: montoAnticipo },
+        ],
+      });
+
+      await tx.query('UPDATE reserva SET anticipo = $1, saldo = $2 WHERE id = $3', [
+        montoAnticipo,
+        saldoInicial,
+        reservaId,
+      ]);
+    }
+
     await tx.query(
       `INSERT INTO reserva_habitacion
          (reserva_id, habitacion_id, pax, clima, precio_noche, fecha_entrada, fecha_salida, estado)
@@ -279,7 +369,8 @@ reservasRouter.post('/', async (req, res) => {
       fecha_salida: datos.fecha_salida,
       noches,
       total,
-      saldo: total,
+      saldo: saldoInicial,
+      anticipo: montoAnticipo,
     };
   });
 
@@ -499,6 +590,7 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
     fecha_salida: string;
     total: string;
     total_desayuno: string;
+    anticipo: string;
     desayuno_modo: string;
     desayunos_pax: number;
     desayunos_total: number;
@@ -516,7 +608,7 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
     clima: string;
   }>(
     `SELECT r.id, r.codigo, r.estado, r.fecha_entrada, r.fecha_salida, r.total,
-            r.total_desayuno, r.desayuno_modo, r.desayunos_pax, r.desayunos_total,
+            r.total_desayuno, r.anticipo, r.desayuno_modo, r.desayunos_pax, r.desayunos_total,
             c.id AS cliente_id, c.razon_social AS cliente, c.tipo_documento,
             c.numero_documento, c.telefono, c.email,
             rh.id AS rh_id, rh.habitacion_id, h.numero, rh.pax, rh.precio_noche, rh.clima
@@ -542,11 +634,12 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
   const total = Number(reserva.total);
   const totalDesayuno = Number(reserva.total_desayuno);
   const totalAlojamiento = total - totalDesayuno;
+  const anticipo = Number(reserva.anticipo);
   const noches = calcularNoches(fechaTexto(reserva.fecha_entrada), fechaTexto(reserva.fecha_salida));
   const montoPagado = parsed.data.pago?.monto ?? 0;
 
-  if (montoPagado > total) {
-    res.status(400).json({ error: 'El pago no puede ser mayor al total' });
+  if (montoPagado > total - anticipo) {
+    res.status(400).json({ error: 'El pago no puede ser mayor al saldo pendiente' });
     return;
   }
 
@@ -573,7 +666,7 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
     sesionCajaId = caja.rows[0].id;
   }
 
-  const saldo = total - montoPagado;
+  const saldo = total - anticipo - montoPagado;
 
   const resultado = await db.transaction(async (tx) => {
     const centros = await tx.query<{ id: number; codigo: string }>(
@@ -670,6 +763,35 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
       ],
     });
 
+    if (anticipo > 0) {
+      const anticipoCobro = await tx.query<{ id: number }>(
+        `SELECT id FROM cobro
+         WHERE reserva_id = $1 AND es_anticipo = true AND NOT aplicado
+         ORDER BY id
+         LIMIT 1`,
+        [reserva.id]
+      );
+
+      const anticipoCobroId = anticipoCobro.rows[0]?.id;
+      if (!anticipoCobroId) throw new Error('No se encontró el anticipo de la reserva');
+
+      await tx.query('UPDATE cobro SET folio_id = $1, aplicado = true WHERE id = $2', [
+        folioId,
+        anticipoCobroId,
+      ]);
+
+      await registrarAsiento(tx, {
+        descripcion: `Anticipo aplicado ${reserva.codigo}`,
+        origenTipo: 'ANTICIPO_APLICADO',
+        origenId: anticipoCobroId,
+        usuarioId,
+        lineas: [
+          { cuenta: '2103', debe: anticipo },
+          { cuenta: '1103', haber: anticipo },
+        ],
+      });
+    }
+
     let cobroId: number | null = null;
 
     if (montoPagado > 0 && parsed.data.pago) {
@@ -736,6 +858,7 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
         noches,
         total,
         saldo,
+        anticipo,
       },
       habitacion: { numero: reserva.numero },
       huesped: { nombre_completo: reserva.cliente },

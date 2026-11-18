@@ -92,7 +92,7 @@ diseño de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar 
 | Cuentas por cobrar y abonos | Hecho | — |
 | Cuenta socio | Hecho | — |
 | Bar recepción | Parcial | Almacenes, compras, traslados y crédito |
-| Reservas | Parcial | Crear, listar, editar fechas, cancelar y check-in; faltan anticipo y formulario completo |
+| Reservas | Parcial | Crear, listar, editar fechas, cancelar, check-in y anticipo; falta formulario completo de edición |
 | Tablero de habitaciones | Hecho | — |
 | Dashboard y navegación por módulos | Hecho | — |
 | Restaurante, eventos, DIAN | Fuera de la fase | Fases 1C, 2 y 3 |
@@ -112,6 +112,11 @@ La implementación consolidó el esquema en estas migraciones:
 | `007_cargo_cortesia.sql` | Motivo de cortesía |
 | `008_bar.sql` | Productos, inventario, ventas de bar y detalle |
 | `009_caja_avanzada.sql` | Autorización y soporte de movimientos |
+| `010_caja_traslados.sql` | Contrapartes de traslados |
+| `011_reserva_tarifa.sql` | Temporada y escenario de la reserva |
+| `012_financiero.sql` | CxC, pagos, cuenta socio y cobro relacionado |
+| `013_habitacion_estado.sql` | Estado operativo de habitaciones |
+| `014_anticipos.sql` | Anticipos de reserva y su aplicación |
 
 El diseño de las migraciones 001–025 sigue siendo el objetivo funcional. Cuando
 una tabla implementada se simplifica, la diferencia se registra en este documento

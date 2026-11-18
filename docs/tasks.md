@@ -22,7 +22,7 @@
 | Caja central | Hecho | Apertura, cierre, movimientos, traslados y cambio de turno |
 | Reportes | Hecho | Ingresos, ocupación, libro, desayunos, cartera, resultado y cuadre PDF |
 | Bar recepción | Parcial | Productos, ventas y stock; faltan almacenes, compras y crédito |
-| Reservas | Parcial | Crear, editar fechas, cancelar y check-in; falta anticipo y formulario completo |
+| Reservas | Parcial | Crear, editar fechas, cancelar, check-in y anticipo; falta formulario completo de edición |
 | Clientes y crédito | Hecho | Empresas, empleados, grupos, cupo y plazo |
 | Cuentas por cobrar y abonos | Hecho | Check-out a crédito y abonos en efectivo, tarjeta o transferencia |
 | Cuenta socio | Hecho | Aportes y retiros del dueño |
@@ -81,13 +81,13 @@ design, design-system y tasks.
 ## Bloque 3 — Alojamiento
 
 ### T3.1 — API de reservas
-**Estado:** Parcial
+**Estado:** Hecho
 **Requisitos:** FR-12, FR-27
 
 **Pasos:**
 1. Crear reserva con cliente, fechas, pax, habitación y tarifa.
 2. Validar disponibilidad.
-3. Generar código y folio.
+3. Generar código; el folio se crea en el check-in.
 4. Editar fechas, habitación o pax.
 5. Cancelar con motivo y política de anticipo.
 
@@ -96,7 +96,7 @@ design, design-system y tasks.
 - [x] `POST /reservas/:id/checkin` crea el folio.
 - [x] `PUT /reservas/:id` valida disponibilidad.
 - [x] `POST /reservas/:id/cancelar` cambia el estado.
-- [ ] Anticipo genera cobro y asiento.
+- [x] Anticipo genera cobro, asiento y se aplica al check-in.
 
 ### T3.2 — Pantalla de reservas
 **Estado:** Parcial
@@ -113,6 +113,7 @@ design, design-system y tasks.
 - [x] Se consulta por estado o búsqueda.
 - [x] Se convierten las fechas desde la lista.
 - [x] Se convierte en check-in sin volver a capturar datos.
+- [x] Se registra anticipo desde la pantalla.
 - [ ] Formulario completo de edición de habitación y pax.
 
 ### T3.3 — Tablero de habitaciones

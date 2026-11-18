@@ -2,11 +2,11 @@
 
 Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (caja y bar), con una sola fuente de verdad para la operación del hotel.
 
-**Estado:** 1A operativa y financiera implementadas. Funcionan reservas,
-check-in, folios, cargos, check-out, caja con traslados y cambio de turno,
-contabilidad, reportes, usuarios, bar recepción, clientes con crédito, cuentas
-por cobrar, abonos, cuenta socio, tablero de habitaciones y dashboard. Falta la
-validación manual y compras/inventario del bar.
+**Estado:** 1A operativa y financiera implementadas. Funcionan reservas con
+anticipo, check-in, folios, cargos, check-out, caja con traslados y cambio de
+turno, contabilidad, reportes, usuarios, bar recepción, clientes con crédito,
+cuentas por cobrar, abonos, cuenta socio, tablero de habitaciones, dashboard y
+cuadre de caja en PDF. Falta la validación manual y compras/inventario del bar.
 
 ## Documentos
 
@@ -41,7 +41,7 @@ npm run dev
 - Disponibilidad: `GET /disponibilidad?desde=2026-11-20&hasta=2026-11-22&pax=2`
 - Cotización: `GET /tarifas/cotizar?habitacion_id=1&pax=2&temporada=BAJA&escenario=NORMAL`
 - Check-in: `POST /checkin` (cliente, reserva, huésped, folio, cargos y cobro)
-- Reservas: `GET/POST /reservas`, `PUT /reservas/:id`, `POST /reservas/:id/cancelar`, `POST /reservas/:id/checkin`
+- Reservas: `GET/POST /reservas`, `PUT /reservas/:id`, `POST /reservas/:id/cancelar`, `POST /reservas/:id/checkin`, anticipo opcional
 - Clientes: `GET/POST /clientes`, `PUT /clientes/:id`
 - Cartera: `GET /cuentas-cobrar`, `GET /cuentas-cobrar/:id`, `POST /cuentas-cobrar/:id/abonos`
 - Cuenta socio: `GET /caja/cuenta-socio`

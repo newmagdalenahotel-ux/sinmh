@@ -156,16 +156,17 @@ diferencia.
 ## Módulo: Alojamiento
 
 ### FR-12 — Crear reserva
-**Fase:** actual · **Estado:** Parcial
+**Fase:** actual · **Estado:** Hecho
 **Descripción:** Crear una reserva con fechas, pax, habitación, tarifa, cliente
-y anticipo opcional.
+y anticipo opcional. El anticipo se aplica al check-in. La reserva
+multi-habitación queda para 1B.
 
 **Aceptación:**
 - `POST /reservas` → 201.
 - Valida disponibilidad en las fechas.
-- Genera código de reserva y folio.
-- Si hay anticipo, crea cobro y asiento.
-- Permite reserva multi-habitación.
+- Genera código de reserva; el folio se crea en el check-in.
+- Si hay anticipo, crea cobro y asiento, y lo aplica al check-in.
+- La reserva multi-habitación queda para 1B.
 
 ### FR-27 — Editar y cancelar reserva
 **Fase:** actual · **Estado:** Parcial

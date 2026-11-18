@@ -656,6 +656,7 @@ export type ReservaResumen = {
   fecha_salida: string;
   total: string;
   saldo: string;
+  anticipo: string;
   desayuno_modo: string;
   desayunos_total: number;
   temporada: 'BAJA' | 'ALTA';
@@ -699,6 +700,11 @@ export type ReservaPayload = {
     email?: string;
   };
   desayuno: 'NO' | 'PAGADO' | 'INCLUIDO';
+  anticipo?: {
+    monto: number;
+    metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
+    tipo_documento: 'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA';
+  };
   notas?: string;
 };
 

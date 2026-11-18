@@ -77,6 +77,10 @@ export function ReservasPage() {
   const [filtroEstado, setFiltroEstado] = useState('');
   const [buscar, setBuscar] = useState('');
   const [form, setForm] = useState<ReservaPayload>(formularioInicial);
+  const [anticipoMonto, setAnticipoMonto] = useState('');
+  const [anticipoMetodo, setAnticipoMetodo] = useState<'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'>(
+    'EFECTIVO'
+  );
   const [precioNoche, setPrecioNoche] = useState<number | null>(null);
   const [cargando, setCargando] = useState(true);
   const [creando, setCreando] = useState(false);
@@ -193,6 +197,14 @@ export function ReservasPage() {
           email: form.cliente.email?.trim() || undefined,
           numero_documento: form.cliente.numero_documento?.trim() || undefined,
         },
+        anticipo:
+          Number(anticipoMonto || 0) > 0
+            ? {
+                monto: Number(anticipoMonto),
+                metodo_pago: anticipoMetodo,
+                tipo_documento: 'NINGUNO',
+              }
+            : undefined,
         notas: form.notas?.trim() || undefined,
       });
       setExito(`Reserva ${respuesta.reserva.codigo} creada por ${formatoMoneda(Number(respuesta.reserva.total))}`);
@@ -202,6 +214,7 @@ export function ReservasPage() {
         fecha_salida: form.fecha_salida,
         habitacion_id: respuesta.reserva.habitacion_id ?? form.habitacion_id,
       });
+      setAnticipoMonto('');
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear la reserva');
@@ -227,7 +240,7 @@ export function ReservasPage() {
 
   function abrirCheckin(reserva: ReservaResumen) {
     setReservaCheckin(reserva);
-    setPagoMonto(String(Number(reserva.total)));
+    setPagoMonto(String(Number(reserva.saldo)));
     setPagoMetodo('EFECTIVO');
     setPagoDocumento('NINGUNO');
     setError('');
@@ -603,6 +616,35 @@ export function ReservasPage() {
                   <option value="INCLUIDO">Incluido</option>
                 </select>
               </div>
+              <div>
+                <label className="label" htmlFor="anticipo">Anticipo</label>
+                <input
+                  id="anticipo"
+                  type="number"
+                  min="0"
+                  className="input"
+                  value={anticipoMonto}
+                  onChange={(event) => setAnticipoMonto(event.target.value)}
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="anticipo_metodo">Método del anticipo</label>
+                <select
+                  id="anticipo_metodo"
+                  className="input"
+                  value={anticipoMetodo}
+                  onChange={(event) =>
+                    setAnticipoMetodo(
+                      event.target.value as 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'
+                    )
+                  }
+                >
+                  <option value="EFECTIVO">Efectivo</option>
+                  <option value="TARJETA">Tarjeta</option>
+                  <option value="TRANSFERENCIA">Transferencia</option>
+                </select>
+              </div>
               <div className="sm:col-span-2">
                 <label className="label" htmlFor="cliente_existente">Cliente existente</label>
                 <select
@@ -704,6 +746,16 @@ export function ReservasPage() {
                 <span>Total estimado</span>
                 <span>{formatoMoneda(totalAlojamiento + totalDesayuno)}</span>
               </div>
+              {Number(anticipoMonto || 0) > 0 && (
+                <div className="mt-1 flex justify-between text-gold-dark">
+                  <span>Saldo con anticipo</span>
+                  <span>
+                    {formatoMoneda(
+                      Math.max(0, totalAlojamiento + totalDesayuno - Number(anticipoMonto || 0))
+                    )}
+                  </span>
+                </div>
+              )}
             </div>
 
             <button
