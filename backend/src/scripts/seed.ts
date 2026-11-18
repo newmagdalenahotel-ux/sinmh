@@ -17,6 +17,7 @@ type HabitacionCsv = {
   piso: string;
   activo: string;
   notas: string;
+  acomodaciones: string;
 };
 
 type TarifaCsv = {
@@ -118,6 +119,25 @@ await db.transaction(async (tx) => {
         habitacion.notas,
       ]
     );
+
+    const creada = await tx.query<{ id: number }>('SELECT id FROM habitacion WHERE numero = $1', [
+      habitacion.numero,
+    ]);
+    const habitacionId = creada.rows[0]?.id;
+
+    if (habitacionId) {
+      await tx.query('DELETE FROM habitacion_acomodacion WHERE habitacion_id = $1', [habitacionId]);
+
+      for (const pax of habitacion.acomodaciones
+        .split(',')
+        .map((valor) => valor.trim())
+        .filter(Boolean)) {
+        await tx.query(
+          'INSERT INTO habitacion_acomodacion (habitacion_id, pax) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [habitacionId, Number(pax)]
+        );
+      }
+    }
   }
 
   for (const tarifa of tarifas) {

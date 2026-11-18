@@ -3,6 +3,7 @@ import express, { type ErrorRequestHandler } from 'express';
 import { config } from './config.js';
 import { db } from './db.js';
 import { authRouter } from './modules/auth/auth.routes.js';
+import { disponibilidadRouter } from './modules/disponibilidad/disponibilidad.routes.js';
 import { habitacionesRouter } from './modules/habitaciones/habitaciones.routes.js';
 import { tarifasRouter } from './modules/tarifas/tarifas.routes.js';
 
@@ -24,6 +25,7 @@ app.get('/health', async (_req, res) => {
 app.use('/auth', authRouter);
 app.use('/habitaciones', habitacionesRouter);
 app.use('/tarifas', tarifasRouter);
+app.use('/disponibilidad', disponibilidadRouter);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);

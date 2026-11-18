@@ -37,6 +37,8 @@ npm run dev
 - Health: `GET /health`
 - Login: `POST /auth/login` con `admin` / `admin123`
 - Catálogo: `GET /habitaciones` y `GET /tarifas` (requieren token)
+- Disponibilidad: `GET /disponibilidad?desde=2026-11-20&hasta=2026-11-22&pax=2`
+- Cotización: `GET /tarifas/cotizar?habitacion_id=1&pax=2&temporada=BAJA&escenario=NORMAL`
 - Semilla: 33 habitaciones, 31 rentables y 50 tarifas
 - Base: PostgreSQL embebido (PGlite) en `backend/.data`; el mismo esquema corre en PostgreSQL real.
 - Los datos de `datos y procesos/` no se versionan.
