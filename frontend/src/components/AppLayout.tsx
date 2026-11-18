@@ -148,9 +148,7 @@ export function AppLayout() {
   const location = useLocation();
   const breadcrumb = obtenerBreadcrumb(location.pathname);
   const [menuMovil, setMenuMovil] = useState(false);
-  const [seccionesAbiertas, setSeccionesAbiertas] = useState<Set<string>>(
-    () => new Set()
-  );
+  const [seccionAbierta, setSeccionAbierta] = useState<string | null>(null);
 
   useEffect(() => {
     const seccionActual = navegacion.find((seccion) =>
@@ -159,8 +157,10 @@ export function AppLayout() {
       )
     );
 
-    if (seccionActual) {
-      setSeccionesAbiertas((actuales) => new Set(actuales).add(seccionActual.titulo));
+    if (seccionActual && seccionActual.items.length > 1) {
+      setSeccionAbierta(seccionActual.titulo);
+    } else {
+      setSeccionAbierta(null);
     }
     setMenuMovil(false);
   }, [location.pathname]);
@@ -183,12 +183,7 @@ export function AppLayout() {
   }, [menuMovil]);
 
   function alternarSeccion(titulo: string) {
-    setSeccionesAbiertas((actuales) => {
-      const siguientes = new Set(actuales);
-      if (siguientes.has(titulo)) siguientes.delete(titulo);
-      else siguientes.add(titulo);
-      return siguientes;
-    });
+    setSeccionAbierta((actual) => (actual === titulo ? null : titulo));
   }
 
   function renderNavegacion() {
@@ -236,7 +231,7 @@ export function AppLayout() {
             );
           }
 
-          const abierta = seccionesAbiertas.has(seccion.titulo);
+          const abierta = seccionAbierta === seccion.titulo;
 
           return (
             <div key={seccion.titulo}>

@@ -53,9 +53,10 @@ del hotel no se repite en el topbar. El título y la descripción grande ya no s
 repiten en el contenido: la pantalla empieza directamente en su primera card o
 formulario.
 
-Las secciones del menú son desplegables: se abre la que se está usando y las
-demás quedan cerradas. Los módulos con un solo ítem se muestran como enlace
-directo. En móvil el sidebar se convierte en un drawer con botón hamburguesa,
+Las secciones del menú son desplegables y funciona como acordeón: solo una
+sección puede estar abierta a la vez. Al abrir Caja se cierra Alojamiento, y al
+entrar a un módulo de enlace directo como Bar, todas las secciones quedan
+cerradas. En móvil el sidebar se convierte en un drawer con botón hamburguesa,
 overlay y cierre al elegir una pantalla o al presionar Escape.
 
 ### Pantallas por módulo

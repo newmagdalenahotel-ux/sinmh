@@ -292,7 +292,8 @@ design, design-system y tasks.
 - [x] El encabezado no se repite en el contenido.
 - [x] Cada módulo agrupa sus pantallas.
 - [x] Las rutas actuales siguen funcionando.
-- [x] Las secciones se despliegan y conservan su estado.
+- [x] Las secciones se despliegan como acordeón y solo una queda abierta.
+- [x] Al entrar a un módulo directo se cierran las secciones abiertas.
 - [x] Los módulos de un solo ítem son enlace directo.
 - [x] En móvil el menú funciona como drawer.
 

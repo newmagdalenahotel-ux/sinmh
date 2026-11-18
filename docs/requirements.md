@@ -330,7 +330,8 @@ la información principal del día.
 - El encabezado no se repite dentro del contenido.
 - Dashboard muestra ocupación, llegadas, salidas, caja y ventas.
 - Cada módulo agrupa sus pantallas y acciones.
-- Las secciones del menú se despliegan y conservan su estado abierto.
+- Las secciones del menú se despliegan como acordeón: solo una abierta a la vez.
+- Al entrar a un módulo de enlace directo, se cierran las secciones abiertas.
 - Los módulos de un solo ítem se muestran como enlace directo.
 - En móvil el menú se abre como drawer y se cierra al elegir una pantalla.
 - Se usa `design-system.md` sin cambiar la identidad visual.
