@@ -347,6 +347,15 @@ la información principal del día.
 - Colores por estado.
 - Acciones de check-in, limpieza y mantenimiento.
 
+### FR-40 — Contrato de hospedaje
+**Fase:** actual · **Estado:** Hecho
+**Descripción:** Generar el contrato básico de hospedaje desde una reserva.
+
+**Aceptación:**
+- PDF con datos del huésped, habitación, fechas, pax, tarifa y saldo.
+- Incluye condiciones básicas y firmas.
+- Se descarga desde la reserva.
+
 ---
 
 ## Módulo: Reportes

@@ -83,7 +83,7 @@ diseño de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar 
 | Autenticación y usuarios | Hecho | Auditoría de cambios |
 | Habitaciones y tarifas | Hecho | Edición visual de temporadas |
 | Disponibilidad y cotización | Hecho | — |
-| Check-in, folio y check-out | Hecho | Contrato y multi-habitación |
+| Check-in, folio y check-out | Hecho | Contrato hecho; multi-habitación en 1B |
 | Cargos manuales | Hecho | — |
 | Caja central | Hecho | — |
 | Contabilidad | Parcial | Cierre contable y estados |

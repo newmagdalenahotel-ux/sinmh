@@ -781,6 +781,18 @@ export function checkinReservaApi(
   }, token);
 }
 
+export async function contratoReservaPdfApi(token: string, reservaId: number): Promise<Blob> {
+  const respuesta = await fetch(`${API_URL}/reservas/${reservaId}/contrato`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!respuesta.ok) {
+    throw new Error('No se pudo generar el contrato');
+  }
+
+  return respuesta.blob();
+}
+
 export type Cliente = {
   id: number;
   tipo: string;

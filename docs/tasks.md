@@ -149,11 +149,11 @@ design, design-system y tasks.
 - [x] PDF de recibo de caja.
 
 ### T3.6 — Contrato y multi-habitación
-**Estado:** Pendiente
-**Fase:** 1B
+**Estado:** Parcial
+**Fase:** 1A/1B
 
 **Aceptación:**
-- [ ] Contrato básico de hospedaje.
+- [x] Contrato básico de hospedaje en PDF.
 - [ ] Reserva con varias habitaciones y huéspedes.
 - [ ] Responsable de pago por folio.
 

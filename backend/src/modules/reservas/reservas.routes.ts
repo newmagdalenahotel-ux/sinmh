@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import PDFDocument from 'pdfkit';
 import { z } from 'zod';
 import { db } from '../../db.js';
 import { requireAuth } from '../../middleware/auth.js';
@@ -136,6 +137,97 @@ reservasRouter.get('/:id', async (req, res) => {
   }
 
   res.json({ reserva: rows[0] });
+});
+
+reservasRouter.get('/:id/contrato', async (req, res) => {
+  const reservaId = Number(req.params.id);
+  if (!Number.isInteger(reservaId) || reservaId <= 0) {
+    res.status(400).json({ error: 'Reserva inválida' });
+    return;
+  }
+
+  const consulta = await db.query<{
+    codigo: string;
+    cliente: string;
+    tipo_documento: string | null;
+    numero_documento: string | null;
+    telefono: string | null;
+    email: string | null;
+    habitacion: string;
+    pax: number;
+    fecha_entrada: unknown;
+    fecha_salida: unknown;
+    total: string;
+    saldo: string;
+    anticipo: string;
+    desayuno_modo: string;
+  }>(
+    `SELECT r.codigo, c.razon_social AS cliente, c.tipo_documento, c.numero_documento,
+            c.telefono, c.email, h.numero AS habitacion, rh.pax,
+            r.fecha_entrada, r.fecha_salida, r.total, r.saldo, r.anticipo, r.desayuno_modo
+     FROM reserva r
+     JOIN reserva_habitacion rh ON rh.reserva_id = r.id
+     JOIN habitacion h ON h.id = rh.habitacion_id
+     LEFT JOIN cliente c ON c.id = r.titular_cliente_id
+     WHERE r.id = $1`,
+    [reservaId]
+  );
+
+  const reserva = consulta.rows[0];
+  if (!reserva) {
+    res.status(404).json({ error: 'Reserva no encontrada' });
+    return;
+  }
+
+  const entrada = fechaTexto(reserva.fecha_entrada);
+  const salida = fechaTexto(reserva.fecha_salida);
+  const noches = calcularNoches(entrada, salida);
+
+  const doc = new PDFDocument({ size: 'A4', margin: 50 });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="contrato-${reserva.codigo}.pdf"`);
+  doc.pipe(res);
+
+  doc.fontSize(20).text('Hotel New Magdalena', { align: 'center' });
+  doc.fontSize(9).text('NIT 901.088.516-5', { align: 'center' });
+  doc.moveDown();
+  doc.fontSize(14).text('CONTRATO DE HOSPEDAJE', { align: 'center' });
+  doc.moveDown();
+
+  doc.fontSize(10).text(`Reserva: ${reserva.codigo}`);
+  doc.text(`Huésped: ${reserva.cliente}`);
+  doc.text(
+    `Documento: ${reserva.tipo_documento ?? ''} ${reserva.numero_documento ?? ''}`.trim()
+  );
+  if (reserva.telefono) doc.text(`Teléfono: ${reserva.telefono}`);
+  if (reserva.email) doc.text(`Email: ${reserva.email}`);
+  doc.moveDown();
+
+  doc.font('Helvetica-Bold').text('Condiciones de la estadía');
+  doc.font('Helvetica');
+  doc.text(`Habitación: ${reserva.habitacion}`);
+  doc.text(`Personas: ${reserva.pax}`);
+  doc.text(`Entrada: ${entrada}`);
+  doc.text(`Salida: ${salida}`);
+  doc.text(`Noches: ${noches}`);
+  doc.text(`Desayuno: ${reserva.desayuno_modo}`);
+  doc.moveDown();
+
+  doc.text(`Total: $${Number(reserva.total).toLocaleString('es-CO')}`);
+  doc.text(`Anticipo: $${Number(reserva.anticipo).toLocaleString('es-CO')}`);
+  doc.text(`Saldo: $${Number(reserva.saldo).toLocaleString('es-CO')}`);
+  doc.moveDown();
+
+  doc.fontSize(9).text(
+    'El huésped se compromete a respetar las normas del hotel, cuidar las instalaciones y ' +
+      'pagar los consumos adicionales al momento del check-out. La tarifa se cobra por persona ' +
+      'y por noche. El check-out es a la 1:00 p.m. salvo acuerdo previo.'
+  );
+  doc.moveDown(2);
+  doc.text('Firma del huésped: ______________________________');
+  doc.moveDown();
+  doc.text('Firma del hotel: ______________________________');
+  doc.end();
 });
 
 const crearSchema = z.object({

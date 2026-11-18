@@ -6,6 +6,7 @@ import {
   cancelarReservaApi,
   checkinReservaApi,
   clientesApi,
+  contratoReservaPdfApi,
   cotizarApi,
   crearReservaApi,
   disponibilidadApi,
@@ -316,9 +317,22 @@ export function ReservasPage() {
     }
   }
 
+  async function abrirContrato(reserva: ReservaResumen) {
+    if (!token) return;
+    setError('');
+
+    try {
+      const blob = await contratoReservaPdfApi(token, reserva.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo generar el contrato');
+    }
+  }
+
   async function guardarEdicion() {
-    if (!token || !edicion) return;
-    setGuardandoEdicion(true);
+    if (!token || !edicion) return;    setGuardandoEdicion(true);
     setError('');
     setExito('');
 
@@ -442,6 +456,12 @@ export function ReservasPage() {
                       </td>
                       <td className="py-3 text-right">
                         <div className="flex flex-wrap justify-end gap-1">
+                          <button
+                            className="rounded-lg border border-gold/40 px-2 py-1 text-xs text-gold-dark"
+                            onClick={() => void abrirContrato(reserva)}
+                          >
+                            Contrato
+                          </button>
                           {['PENDIENTE', 'CONFIRMADA'].includes(reserva.estado) && (
                             <>
                               <button
