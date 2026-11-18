@@ -471,3 +471,59 @@ export async function reciboPdfApi(token: string, cobroId: number): Promise<Blob
 
   return respuesta.blob();
 }
+
+export type Producto = {
+  id: number;
+  codigo: string;
+  nombre: string;
+  categoria: string | null;
+  precio_venta: string;
+  costo: string;
+  stock: string;
+  stock_minimo: string;
+  activo: boolean;
+};
+
+export type VentaBar = {
+  id: number;
+  fecha: string;
+  total: string;
+  metodo_pago: string;
+  estado: string;
+  habitacion: string | null;
+  cliente: string | null;
+};
+
+export type VentaBarPayload = {
+  items: Array<{ producto_id: number; cantidad: number }>;
+  metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CARGO_HABITACION';
+  tipo_documento?: 'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA';
+  folio_id?: number;
+  notas?: string;
+};
+
+export type VentaBarResultado = {
+  venta: {
+    ventaId: number;
+    total: number;
+    estado: string;
+    cobroId: number | null;
+    folioId: number | null;
+  };
+};
+
+export function productosApi(token: string) {
+  return request<{ productos: Producto[] }>('/productos', {}, token);
+}
+
+export function ventasBarApi(token: string) {
+  return request<{ ventas: VentaBar[] }>('/bar/ventas', {}, token);
+}
+
+export function venderBarApi(token: string, payload: VentaBarPayload) {
+  return request<VentaBarResultado>(
+    '/bar/ventas',
+    { method: 'POST', body: JSON.stringify(payload) },
+    token
+  );
+}

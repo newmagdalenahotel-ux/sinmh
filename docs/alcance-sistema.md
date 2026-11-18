@@ -48,7 +48,7 @@ Un solo sistema para reemplazar el SIMP y las planillas de Excel, cubriendo toda
 | Caja avanzada | Gastos, retiros del dueño, aportes, traslados, ajustes | 1A | Pendiente |
 | Contabilidad | Cuentas, libro de doble partida, asientos, cuenta socio | 1A | Parcial |
 | Clientes y crédito | Particulares, empresas, empleados, grupos, cupos, CxC, abonos, consolidados | 1A/1B | Pendiente |
-| Bar recepción | Productos, ventas, créditos de empleados, stock | 1A/1C | Pendiente |
+| Bar recepción | Productos, ventas, créditos de empleados, stock | 1A/1C | Parcial (ventas y stock) |
 | Bar terraza y restaurante | Mesas, comandas, pagos divididos, propinas | 1C | Pendiente |
 | Eventos | Uso del espacio, anticipo 10/50 %, devolución 24 h | 2 | Pendiente |
 | Piscina y pasadías | Entradas, horarios, grupos | 1C | Pendiente |
@@ -130,7 +130,7 @@ La Fase 1A original incluye además:
 | **Contabilidad de doble partida** | Base hecha: cuentas, asientos automáticos y libro. Falta cuenta socio y cierre contable. |
 | **Plan de cuentas y cuenta socio** | El plan está cargado; falta la cuenta socio y sus movimientos. |
 | **Reportes mínimos** | Ingresos, ocupación, libro y desayunos hechos; faltan cartera, resultado por centro y cuadre. |
-| **Bar recepción** | Está en la v1 por decisión, pero no se ha construido. |
+| **Bar recepción** | Ventas, stock y cargo a habitación hechos; faltan créditos de empleados y compras. |
 | **Caja avanzada** | Gastos, retiros del dueño, aportes y traslados. |
 | **Temporada y precios editables** | Hoy la matriz está en la semilla; falta pantalla. |
 | **Respaldos** | Copia diaria y restauración probada. |
@@ -195,7 +195,7 @@ No se implementan hasta que su fase esté aprobada.
 1. Alcance aprobado.
 2. **Franja 2 — contabilidad y reportes base:** hecha (cuentas, libro, asientos automáticos, ingresos, ocupación y libro).
 3. **Franja 3 — usuarios/roles, cargos manuales, desayunos del día y PDF de recibo.** Hecha.
-4. **Franja 4 — bar recepción y caja avanzada** (gastos, retiros, traslados).
+4. **Franja 4 — bar recepción y caja avanzada.** Bar recepción hecho (productos, ventas, stock y cargo a habitación); falta caja avanzada (gastos, retiros, aportes y traslados).
 5. Pasar a 1B: empresas, crédito, mensualidad, extensiones y cambios.
 6. Pasar a 1C: POS, inventario, piscina y compras.
 7. Seguir con 2 y 3.

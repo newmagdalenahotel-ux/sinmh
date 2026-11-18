@@ -4,6 +4,7 @@ import { config } from './config.js';
 import { db } from './db.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
+import { barRouter } from './modules/bar/bar.routes.js';
 import { cajaRouter } from './modules/caja/caja.routes.js';
 import { catalogosRouter } from './modules/catalogos/catalogos.routes.js';
 import { checkinRouter } from './modules/checkin/checkin.routes.js';
@@ -11,6 +12,7 @@ import { cobrosRouter } from './modules/cobros/cobros.routes.js';
 import { disponibilidadRouter } from './modules/disponibilidad/disponibilidad.routes.js';
 import { foliosRouter } from './modules/folios/folios.routes.js';
 import { habitacionesRouter } from './modules/habitaciones/habitaciones.routes.js';
+import { productosRouter } from './modules/productos/productos.routes.js';
 import { reportesRouter } from './modules/reportes/reportes.routes.js';
 import { tarifasRouter } from './modules/tarifas/tarifas.routes.js';
 
@@ -38,6 +40,8 @@ app.use('/disponibilidad', disponibilidadRouter);
 app.use('/checkin', checkinRouter);
 app.use('/caja', cajaRouter);
 app.use('/cobros', cobrosRouter);
+app.use('/productos', productosRouter);
+app.use('/bar', barRouter);
 app.use('/folios', foliosRouter);
 app.use('/reportes', reportesRouter);
 

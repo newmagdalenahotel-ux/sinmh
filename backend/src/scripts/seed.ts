@@ -104,6 +104,14 @@ const cuentasBase = [
   ['6106', 'Gasto Cortesías', 'GASTO'],
 ] as const;
 
+const productosBase = [
+  ['AGUA500', 'Agua 500 ml', 'Bebidas sin alcohol', 3000, 1200, 24, 6],
+  ['GASEOSA400', 'Gaseosa 400 ml', 'Bebidas sin alcohol', 4000, 1800, 24, 6],
+  ['CERVEZA', 'Cerveza nacional', 'Bebidas alcohólicas', 6000, 3000, 24, 6],
+  ['AGUA1L', 'Agua 1 litro', 'Bebidas sin alcohol', 5000, 2000, 12, 4],
+  ['SNACK', 'Snack', 'Aperitivos', 3000, 1500, 12, 4],
+] as const;
+
 const adminUsername = 'admin';
 const adminPassword = 'admin123';
 
@@ -149,6 +157,16 @@ await db.transaction(async (tx) => {
     await tx.query(
       'INSERT INTO cuenta (codigo, nombre, tipo) VALUES ($1, $2, $3) ON CONFLICT (codigo) DO NOTHING',
       [codigo, nombre, tipo]
+    );
+  }
+
+  for (const [codigo, nombre, categoria, precioVenta, costo, stock, stockMinimo] of productosBase) {
+    await tx.query(
+      `INSERT INTO producto
+         (codigo, nombre, categoria, precio_venta, costo, stock, stock_minimo)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (codigo) DO NOTHING`,
+      [codigo, nombre, categoria, precioVenta, costo, stock, stockMinimo]
     );
   }
 

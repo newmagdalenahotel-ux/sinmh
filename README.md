@@ -47,6 +47,7 @@ npm run dev
 - Recibo PDF: `GET /cobros/:id/recibo`
 - Administración: `GET /admin/usuarios`, `GET /admin/roles`, `POST /admin/usuarios`, `PUT /admin/usuarios/:id`
 - Cargos manuales: `POST /folios/:id/cargos`, `GET /catalogos/centros`
+- Bar recepción: `GET /productos`, `POST /productos`, `GET /bar/ventas`, `POST /bar/ventas`
 - Semilla: 33 habitaciones, 31 rentables y 50 tarifas
 - Base: PostgreSQL embebido (PGlite) en `backend/.data`; el mismo esquema corre en PostgreSQL real.
 - Los datos de `datos y procesos/` no se versionan.
@@ -73,6 +74,8 @@ npm run dev
 
 ![Cargos al folio](docs/capturas/cargos-folio.png)
 
+![Bar recepción](docs/capturas/bar-recepcion.png)
+
 ![Reportes](docs/capturas/reportes.png)
 
 ![Desayunos del día](docs/capturas/reportes-desayunos.png)
@@ -90,7 +93,7 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-Franja 3 cerrada: usuarios/roles, cargos manuales, desayunos del día y recibo PDF. Sigue **Franja 4**: bar recepción y caja avanzada (gastos, retiros y traslados).
+Bar recepción listo: productos, ventas, stock, efectivo/tarjeta y cargo a la habitación. Sigue **caja avanzada**: gastos, retiros del dueño, aportes y traslados.
 
 ## Repositorio remoto
 
