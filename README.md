@@ -2,20 +2,18 @@
 
 Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (caja y bar), con una sola fuente de verdad para la operación del hotel.
 
-**Estado:** Franja 0 en marcha. Backend con login JWT, health y base embebida funcionando. La primera versión es **recepción 24 horas**: alojamiento walk-in, reservas simples, folios, cobros, caja con turnos, bar recepción y roles.
+**Estado:** Fase actual de operación base. Ya funcionan alojamiento walk-in,
+folios, cargos, check-out, caja, contabilidad, reportes, usuarios y bar recepción.
+Faltan reservas, tablero de habitaciones, compras/inventario, cambio de turno y
+traslados para cerrar las pruebas manuales.
 
 ## Documentos
 
-- [alcance-sistema.md](docs/alcance-sistema.md) — **alcance vigente de todo el sistema**.
-- [SPEC.md](docs/SPEC.md) — documento histórico; el alcance vigente manda.
-- [procesos-operativos.md](docs/procesos-operativos.md) — cómo opera hoy el hotel.
-- [datos-existentes.md](docs/datos-existentes.md) — qué hay en el SIMP y en las planillas, y cómo migrarlo.
-- [tarifas.md](docs/tarifas.md) — matriz de precios, escenarios y temporadas.
-- [impuestos.md](docs/impuestos.md) — IVA e impoconsumo explicados.
-- [inventario-habitaciones.md](docs/inventario-habitaciones.md) — habitaciones, capacidades y climatización.
-- [decisiones.md](docs/decisiones.md) — decisiones de arquitectura y alcance.
-- [design.md](docs/design.md) — esquema de base de datos propuesto.
+- [SPEC.md](docs/SPEC.md) — alcance, módulos y reglas de negocio.
+- [requirements.md](docs/requirements.md) — requisitos con criterios de aceptación.
+- [design.md](docs/design.md) — arquitectura del frontend, pantallas y base de datos.
 - [design-system.md](docs/design-system.md) — identidad visual.
+- [tasks.md](docs/tasks.md) — plan por módulos y estado real.
 
 ## Datos
 
@@ -96,8 +94,10 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-Caja avanzada lista salvo traslados entre cajas: gastos, retiros del dueño, aportes y ajustes ya funcionan. Sigue **traslados** y luego la Fase 1B (empresas, crédito, mensualidad y extensiones).
+Organizar el frontend por módulos y completar reservas y tablero de habitaciones.
+Después: compras, inventario y traslados del bar; cambio de turno y traslados de
+caja. El orden está en [tasks.md](docs/tasks.md).
 
 ## Repositorio remoto
 
-Pendiente de crear y enlazar. El repositorio local ya está inicializado en `main`.
+`https://github.com/newmagdalenahotel-ux/sinmh` — rama `main`.

@@ -1,264 +1,400 @@
-# Requirements — Fase 1A
+﻿# Requirements â€” Sistema Hotel New Magdalena
 
-> **Documento histórico.** El alcance vigente está en [alcance-sistema.md](alcance-sistema.md). Se conserva como referencia y se reescribirá al cerrar la v1.
+> **Documento vigente.** Los requisitos salen de `SPEC.md` y se implementan en
+> el orden de `tasks.md`. Un requisito sin criterio de aceptaciÃ³n no se considera
+> terminado. El estado se actualiza al cerrar cada tarea.
 
-**Versión:** 1.0  
-**Fecha:** 2026-11-13  
-**Basado en:** SPEC.md v1.0
+**VersiÃ³n:** 3.0
+**Fecha:** 2026-11-18
+**Basado en:** SPEC.md v3.0
 
-Cada requisito funcional (FR) tiene:
-- Descripción clara
-- Criterio de aceptación medible
-- Prioridad (Alta = bloqueante, Media = importante, Baja = deseable)
-
----
-
-## Módulo: Autenticación y Seguridad
-
-### FR-01 — Login de usuario
-**Prioridad:** Alta  
-**Descripción:** Un usuario puede autenticarse con username y password. El sistema retorna un JWT con el rol del usuario.
-
-**Criterio de aceptación:**
-- POST `/auth/login` con credenciales válidas → 200 + JWT.
-- POST `/auth/login` con credenciales inválidas → 401.
-- El JWT contiene `usuario_id`, `rol` y expira en 8 horas.
-
-### FR-02 — Autorización por rol
-**Prioridad:** Alta  
-**Descripción:** Los endpoints están protegidos por rol. Un CAJERO no puede acceder a endpoints de ADMIN.
-
-**Criterio de aceptación:**
-- GET `/admin/usuarios` con JWT de CAJERO → 403.
-- GET `/admin/usuarios` con JWT de ADMIN → 200.
+Cada requisito funcional (FR) tiene descripciÃ³n, criterio de aceptaciÃ³n, fase y
+estado actual: **Hecho**, **Parcial** o **Pendiente**.
 
 ---
 
-## Módulo: Centros y Configuración
+## MÃ³dulo: AutenticaciÃ³n y seguridad
 
-### FR-03 — Listado de centros
-**Prioridad:** Alta  
-**Descripción:** El sistema puede listar todos los centros activos.
+### FR-01 â€” Login de usuario
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** El usuario se autentica con username y password; el sistema
+devuelve un JWT con usuario y rol.
 
-**Criterio de aceptación:**
-- GET `/centros` → lista con al menos los 8 centros iniciales.
-- Cada centro tiene `codigo`, `nombre`, `tipo`.
+**AceptaciÃ³n:**
+- `POST /auth/login` con credenciales vÃ¡lidas â†’ 200 + JWT.
+- Credenciales invÃ¡lidas â†’ 401.
+- El JWT contiene usuario y rol, y expira en 8 horas.
 
-### FR-04 — Listado de puntos de venta
-**Prioridad:** Alta  
-**Descripción:** El sistema puede listar los POS activos con sus capacidades.
+### FR-02 â€” AutorizaciÃ³n por rol
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Los endpoints se protegen por rol: ADMIN, GERENTE, RECEPCION, CAJERO.
 
-**Criterio de aceptación:**
-- GET `/puntos-venta` → lista con `codigo`, `nombre`, `centro_id`, `capacidades`.
-
----
-
-## Módulo: Clientes
-
-### FR-05 — CRUD de clientes
-**Prioridad:** Alta  
-**Descripción:** Se puede crear, leer, actualizar y buscar clientes de tipo PARTICULAR, EMPRESA, EMPLEADO, GRUPO_TRABAJO, SOCIO.
-
-**Criterio de aceptación:**
-- POST `/clientes` con datos válidos → 201 + cliente creado.
-- GET `/clientes?documento=12345678` → encuentra cliente por documento.
-- PUT `/clientes/:id` actualiza datos.
-- DELETE `/clientes/:id` marca `activo=false` (soft delete).
-
-### FR-06 — Cupo de crédito
-**Prioridad:** Alta  
-**Descripción:** Cada cliente tiene `cupo_credito` y `dias_credito`. Una venta a crédito verifica que no exceda el cupo.
-
-**Criterio de aceptación:**
-- Cliente con cupo 500.000 intenta compra a crédito de 600.000 → sistema rechaza.
-- Cliente con cupo 500.000 intenta compra a crédito de 400.000 → sistema acepta.
+**AceptaciÃ³n:**
+- `GET /admin/usuarios` con rol CAJERO â†’ 403.
+- `GET /admin/usuarios` con rol ADMIN â†’ 200.
 
 ---
 
-## Módulo: Caja
+## MÃ³dulo: Centros y configuraciÃ³n
 
-### FR-07 — Apertura de sesión de caja
-**Prioridad:** Alta  
-**Descripción:** Un cajero puede abrir una sesión de caja en un POS con un monto inicial.
+### FR-03 â€” Listado de centros
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Listar los centros activos con cÃ³digo, nombre y tipo.
 
-**Criterio de aceptación:**
-- POST `/caja/sesiones` con `punto_venta_id` y `monto_apertura` → 201.
-- Si ya existe una sesión ABIERTA para ese POS → 409.
+**AceptaciÃ³n:**
+- `GET /catalogos/centros` devuelve al menos alojamiento, bar recepciÃ³n,
+  bar terraza, restaurante, eventos, piscina, lavanderÃ­a y tour.
 
-### FR-08 — Cierre de sesión de caja
-**Prioridad:** Alta  
-**Descripción:** Al cerrar una sesión, el sistema calcula el efectivo esperado según los movimientos y lo compara con el monto declarado.
+### FR-04 â€” Puntos de venta
+**Fase:** actual Â· **Estado:** Parcial
+**DescripciÃ³n:** Cada centro tiene uno o mÃ¡s puntos de venta con su caja.
 
-**Criterio de aceptación:**
-- PUT `/caja/sesiones/:id/cerrar` con `monto_declarado` → 200.
-- El campo `diferencia` = `monto_declarado - monto_sistema_efectivo`.
-- Si `diferencia != 0`, se requiere `autorizado_por_id`.
+**AceptaciÃ³n:**
+- `GET /puntos-venta` devuelve cÃ³digo, nombre, centro y capacidades.
+- La caja central estÃ¡ asociada a recepciÃ³n.
 
-### FR-09 — Traslado entre cajas
-**Prioridad:** Alta  
-**Descripción:** El efectivo de una caja (ej. bar terraza) se puede trasladar a la caja central.
+---
 
-**Criterio de aceptación:**
-- POST `/caja/traslados` crea dos movimientos: TRASLADO_SALIDA en origen y TRASLADO_ENTRADA en destino.
+## MÃ³dulo: Clientes y crÃ©dito
+
+### FR-05 â€” CRUD de clientes
+**Fase:** 1B Â· **Estado:** Pendiente
+**DescripciÃ³n:** Crear, leer, actualizar y buscar clientes PARTICULAR, EMPRESA,
+EMPLEADO, GRUPO_TRABAJO y SOCIO.
+
+**AceptaciÃ³n:**
+- `POST /clientes` â†’ 201.
+- `GET /clientes?documento=...` encuentra por documento.
+- `PUT /clientes/:id` actualiza.
+- `DELETE /clientes/:id` hace soft delete.
+
+### FR-06 â€” Cupo y dÃ­as de crÃ©dito
+**Fase:** 1B Â· **Estado:** Pendiente
+**DescripciÃ³n:** Cada cliente tiene cupo y dÃ­as de crÃ©dito; una venta a crÃ©dito
+no puede superar el cupo.
+
+**AceptaciÃ³n:**
+- Cupo 500.000 + venta 600.000 â†’ rechazo.
+- Cupo 500.000 + venta 400.000 â†’ aceptaciÃ³n.
+- Empresa sin tope, con plazo de 8, 15 o 30 dÃ­as.
+
+---
+
+## MÃ³dulo: Caja
+
+### FR-07 â€” Apertura de caja
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Abrir una sesiÃ³n de caja con monto inicial y responsable.
+
+**AceptaciÃ³n:**
+- `POST /caja/sesiones` â†’ 201.
+- Si ya hay una sesiÃ³n abierta para el POS â†’ 409.
+- La sesiÃ³n queda identificada con el usuario que abre.
+
+### FR-08 â€” Cierre y arqueo
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Al cerrar, el sistema calcula el efectivo esperado y lo compara
+con el declarado.
+
+**AceptaciÃ³n:**
+- `POST /caja/sesiones/:id/cerrar` con monto declarado â†’ 200.
+- `diferencia = declarado - esperado`.
+- Si hay diferencia, queda registrada y autorizada.
+
+### FR-09 â€” Traslado entre cajas
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Trasladar efectivo de una caja a otra, por ejemplo de bar
+terraza o restaurante a la caja central.
+
+**AceptaciÃ³n:**
+- `POST /caja/traslados` crea `TRASLADO_SALIDA` y `TRASLADO_ENTRADA`.
 - Ambos movimientos comparten `contraparte_sesion_id`.
-- El saldo de ambas sesiones se actualiza correctamente.
+- El efectivo esperado de ambas sesiones cambia correctamente.
 
-### FR-10 — Registro de gasto en efectivo
-**Prioridad:** Alta  
-**Descripción:** Un cajero puede registrar un gasto pagado en efectivo desde la caja, con adjunto opcional (escaneo de factura).
+### FR-10 â€” Gasto en efectivo
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Registrar un gasto pagado desde caja, con cuenta, descripciÃ³n y
+soporte.
 
-**Criterio de aceptación:**
-- POST `/caja/gastos` con monto, descripción y opcionalmente `documento_adjunto_id` → 201.
-- Se crea `movimiento_caja` tipo GASTO_EFECTIVO.
-- Se crea asiento en `libro_movimiento` (debe gasto / haber caja).
+**AceptaciÃ³n:**
+- `POST /caja/movimientos` tipo `GASTO_EFECTIVO` â†’ 201.
+- Se crea movimiento de caja y asiento: debe gasto / haber caja.
+- Se guarda descripciÃ³n y URL del soporte.
 
-### FR-11 — Registro de retiro del dueño
-**Prioridad:** Alta  
-**Descripción:** El dueño puede retirar efectivo de la caja. Se registra en `cuenta_socio` con tipo RETIRO.
+### FR-11 â€” Retiro y aporte del dueÃ±o
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Registrar retiros y aportes de efectivo del dueÃ±o.
 
-**Criterio de aceptación:**
-- POST `/caja/retiros-dueno` con monto y descripción → 201.
-- Se crea `movimiento_caja` tipo RETIRO_DUENO.
-- Se crea fila en `cuenta_socio` con tipo RETIRO.
-- El saldo acumulado de la cuenta socio se actualiza.
+**AceptaciÃ³n:**
+- Retiro: movimiento `RETIRO_DUENO` y asiento contra cuenta socio.
+- Aporte: movimiento `INGRESO` y asiento contra patrimonio.
+- El efectivo esperado se actualiza.
 
----
+### FR-25 â€” Cambio de turno
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Entregar la caja de un turno a otro con conteo, responsable y
+diferencia.
 
-## Módulo: Alojamiento
+**AceptaciÃ³n:**
+- El saliente declara el efectivo contado.
+- El entrante confirma el conteo.
+- Se registra quiÃ©n entrega y quiÃ©n recibe.
+- El nuevo turno inicia con el efectivo contado.
+- Si hay diferencia, se registra y se autoriza.
 
-### FR-12 — Crear reserva
-**Prioridad:** Alta  
-**Descripción:** Un recepcionista puede crear una reserva con uno o varios huéspedes, con o sin anticipo, indicando modalidad (NOCHE o MENSUAL).
+### FR-26 â€” Ajustes de caja
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Registrar faltantes y sobrantes con su asiento contable.
 
-**Criterio de aceptación:**
-- POST `/reservas` con datos válidos → 201.
-- Si hay anticipo, se crea un `cobro` con `es_anticipo=true`.
-- Se genera un `folio` MAESTRO asociado.
-- Se valida que la habitación esté disponible en las fechas.
-
-### FR-13 — Check-in
-**Prioridad:** Alta  
-**Descripción:** El recepcionista puede hacer check-in de una reserva, capturando los datos del huésped, asignando habitación y abriendo el folio.
-
-**Criterio de aceptación:**
-- POST `/reservas/:id/checkin` → 200.
-- Se crea el registro en `huesped` con datos mínimos (nombre, documento).
-- Se actualiza `reserva_habitacion.estado='CHECKIN'`.
-- Se registra `hora_entrada_real` en la reserva.
-- Se genera `folio_cargo` con la primera noche.
-
-### FR-14 — Cargo manual al folio
-**Prioridad:** Alta  
-**Descripción:** El recepcionista puede agregar cargos al folio de un huésped (noche extra, huésped adicional, early/late check-in/out).
-
-**Criterio de aceptación:**
-- POST `/folios/:id/cargos` con concepto, monto y `centro_id` → 201.
-- Se crea `folio_cargo` con el `centro_id` correcto.
-- El saldo del folio se actualiza.
-
-### FR-15 — Check-out con cobro
-**Prioridad:** Alta  
-**Descripción:** Al hacer check-out, el sistema cierra el folio, calcula el total y permite cobrar el saldo pendiente con el tipo de documento seleccionado.
-
-**Criterio de aceptación:**
-- POST `/folios/:id/checkout` con `tipo_documento` y `metodo_pago` → 200.
-- Se crea `cobro` con el monto del saldo.
-- Se crea asiento en `libro_movimiento` (debe caja/cxc, haber ingreso centro).
-- `folio.estado='CERRADO'`.
-- Se registra `hora_salida_real` en la reserva.
-
-### FR-16 — Cuenta por cobrar a empresa
-**Prioridad:** Alta  
-**Descripción:** Al cerrar un folio cuyo responsable es una empresa con crédito, se crea una cuenta por cobrar en lugar de cobrar en caja.
-
-**Criterio de aceptación:**
-- POST `/folios/:id/checkout` con `metodo_pago='CREDITO'` y responsable tipo EMPRESA → 200.
-- Se crea `cuenta_cobrar` con `fecha_vencimiento` calculada según `cliente.dias_credito`.
-- `folio.estado='CERRADO'` y `folio.estado='FACTURADO'` si se emitió factura.
-
-### FR-17 — Abono a cuenta por cobrar
-**Prioridad:** Alta  
-**Descripción:** Un cobrador puede registrar abonos a cuentas por cobrar de empresas o empleados.
-
-**Criterio de aceptación:**
-- POST `/cuentas-cobrar/:id/abonos` con monto → 201.
-- Se actualiza `cuenta_cobrar.saldo`.
-- Se crea `cobro` con `tipo_cobro='ABONO_CXC'`.
-- Si saldo = 0, `cuenta_cobrar.estado='PAGADA'`.
-
-### FR-18 — Adjuntos de recibos
-**Prioridad:** Media  
-**Descripción:** Se puede adjuntar el escaneo de un recibo firmado por un técnico o de una factura sin datos de empresa.
-
-**Criterio de aceptación:**
-- POST `/adjuntos` con archivo → 201.
-- El archivo queda en Supabase Storage.
-- Se registra en `documento_adjunto` con `referencia_tipo` y `referencia_id`.
+**AceptaciÃ³n:**
+- `AJUSTE_FALTANTE`: debe gasto faltante / haber caja.
+- `AJUSTE_SOBRANTE`: debe caja / haber ingreso sobrante.
+- El movimiento queda en la sesiÃ³n.
 
 ---
 
-## Módulo: Reportes
+## MÃ³dulo: Alojamiento
 
-### FR-19 — Reporte de ingresos del día
-**Prioridad:** Alta  
-**Descripción:** Reporte que muestra los ingresos del día agrupados por centro.
+### FR-12 â€” Crear reserva
+**Fase:** actual Â· **Estado:** Parcial
+**DescripciÃ³n:** Crear una reserva con fechas, pax, habitaciÃ³n, tarifa, cliente
+y anticipo opcional.
 
-**Criterio de aceptación:**
-- GET `/reportes/ingresos?fecha=YYYY-MM-DD` → JSON con `centro`, `total`.
-- Exportable a PDF.
+**AceptaciÃ³n:**
+- `POST /reservas` â†’ 201.
+- Valida disponibilidad en las fechas.
+- Genera cÃ³digo de reserva y folio.
+- Si hay anticipo, crea cobro y asiento.
+- Permite reserva multi-habitaciÃ³n.
 
-### FR-20 — Reporte de ocupación
-**Prioridad:** Alta  
-**Descripción:** Reporte que muestra el porcentaje de ocupación actual.
+### FR-27 â€” Editar y cancelar reserva
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Cambiar fechas, habitaciÃ³n o pax; cancelar con polÃ­tica.
 
-**Criterio de aceptación:**
-- GET `/reportes/ocupacion` → `habitaciones_ocupadas`, `habitaciones_totales`, `porcentaje`.
-- Se puede filtrar por fecha.
+**AceptaciÃ³n:**
+- `PUT /reservas/:id` valida disponibilidad.
+- `POST /reservas/:id/cancelar` registra motivo y estado.
+- Si habÃ­a anticipo, se registra la devoluciÃ³n o retenciÃ³n.
 
-### FR-21 — Reporte de cartera por empresa
-**Prioridad:** Alta  
-**Descripción:** Reporte de cuentas por cobrar agrupadas por empresa, con estado y vencimiento.
+### FR-28 â€” Tablero de habitaciones
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Ver el estado de las 31 habitaciones rentables en una sola pantalla.
 
-**Criterio de aceptación:**
-- GET `/reportes/cartera?cliente_id=X` → lista de cuentas con estado y saldo.
-- Exportable a PDF y Excel.
+**AceptaciÃ³n:**
+- Muestra libre, ocupada, sucia y mantenimiento.
+- Permite filtrar por piso y clima.
+- Permite iniciar check-in o limpieza desde la habitaciÃ³n.
 
-### FR-22 — Reporte de resultado por centro
-**Prioridad:** Alta  
-**Descripción:** Reporte mensual del margen de cada centro (ingresos - costos directos).
+### FR-13 â€” Check-in
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Hacer check-in de una reserva o walk-in, capturando huÃ©sped,
+habitaciÃ³n y folio.
 
-**Criterio de aceptación:**
-- GET `/reportes/resultado-centros?mes=YYYY-MM` → tabla con `centro`, `ingresos`, `costos`, `margen`.
-- Consulta validada contra las 5 consultas de `design.md`.
+**AceptaciÃ³n:**
+- `POST /checkin` â†’ 200.
+- Crea huÃ©sped, folio y cargo de alojamiento.
+- Actualiza reserva y habitaciÃ³n.
+- Si el pago es efectivo, exige caja abierta.
 
-### FR-23 — Reporte de cuadre de caja
-**Prioridad:** Alta  
-**Descripción:** Reporte del cierre de una sesión de caja con movimientos y diferencia.
+### FR-14 â€” Cargo manual al folio
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Agregar consumos, noches extra, huÃ©sped adicional o cortesÃ­as.
 
-**Criterio de aceptación:**
-- GET `/reportes/cuadre-caja/:sesion_id` → detalle de movimientos, monto sistema, monto declarado, diferencia.
-- Exportable a PDF.
+**AceptaciÃ³n:**
+- `POST /folios/:id/cargos` con concepto, centro y monto â†’ 201.
+- Actualiza el saldo y crea asiento.
+- CortesÃ­a: monto 0, autorizaciÃ³n y motivo.
+
+### FR-15 â€” Check-out y cobro
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Cerrar el folio, cobrar el saldo y liberar la habitaciÃ³n.
+
+**AceptaciÃ³n:**
+- `POST /folios/:id/checkout` â†’ 200.
+- Crea cobro y asiento.
+- Cierra folio y reserva.
+- Genera recibo PDF.
+
+### FR-16 â€” Cuenta por cobrar a empresa
+**Fase:** 1B Â· **Estado:** Pendiente
+**DescripciÃ³n:** Al cerrar un folio de empresa con crÃ©dito, crear CxC.
+
+**AceptaciÃ³n:**
+- Check-out con `metodo_pago='CREDITO'` y responsable empresa â†’ 200.
+- Crea `cuenta_cobrar` con vencimiento.
+- El folio queda cerrado/facturado.
+
+### FR-17 â€” Abono a cuenta por cobrar
+**Fase:** 1B Â· **Estado:** Pendiente
+**DescripciÃ³n:** Registrar abonos a CxC de empresas o empleados.
+
+**AceptaciÃ³n:**
+- `POST /cuentas-cobrar/:id/abonos` â†’ 201.
+- Actualiza saldo y estado.
+- Crea cobro y asiento.
+
+### FR-18 â€” Adjuntos
+**Fase:** 1C Â· **Estado:** Pendiente
+**DescripciÃ³n:** Adjuntar facturas, recibos y soportes a movimientos y compras.
+
+**AceptaciÃ³n:**
+- `POST /adjuntos` guarda el archivo y su referencia.
+- Se puede consultar desde el movimiento.
 
 ---
 
-## Módulo: Parametrización
+## MÃ³dulo: Bar y servicios
 
-### FR-24 — Carga inicial de datos por CSV
-**Prioridad:** Alta  
-**Descripción:** Un script permite cargar los datos maestros iniciales desde archivos CSV, sin necesidad de insertar a mano.
+### FR-29 â€” Productos y almacenes
+**Fase:** actual Â· **Estado:** Parcial
+**DescripciÃ³n:** Administrar productos, categorÃ­as, precios, costos y almacenes
+central y de subcentros.
 
-**Criterio de aceptación:**
-- Script `npm run seed` lee archivos de `/seeds/*.csv` y los inserta transaccionalmente.
-- Es idempotente: ejecutarlo dos veces no duplica datos.
-- Si un CSV tiene error, hace rollback completo y reporta el error.
+**AceptaciÃ³n:**
+- `POST /productos` y `PUT /productos/:id` â†’ 201/200.
+- Cada producto tiene centro, unidad, precio y control de inventario.
+- Existe almacÃ©n central y almacenes de bar terraza y restaurante.
+
+### FR-30 â€” Compras y entrada de inventario
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Registrar una compra a proveedor y entrar la mercancÃ­a al almacÃ©n.
+
+**AceptaciÃ³n:**
+- `POST /compras` con proveedor, detalle y total â†’ 201.
+- Aumenta el inventario del almacÃ©n.
+- Si se paga de caja, crea movimiento y asiento.
+- Si queda pendiente, crea cuenta por pagar.
+
+### FR-31 â€” Traslado de inventario
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Mover productos del almacÃ©n central a un subcentro.
+
+**AceptaciÃ³n:**
+- `POST /inventario/traslados` con origen, destino y detalle.
+- Descuenta origen y aumenta destino.
+- Crea dos movimientos de inventario vinculados.
+
+### FR-32 â€” Stock mÃ­nimo
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Alertar cuando un producto baja del stock mÃ­nimo.
+
+**AceptaciÃ³n:**
+- El producto tiene stock mÃ­nimo.
+- El dashboard y la pantalla de bar muestran los productos bajo mÃ­nimo.
+- La alerta no bloquea la venta, pero queda visible.
+
+### FR-33 â€” Venta de bar
+**Fase:** actual Â· **Estado:** Hecho
+**DescripciÃ³n:** Vender productos en efectivo, tarjeta, transferencia o cargo a
+la habitaciÃ³n.
+
+**AceptaciÃ³n:**
+- `POST /bar/ventas` â†’ 201.
+- Descuenta stock y crea detalle.
+- Efectivo exige caja; cargo exige folio abierto.
+- Genera asiento de ingreso por centro.
+
+### FR-34 â€” CrÃ©dito de empleados
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** El empleado consume a crÃ©dito con cupo y abonos.
+
+**AceptaciÃ³n:**
+- Venta con cliente EMPLEADO y cupo suficiente â†’ 201.
+- Crea CxC y descuenta stock.
+- Abono actualiza saldo y estado.
+
+### FR-36 â€” PÃ©rdidas y cortesÃ­as de bar
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Registrar producto daÃ±ado, vencido o cortesÃ­a autorizada.
+
+**AceptaciÃ³n:**
+- Movimiento de inventario `MERMA` o `PERDIDA` con motivo.
+- CortesÃ­a con autorizaciÃ³n y costo registrado.
+- No se trata como venta.
 
 ---
 
-## Definición de "terminado" (DoD)
+## MÃ³dulo: Frontend
 
-Cada FR se considera terminado cuando:
-- [ ] El código está commiteado en rama feature.
-- [ ] Tiene tests unitarios y de integración.
-- [ ] Pasa los criterios de aceptación.
-- [ ] Está documentado en OpenAPI (Swagger).
+### FR-35 â€” Dashboard y navegaciÃ³n por mÃ³dulos
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** El frontend se organiza por mÃ³dulos y muestra un dashboard con
+la informaciÃ³n principal del dÃ­a.
+
+**AceptaciÃ³n:**
+- MenÃº: Dashboard, Alojamiento, Bar y servicios, Caja, Reportes, ConfiguraciÃ³n.
+- Dashboard muestra ocupaciÃ³n, llegadas, salidas, caja y ventas.
+- Cada mÃ³dulo agrupa sus pantallas y acciones.
+- Se usa `design-system.md` sin cambiar la identidad visual.
+
+### FR-38 â€” Reserva desde la pantalla
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Crear y consultar reservas desde Alojamiento, no solo check-in.
+
+**AceptaciÃ³n:**
+- Formulario de reserva con fechas, pax, habitaciÃ³n, tarifa y abono.
+- Calendario o lista de reservas.
+- Convertir reserva en check-in.
+- Editar y cancelar.
+
+### FR-39 â€” Tablero de habitaciones en la pantalla
+**Fase:** actual Â· **Estado:** Pendiente
+**DescripciÃ³n:** Pantalla visual del estado de las habitaciones.
+
+**AceptaciÃ³n:**
+- Muestra las 31 habitaciones rentables.
+- Colores por estado.
+- Acciones de check-in, limpieza y mantenimiento.
+
+---
+
+## MÃ³dulo: Reportes
+
+### FR-19 â€” Ingresos del dÃ­a
+**Fase:** actual Â· **Estado:** Hecho
+**AceptaciÃ³n:** `GET /reportes/ingresos?fecha=...` agrupa por centro y cuenta.
+
+### FR-20 â€” OcupaciÃ³n
+**Fase:** actual Â· **Estado:** Hecho
+**AceptaciÃ³n:** Devuelve ocupadas, totales y porcentaje.
+
+### FR-21 â€” Cartera
+**Fase:** 1B Â· **Estado:** Pendiente
+**AceptaciÃ³n:** Lista CxC por empresa, con estado y vencimiento.
+
+### FR-22 â€” Resultado por centro
+**Fase:** 1B Â· **Estado:** Pendiente
+**AceptaciÃ³n:** Ingresos, costos y margen por centro y mes.
+
+### FR-23 â€” Cuadre de caja
+**Fase:** actual Â· **Estado:** Parcial
+**AceptaciÃ³n:** Detalle de movimientos, esperado, declarado y diferencia.
+
+### FR-37 â€” Libro y desayunos
+**Fase:** actual Â· **Estado:** Hecho
+**AceptaciÃ³n:**
+- `GET /reportes/libro?desde=...&hasta=...` muestra debe/haber.
+- `GET /reportes/desayunos?fecha=...` lista habitaciÃ³n, huÃ©sped, modo y pax.
+
+---
+
+## MÃ³dulo: ParametrizaciÃ³n
+
+### FR-24 â€” Seed desde CSV
+**Fase:** actual Â· **Estado:** Hecho
+**AceptaciÃ³n:**
+- `npm run seed` carga habitaciones, tarifas y productos.
+- Es idempotente.
+- Si hay error, hace rollback.
+
+---
+
+## DefiniciÃ³n de terminado
+
+Un FR estÃ¡ terminado cuando:
+
+- [ ] Cumple sus criterios de aceptaciÃ³n.
+- [ ] Tiene prueba manual documentada.
+- [ ] EstÃ¡ reflejado en `design.md` y `tasks.md`.
+- [ ] Genera los asientos contables que correspondan.
 - [ ] Fue validado por el responsable del proyecto.

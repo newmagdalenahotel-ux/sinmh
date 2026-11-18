@@ -1,181 +1,241 @@
-# SPEC — Fase 1A: Núcleo Financiero + Alojamiento Mínimo
+﻿# SPEC â€” Sistema Hotel New Magdalena
 
-> **Documento histórico.** El alcance vigente está en [alcance-sistema.md](alcance-sistema.md). Se conserva como referencia y se reescribirá al cerrar la v1.
+> **Documento vigente y fuente Ãºnica de alcance.** Los documentos de trabajo son
+> `SPEC.md`, `requirements.md`, `design.md`, `design-system.md` y `tasks.md`.
+> Cualquier cambio de alcance se escribe primero aquÃ­, luego en los requisitos,
+> el diseÃ±o y las tareas. No se construye por fuera de estos documentos.
 
-**Versión:** 1.0  
-**Fecha:** 2026-11-13  
-**Estado:** Aprobado para implementación  
-**Responsable:** Dueño del proyecto
-
----
-
-## 1. Propósito
-
-Implementar el núcleo financiero y el módulo de alojamiento del sistema del Hotel New Magdalena, de modo que el hotel pueda operar su negocio principal (alojamiento) con caja, folios, check-in/check-out, cobros y reportes básicos, sobre una base de datos diseñada para soportar todas las fases futuras sin refactorización.
-
-Al finalizar esta fase, el hotel podrá:
-- Registrar reservas walk-in y con anticipo.
-- Hacer check-in y check-out de huéspedes.
-- Cargar consumos manuales al folio (noches adicionales, huésped extra, early/late check-in/out).
-- Cobrar con tres tipos de documento (ninguno, recibo de caja, factura electrónica).
-- Manejar cuentas por cobrar a empresas y empleados.
-- Operar la caja central con cierres por turno y traslados desde otras cajas.
-- Consultar ingresos del día, ocupación, cartera y resultado por centro.
+**VersiÃ³n:** 3.0
+**Fecha:** 2026-11-18
+**Estado:** Aprobado para la fase actual
+**Responsable:** DueÃ±o del proyecto
 
 ---
 
-## 2. Alcance — Lo que SÍ entra
+## 1. PropÃ³sito
 
-### 2.1 Núcleo financiero
-- Autenticación (JWT) y autorización por roles (RBAC): ADMIN, GERENTE, RECEPCION, CAJERO.
-- CRUD de usuarios, roles y permisos.
-- CRUD de centros (ALOJAMIENTO, BAR_RECEPCION, BAR_TERRAZA, RESTAURANTE, EVENTOS, PISCINA_PASADIA, LAVANDERIA, TOUR_REPRESA).
-- CRUD de cuentas contables (plan mínimo).
-- Libro de movimientos financieros con doble partida (debe/haber).
-- Cuenta socio para retiros y aportes del dueño.
+Reemplazar el SIMP y las planillas de Excel por un solo sistema para el Hotel
+New Magdalena: alojamiento, bar recepciÃ³n, caja, contabilidad, reportes y,
+mÃ¡s adelante, restaurante, eventos, compras, crÃ©dito de empresas y facturaciÃ³n.
 
-### 2.2 Caja
-- Caja física central + cajas físicas por POS.
-- Apertura y cierre de sesiones de caja por turno.
-- Cálculo de efectivo esperado vs declarado al cierre, con registro de diferencia.
-- Registro de gastos en efectivo, retiros de bóveda, aportes de pago.
-- Traslados entre cajas (TRASLADO_SALIDA / TRASLADO_ENTRADA con `contraparte_sesion_id`).
-- Adjuntos (escaneo de recibos y comprobantes).
+El sistema debe funcionar **local-first**: el servidor vive en recepciÃ³n y el
+hotel no depende de internet para operar. La base es PostgreSQL embebido
+(PGlite en la v1) y el mismo SQL debe poder correr en PostgreSQL real.
 
-### 2.3 Clientes
-- Cliente tipo PARTICULAR, EMPRESA, EMPLEADO, GRUPO_TRABAJO, SOCIO.
-- Cupo de crédito y días de crédito por cliente.
-- Búsqueda por documento, razón social o nombre.
+## 2. Principios
 
-### 2.4 Alojamiento
-- CRUD de tipos de habitación, habitaciones y tarifas (modalidad NOCHE y MENSUAL).
-- Reservas con anticipo (abono del 50% típico) y política de cancelación.
-- Reservas multi-habitación con múltiples huéspedes.
-- Check-in con captura de datos del huésped.
-- Folio jerárquico (MAESTRO + HIJOS) con responsable de pago configurable.
-- Cargos manuales al folio: noches adicionales, huésped extra, early/late check-in/out.
-- Check-out con cierre de folio.
-- Contrato de hospedaje (formato básico, sin firma electrónica en esta fase).
+1. Un solo sistema y una sola captura de datos.
+2. Todo movimiento de dinero queda en caja y en el libro de doble partida.
+3. Todo cargo tiene centro de costo.
+4. El check-in completo debe tomar menos de 3 minutos.
+5. No se construye un mÃ³dulo sin base de datos, API y criterios de aceptaciÃ³n.
+6. No se agrega alcance nuevo sin actualizar este documento.
 
-### 2.5 Cobros
-- Cobro con tres tipos de documento: NINGUNO, RECIBO_CAJA, FACTURA_ELECTRONICA.
-- Métodos de pago: EFECTIVO, TARJETA, TRANSFERENCIA, CREDITO.
-- Cuentas por cobrar a empresas y empleados.
-- Registro de abonos a cuentas por cobrar.
-- Conciliación de pagos recibidos por el dueño (cuenta por cobrar al socio).
+## 3. Mapa de mÃ³dulos
 
-### 2.6 Reportes
-- Ingresos del día y del mes por centro.
-- Ocupación actual (habitaciones ocupadas / total).
-- Cartera de empresas (pendientes, vencidas, pagadas).
-- Habitaciones ocupadas hoy con identificación de quién paga cada una.
-- Resultado operativo por centro del mes.
-- Cuadre de caja por turno.
-- Cortesías y descuentos del mes.
-- Exportación de reportes a PDF y Excel.
+| MÃ³dulo | QuÃ© incluye | Fase actual |
+|---|---|---|
+| Dashboard | OcupaciÃ³n, llegadas, salidas, caja, ventas y alertas del dÃ­a | SÃ­ |
+| Alojamiento | Reservas, disponibilidad, tablero, check-in, huÃ©spedes, folios, cargos, check-out, desayuno | SÃ­ |
+| Bar y servicios | Productos, compras, almacenes, inventario, traslados, ventas, crÃ©dito de empleados | SÃ­ (bar recepciÃ³n) |
+| Caja | Turno, movimientos, cambio de turno, traslados, cierre y arqueo | SÃ­ |
+| Reportes | Ingresos, ocupaciÃ³n, libro, desayunos, cartera, resultado y cuadre | Parcial |
+| ConfiguraciÃ³n | Usuarios, roles, tarifas, temporadas, centros y parÃ¡metros | Parcial |
+| Restaurante y terraza | POS, mesas, comandas, pagos divididos | Fase 1C |
+| Eventos, paquetes y tours | Espacios, anticipos, paquetes, tour Represa | Fase 2 |
+| FacturaciÃ³n electrÃ³nica y web | DIAN, reservas online, WhatsApp | Fase 3 |
 
-### 2.7 Parametrización inicial
-- Script de seed transaccional que carga desde CSV: habitaciones, tarifas, usuarios, plan de cuentas, centros, puntos de venta.
-- El script debe ser idempotente (puede ejecutarse varias veces sin duplicar datos).
+## 4. Fase actual: operaciÃ³n base
 
----
+La fase actual cierra **Alojamiento, Bar recepciÃ³n y Caja** para pruebas
+manuales. El bar y la caja avanzada se mueven aquÃ­: antes estaban en Fase 1C,
+pero son parte de la operaciÃ³n diaria que se va a probar ahora.
 
-## 3. Fuera de alcance — Lo que NO entra en esta fase
+### 4.1 Alojamiento
 
-| Módulo | Fase en que entra |
+- Crear, editar y cancelar reservas con fechas, pax, habitaciÃ³n, tarifa y abono.
+- Consultar disponibilidad y ocupaciÃ³n.
+- Tablero de habitaciones: libre, ocupada, sucia, mantenimiento.
+- Check-in walk-in y check-in de reserva.
+- Folio con cargos de alojamiento, desayuno, bar y cargos manuales.
+- Check-out con cobro en efectivo, tarjeta, transferencia o crÃ©dito.
+- Recibo PDF y reporte de desayunos.
+
+### 4.2 Bar recepciÃ³n
+
+- CatÃ¡logo de productos con precio, costo, stock mÃ­nimo y centro.
+- Compra y entrada de inventario a almacÃ©n.
+- AlmacÃ©n central y almacenes de subcentros (bar terraza, restaurante).
+- Traslado de inventario entre almacenes.
+- Venta en efectivo, tarjeta, transferencia o cargo a la habitaciÃ³n.
+- CrÃ©dito a empleados con cupo y abonos.
+- PÃ©rdidas, mermas y cortesÃ­as autorizadas.
+
+### 4.3 Caja
+
+- Apertura y cierre por turno, con responsable.
+- Ventas en efectivo, gastos, retiros del dueÃ±o, aportes y ajustes.
+- Cambio de turno con conteo y entrega.
+- Traslados de efectivo entre cajas y desde bar terraza/restaurante.
+- Cuadre con efectivo esperado, declarado y diferencia.
+
+### 4.4 Frontend
+
+- NavegaciÃ³n por mÃ³dulos, no por pantallas sueltas:
+  **Dashboard â†’ Alojamiento â†’ Bar y servicios â†’ Caja â†’ Reportes â†’ ConfiguraciÃ³n**.
+- Cada mÃ³dulo agrupa sus pantallas y acciones.
+- El diseÃ±o visual se rige por `design-system.md`.
+- El mapa de pantallas y rutas estÃ¡ en `design.md`.
+
+## 5. Reglas de negocio
+
+### 5.1 Habitaciones
+
+- 33 espacios: 31 rentables, 103 bodega y la oficina de administraciÃ³n.
+- 23 con aire acondicionado y 8 con ventilador: 108, 205, 207, 209, 301, 303, 305 y 405.
+- La 105 es suite: capacidad 6, acomodaciones 2/5/6. La suite para 2 se cobra como 6 pax.
+- 106 es quÃ­ntuple: acomodaciones 4/5. 201: 4/5. 109, 208 y 403: 3/4/5.
+- Triples: 1/2/3. Dobles: 1/2. La 205 solo admite 1.
+- El inventario detallado estÃ¡ en `seeds/habitaciones.csv`.
+
+### 5.2 Tarifas
+
+- Se cobra por **pax**, no por habitaciÃ³n.
+- Temporada baja, normal: 1â€“6 pax = 90.000 / 130.000 / 170.000 / 210.000 / 250.000 / 290.000.
+- Temporada baja, escenarios A/B: 75.000 / 110.000 / 145.000 / 180.000 / 210.000 / 250.000.
+- Temporada baja, escenario C: 80.000 / 115.000 / 155.000 / 190.000 / 225.000 / 260.000.
+- Temporada alta, normal: 130.000 / 180.000 / 240.000 / 300.000 / 360.000 / 400.000.
+- Temporada alta, A/B: 110.000 / 155.000 / 205.000 / 255.000 / 305.000 / 345.000.
+- Temporada alta, C: 115.000 / 160.000 / 215.000 / 270.000 / 325.000 / 360.000.
+- Ventilador: 50.000 baja y 80.000 alta; sin descuento.
+- Escenario A: llegada despuÃ©s de 7:30 p.m., 15% en todas las noches.
+- Escenario B: dos o mÃ¡s noches, 15% en todas las noches.
+- Escenario C: grupo o varias habitaciones, 10%; si no cierra, se aplica B (15%).
+- Los escenarios no se suman. No se ofrece descuento de entrada.
+- Solo aplican con ocupaciÃ³n de 15 habitaciones o menos.
+- La decisiÃ³n de temporada se toma a las 3 p.m. Si al llegar a 15 habitaciones
+  se cambia a alta, esa venta queda en baja y las siguientes en alta.
+- Fines de semana, festivos y del 15 de diciembre al 15 de enero: alta por defecto.
+- La matriz completa estÃ¡ en `seeds/tarifas.csv`.
+
+### 5.3 Desayuno
+
+- 15.000 por persona por noche.
+- Las tarifas pÃºblicas no incluyen desayuno; se agrega si se pide.
+- La tarifa de empresa puede incluirlo sin cobrarlo aparte.
+- Se cobra `pax Ã— noches`.
+- Si estÃ¡ incluido, no se devuelve. Si estÃ¡ pagado, solo el administrador puede anularlo.
+- El tratamiento de impuestos queda pendiente del contador.
+
+### 5.4 Impuestos
+
+- Alojamiento: la base no incluye IVA; se agrega 19% solo si el huÃ©sped pide factura.
+- Restaurante y bar: impoconsumo 8% incluido en el precio.
+- Desayuno: tratamiento pendiente de confirmar con el contador.
+- No se inventan tarifas ni impuestos: se usan los valores aprobados.
+
+### 5.5 Caja
+
+- Caja central: alojamiento + bar recepciÃ³n.
+- Bar terraza y restaurante entregan su efectivo a la caja central al final del turno.
+- Tarjeta y transferencia no entran a la caja fÃ­sica.
+- OperaciÃ³n 24 horas con 2 o 3 turnos. El entrante cuenta y el saliente responde.
+- Faltante o sobrante se investiga; si no se explica, se registra y se autoriza.
+- Gastos: los autoriza el dueÃ±o; se pide factura o soporte; la nÃ³mina sale de caja.
+- Retiros del dueÃ±o: se registran en cuenta socio, no como gasto.
+- Aportes del dueÃ±o: entran a caja y se registran como aporte.
+- El efectivo inicial es el conteo real al momento del cambio de sistema; no se
+  migra la caja acumulada del SIMP.
+
+### 5.6 Contabilidad
+
+- Todo movimiento de dinero se registra con doble partida (debe = haber).
+- Los cargos generan cuentas por cobrar; los cobros las cancelan.
+- El efectivo y los bancos son cuentas de balance; los ingresos van por centro.
+- No se registra un ingreso sin cargo, ni un cobro sin contrapartida.
+- El plan de cuentas y los asientos estÃ¡n en `backend/migrations` y `design.md`.
+
+### 5.7 Bar e inventario
+
+- Se compra cuando el stock baja a 2 o 3 unidades.
+- Producto daÃ±ado o vencido se registra como pÃ©rdida o merma.
+- Los empleados consumen con crÃ©dito y cupo; pagan o abonan.
+- Las cortesÃ­as las autoriza el dueÃ±o o el administrador.
+- Hay almacÃ©n central y almacenes de subcentros; el traslado mueve inventario,
+  no dinero.
+- La venta descuenta stock del almacÃ©n correspondiente.
+
+### 5.8 Clientes y crÃ©dito
+
+- Tipos: PARTICULAR, EMPRESA, EMPLEADO, GRUPO_TRABAJO, SOCIO.
+- Empresas: cupo y dÃ­as de crÃ©dito segÃºn acuerdo (8, 15 o 30 dÃ­as).
+- Empleados y grupos: cupo con tope y abonos.
+- Una venta a crÃ©dito no puede superar el cupo.
+- El consolidado por empresa se envÃ­a por el total; el detalle queda por trabajador.
+
+## 6. Datos y migraciÃ³n
+
+- Maestros a migrar: habitaciones, tarifas vigentes, clientes, empresas, usuarios y
+  saldos abiertos.
+- No se migran: tarifas basura, caja acumulada, adjuntos BLOB ni histÃ³rico completo.
+- El SIMP tiene 42 tablas, 523 reservas, 609 pagos, 392 clientes, 51 empresas,
+  32 habitaciones, 982 tarifas (943 â€œPersonalizadaâ€), 149 dÃ­as de caja y 151 minutas.
+- El histÃ³rico se conserva como referencia, no como blueprint.
+- Los datos de prueba se cargan con `seeds/habitaciones.csv` y `seeds/tarifas.csv`.
+
+## 7. Arquitectura
+
+- **Backend:** Node.js 22, TypeScript, Express 5, JWT, bcrypt, zod.
+- **Base de datos:** PGlite embebido en `backend/.data` para la v1; SQL compatible
+  con PostgreSQL. No hay Docker ni Supabase en la operaciÃ³n local.
+- **Frontend:** React, Vite, React Router, Tailwind, diseÃ±o navy/oro/crema.
+- **Reportes:** consultas SQL y PDF con `pdfkit`.
+- **Roles:** ADMIN, GERENTE, RECEPCION, CAJERO.
+- **OperaciÃ³n:** servidor local en recepciÃ³n; respaldo diario pendiente.
+
+## 8. Criterios de aceptaciÃ³n de la fase actual
+
+La fase se considera lista para pruebas manuales cuando:
+
+- [ ] Un recepcionista crea una reserva, hace check-in, agrega cargos, hace
+      check-out y genera el recibo.
+- [ ] El tablero muestra las habitaciones libres, ocupadas y sucias.
+- [ ] Una venta de bar en efectivo descuenta stock y cuadra la caja.
+- [ ] Una venta de bar se carga a la habitaciÃ³n y aparece en el folio.
+- [ ] Una compra entra al almacÃ©n y se puede trasladar a un subcentro.
+- [ ] Un empleado consume a crÃ©dito y queda su saldo.
+- [ ] Se abre caja, se registran gastos, retiro y aporte, y se hace cambio de turno.
+- [ ] El cierre calcula el efectivo esperado y registra la diferencia.
+- [ ] Todos los movimientos de dinero tienen asiento contable cuadrado.
+- [ ] El menÃº funciona por mÃ³dulos: Dashboard, Alojamiento, Bar, Caja, Reportes,
+      ConfiguraciÃ³n.
+
+## 9. Fases siguientes
+
+| Fase | Contenido |
 |---|---|
-| POS de bares y restaurante | Fase 1C |
-| Taquilla piscina / pasadías | Fase 1C |
-| Eventos (piscina + baño, piscina + parqueadero) | Fase 2 |
-| Paquetes turísticos (tour Represa de Prado) | Fase 2 |
-| Inventario de productos (bebidas, snacks) | Fase 1C |
-| Inventario de mobiliario / activos fijos | Fase 1C |
-| Descuentos condicionales automáticos | Fase 1B |
-| Contratos de mensualidad con firma | Fase 1B |
-| Extensiones y cambios de habitación | Fase 1B |
-| Averías y limpieza de habitaciones | Fase 1C |
-| Turnos de personal | Fase 1C |
-| Compras y proveedores | Fase 1C |
-| WhatsApp Cloud API | Fase 2 |
-| Facturación electrónica DIAN | Fase 3 |
-| Reservas online desde la web pública | Fase 3 |
-| App móvil nativa | No aplica — PWA |
-| Modo oscuro | Fase 1C (postergado) |
+| 1B | Empresas y crÃ©dito, mensualidad, contratos, extensiones, cambios de habitaciÃ³n, descuentos condicionales, CxC |
+| 1C | POS restaurante/terraza, inventario completo, compras y proveedores, piscina, lavanderÃ­a, activos fijos |
+| 2 | Eventos, paquetes, tour Represa, WhatsApp |
+| 3 | FacturaciÃ³n electrÃ³nica DIAN, reservas online, web pÃºblica |
 
----
+## 10. Decisiones registradas
 
-## 4. Reglas de negocio no negociables
+1. **Local-first:** servidor en recepciÃ³n, sin dependencia de internet.
+2. **PGlite en v1:** PostgreSQL embebido; SQL portable a PostgreSQL real.
+3. **Precio por pax**, no por habitaciÃ³n; suite se cobra como 6 pax.
+4. **Descuentos por escenario A/B/C**, sin suma y solo con ocupaciÃ³n â‰¤ 15.
+5. **Temporada se decide a las 3 p.m.**; alta por defecto en festivos y diciembre.
+6. **Desayuno 15.000 por persona/noche**; no incluido en tarifa pÃºblica.
+7. **Caja central Ãºnica** para alojamiento y bar recepciÃ³n; traslados desde terraza/restaurante.
+8. **Contabilidad de doble partida** para todo movimiento de dinero.
+9. **Bar y caja avanzada se mueven a la fase actual** para pruebas manuales.
+10. **No se migra la caja acumulada del SIMP.**
 
-Estas reglas aplican a TODAS las tareas y NO pueden ser modificadas sin actualizar este documento primero:
+## 11. Gobernanza
 
-1. **Todo movimiento de dinero debe registrarse en `libro_movimiento`** con doble partida (debe/haber). No existe excepción.
-2. **Todo `folio_cargo` debe tener `centro_id` obligatorio.** Si no tiene centro, no se guarda.
-3. **`cobro` con tres tipos de documento**: `NINGUNO`, `RECIBO_CAJA`, `FACTURA_ELECTRONICA`. El cobro siempre se registra; lo que cambia es si además se emite un documento.
-4. **Una sola sesión de caja `ABIERTA` por `punto_venta` a la vez.** Se garantiza con índice único parcial.
-5. **Los retiros del dueño se registran en `cuenta_socio`**, no como gasto directo.
-6. **Los consumos de empleados se registran como `cliente.tipo='EMPLEADO'`** con cupo y cuenta por cobrar. No se descuentan directamente de nómina.
-7. **Los pagos con tarjeta o transferencia que lleguen a cuentas del dueño se registran como `cobro` con `cuenta_destino='DUENO'`** y generan cuenta por cobrar al socio. Nunca se omiten.
-8. **Las cortesías se registran como `folio_cargo` con `monto=0` y `es_cortesia=true`**, con `autorizado_por_id` obligatorio. No se registran como gasto.
-9. **El efectivo de las cajas de bar terraza y restaurante debe trasladarse a la caja central al final del turno** con `TRASLADO_SALIDA` y `TRASLADO_ENTRADA` vinculados por `contraparte_sesion_id`.
-10. **Ninguna venta puede bloquearse por falta de cliente.** `cliente_id` es nullable; `tipo_cliente` es obligatorio.
-
----
-
-## 5. Decisiones de arquitectura tomadas
-
-| Decisión | Valor |
-|---|---|
-| Base de datos | PostgreSQL 14+ (Supabase) |
-| Backend | Node.js (Express/NestJS) |
-| Frontend | React + Vite + Tailwind CSS |
-| Autenticación | JWT + Supabase Auth |
-| Migraciones | Scripts SQL versionados por número secuencial |
-| Despliegue frontend | Vercel o Netlify |
-| Despliegue backend | Railway o Render |
-| Archivos adjuntos | Supabase Storage |
-| Impresión térmica | ESC/POS desde backend (`node-escpos` o similar) |
-| Generación de PDF | Backend con `pdfkit` |
-| Backups | Supabase Pro (diario 7 días) + PITR + `supabase db dump` semanal a almacenamiento externo |
-| Modo oscuro | Postergado a Fase 1C |
-| WhatsApp | Fase 2, con API oficial de Meta (Coexistencia para mantener la app en el teléfono) |
-
----
-
-## 6. Criterio de aceptación de la fase
-
-La Fase 1A se considera terminada cuando:
-
-- [ ] Las migraciones 001–012 y 025 corren limpias en una base de datos vacía de Supabase.
-- [ ] El script de seed carga sin errores los CSV de habitaciones, usuarios y plan de cuentas.
-- [ ] Un recepcionista puede hacer un check-in walk-in completo (reserva → habitación → huésped → folio → cobro) en menos de 2 minutos.
-- [ ] Un recepcionista puede hacer un check-out completo con cobro en efectivo y cierre de folio.
-- [ ] El cierre de turno calcula el efectivo esperado correctamente y registra la diferencia.
-- [ ] Un cobro con tarjeta al dueño genera cuenta por cobrar al socio.
-- [ ] Las 5 consultas de validación de `design.md` devuelven datos coherentes.
-- [ ] Se puede generar un PDF de recibo de caja y un PDF de reporte de ingresos del día.
-- [ ] El manual de usuario (SOP) para recepcionistas está redactado y probado con al menos una persona del equipo.
-
----
-
-## 7. Cómo se trabaja con esta fase
-
-1. El agente (Antigravity u otro) lee este SPEC completo antes de proponer cualquier plan.
-2. El agente lee `requirements.md` para conocer los FRs y sus criterios de aceptación.
-3. El agente consulta `design.md` (sección de la migración correspondiente) para el esquema SQL.
-4. El agente ejecuta las tareas de `tasks.md` **una a una**, en orden.
-5. Si algo es ambiguo, el agente pregunta antes de asumir. **Nunca improvisa.**
-6. Si una tarea revela que este SPEC está incompleto, se detiene y propone actualizar el SPEC antes de continuar.
-
----
-
-## 8. Glosario
-
-- **Centro:** unidad de negocio con ingresos o costes propios (Alojamiento, Bar, Piscina, etc.).
-- **POS:** punto de venta lógico asociado a un centro y a una caja física.
-- **Sesión de caja:** turno de un POS, desde apertura hasta cierre.
-- **Folio:** cuenta del huésped donde se acumulan cargos hasta el check-out.
-- **Folio maestro:** agrupa varios folios hijos (ej. empresa con varios colaboradores).
-- **Cortesía:** cargo al folio con monto 0 y autorización explícita.
-- **Anticipo:** pago parcial al crear una reserva.
-- **Cuenta socio:** registro de dinero que el hotel debe al dueño o viceversa.
-- **TRASLADO_SALIDA / TRASLADO_ENTRADA:** movimiento de efectivo entre cajas físicas.
+- Los cinco documentos de trabajo son la Ãºnica fuente.
+- Un cambio de alcance se propone, se aprueba, se escribe en este SPEC, se
+  actualiza `requirements.md`, `design.md`, `tasks.md` y reciÃ©n despuÃ©s se implementa.
+- Una tarea sin requisito y criterio de aceptaciÃ³n no se ejecuta.
+- No se crean documentos paralelos de alcance, procesos o decisiones.
