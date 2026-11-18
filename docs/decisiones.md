@@ -185,6 +185,18 @@
 
 ---
 
+## ADR-019 — Tarifa por pax y suite 106
+
+**Estado:** aceptada
+
+**Contexto:** la tarifa se cobra por persona: una triple vendida para 1 se cobra como sencilla, para 2 como doble y para 3 como triple. La 106 es la suite y se cobra como sextuple aunque vaya para 2 personas.
+
+**Decisión:** el precio se selecciona por **número de pax** (1 a 6) + clima + temporada + escenario. La suite 106 usa la tarifa de 6 pax sin importar cuántos vayan. Las acomodaciones permitidas por habitación limitan los pax vendibles.
+
+**Consecuencia:** no se cobra por la capacidad de la habitación sino por los pax; la suite es un producto de precio fijo.
+
+---
+
 ## ADR-016 — Solo impresora láser en la v1
 
 **Estado:** aceptada

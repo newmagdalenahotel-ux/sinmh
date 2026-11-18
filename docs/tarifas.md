@@ -12,7 +12,7 @@
 - **33 espacios confirmados:** **31 habitaciones rentables + 103 bodega + Admin oficina**.
 - La **206** es sencilla o doble, A/C.
 - **22 con A/C y 8 con ventilador** según la lista; el dueño y la tabla dicen 7. `[C]` cuál de las 8 no cuenta.
-- La **suite es la 105** configurada como suite; se cobra **al mismo precio que la sextuple**.
+- La **106** es la suite (6 personas o suite para 2) y se cobra como sextuple. La **105** se vende para 5 o 6; `[C]` si también se configura como suite.
 - La **climatización es dinámica**: si se repara el A/C se vende como A/C; si se pone un ventilador en una de A/C y se baja el taco, se cobra como ventilador.
 - La tarifa depende de **climatización vendida + acomodación + temporada + escenario**.
 - Ver `inventario-habitaciones.md` y `seeds/habitaciones.csv`.
@@ -49,6 +49,7 @@
 6. Las habitaciones con **ventilador no tienen ningún descuento**, ni por llegada tarde, ni por estadía, ni por grupo.
 7. **Descuento manual** solo con motivo y autorización; queda registrado.
 8. **A, B y C no se acumulan**; se elige uno.
+9. **La tarifa es por pax**, no por habitación. Una triple vendida para 1 se cobra como sencilla; para 2, como doble; para 3, como triple. Igual para 105, 109, 208 y 403. La suite 106 es la excepción: se cobra como sextuple aunque vaya para 2.
 
 ## 4. A/C — Temporada baja
 
@@ -74,11 +75,13 @@
 | 5 personas | 360.000 | 305.000 | 305.000 | 325.000 |
 | 6 personas / suite | 400.000 | 345.000 | 345.000 | 360.000 |
 
-## 6. Sextuple y suite
+## 6. Sextuple y suite (106)
 
-- La **105** puede ser quintuple, sextuple o suite.
-- **La suite se cobra igual que la sextuple.**
-- Precios en las tablas de arriba: **290.000 / 400.000** normal, **250.000 / 345.000** con A o B, **260.000 / 360.000** con C.
+- La **106** es la suite: dos espacios, dos baños, dos televisores y dos aires acondicionados; un espacio con cama y el otro con sofá, comedor y nevera.
+- Se vende como **6 personas** o como **suite para 2**.
+- **La suite se cobra como sextuple**, aunque vaya para 2.
+- La **105** se vende para 5 o 6; `[C]` confirmar si también se configura como suite.
+- Precios: **290.000 / 400.000** normal, **250.000 / 345.000** con A o B, **260.000 / 360.000** con C.
 - Son precios cerrados, sin monedas. `[C]` confirmar.
 
 ## 7. Habitaciones con ventilador
@@ -138,7 +141,7 @@ convenio_tarifa(id, cliente_id, tipo_habitacion_id, acomodacion, valor, dias_cre
 
 ## 12. Pendientes
 
-1. Confirmar cuáles son las **7 de ventilador** (la lista da 8: 108, 205, 207, 209, 301, 303, 305, 405).
+1. Confirmar si la **105** también se configura como suite y si la **106** se vende para 5.
 2. Confirmar **290.000 / 400.000** para sextuple y suite, y sus descuentos.
 3. Confirmar **130.000 vs 125.000** en 2 personas temporada baja.
 4. IVA incluido o adicional; bar impoconsumo; datos de facturación.
