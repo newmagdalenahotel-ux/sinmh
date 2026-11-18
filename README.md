@@ -50,6 +50,8 @@ npm run dev
 - Login: `admin` / `admin123`
 - Consume la API en `http://localhost:3000`.
 
+![Login](docs/capturas/franja-0-login.png)
+
 ## Todo desde la raíz
 
 ```bash
@@ -61,7 +63,7 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-Completar la Franja 0 con el frontend de login y el shell. Después, check-in walk-in con cobro, folio y cierre de caja.
+Franja 1: check-in walk-in con tarifa por pax, descuento, datos del huésped, habitación, cobro y folio. Después, caja y cierre.
 
 ## Repositorio remoto
 
