@@ -326,6 +326,8 @@ la información principal del día.
 - Menú: Dashboard, Alojamiento, Bar y servicios, Caja, Reportes, Configuración.
 - La marca del sidebar dice “Sistema de Información New Magdalena Hotel”.
 - El topbar muestra el breadcrumb del módulo y la pantalla actual.
+- El topbar muestra la descripción de la pantalla y no repite el nombre del hotel.
+- El encabezado no se repite dentro del contenido.
 - Dashboard muestra ocupación, llegadas, salidas, caja y ventas.
 - Cada módulo agrupa sus pantallas y acciones.
 - Las secciones del menú se despliegan y conservan su estado abierto.

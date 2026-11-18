@@ -48,8 +48,10 @@ diseño de `design-system.md`: 240 px, fondo `navy-dark`, texto `cream`; topbar 
 
 La marca del sidebar es **Sistema de Información New Magdalena Hotel**, sin
 abreviaturas. El topbar muestra un breadcrumb del módulo y la pantalla actual
-(`Alojamiento / Check-in`), no un “Recepción” genérico. El título y la
-descripción grande quedan en el contenido de la página.
+(`Alojamiento / Check-in`) y, debajo, la descripción de esa pantalla. El nombre
+del hotel no se repite en el topbar. El título y la descripción grande ya no se
+repiten en el contenido: la pantalla empieza directamente en su primera card o
+formulario.
 
 Las secciones del menú son desplegables: se abre la que se está usando y las
 demás quedan cerradas. Los módulos con un solo ítem se muestran como enlace

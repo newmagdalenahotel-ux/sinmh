@@ -49,19 +49,84 @@ const navegacion: SeccionNavegacion[] = [
   },
 ];
 
-const breadcrumbs: Array<{ prefijo: string; modulo: string; pantalla: string }> = [
-  { prefijo: '/dashboard', modulo: 'Principal', pantalla: 'Dashboard' },
-  { prefijo: '/reservas', modulo: 'Alojamiento', pantalla: 'Reservas' },
-  { prefijo: '/checkin', modulo: 'Alojamiento', pantalla: 'Check-in' },
-  { prefijo: '/folios', modulo: 'Alojamiento', pantalla: 'Huéspedes y folios' },
-  { prefijo: '/clientes', modulo: 'Alojamiento', pantalla: 'Clientes' },
-  { prefijo: '/habitaciones', modulo: 'Alojamiento', pantalla: 'Habitaciones' },
-  { prefijo: '/bar', modulo: 'Bar y servicios', pantalla: 'Bar recepción' },
-  { prefijo: '/caja', modulo: 'Caja', pantalla: 'Caja y turnos' },
-  { prefijo: '/cartera', modulo: 'Caja', pantalla: 'Cartera' },
-  { prefijo: '/cuenta-socio', modulo: 'Caja', pantalla: 'Cuenta socio' },
-  { prefijo: '/reportes', modulo: 'Análisis', pantalla: 'Reportes' },
-  { prefijo: '/configuracion', modulo: 'Análisis', pantalla: 'Configuración' },
+const breadcrumbs: Array<{
+  prefijo: string;
+  modulo: string;
+  pantalla: string;
+  descripcion: string;
+}> = [
+  {
+    prefijo: '/dashboard',
+    modulo: 'Principal',
+    pantalla: 'Dashboard',
+    descripcion: 'Resumen de la operación de hoy.',
+  },
+  {
+    prefijo: '/reservas',
+    modulo: 'Alojamiento',
+    pantalla: 'Reservas',
+    descripcion: 'Crea la reserva, confirma la habitación y conviértela en check-in.',
+  },
+  {
+    prefijo: '/checkin',
+    modulo: 'Alojamiento',
+    pantalla: 'Check-in',
+    descripcion: 'Busca disponibilidad, cotiza y registra al huésped en una sola pantalla.',
+  },
+  {
+    prefijo: '/folios',
+    modulo: 'Alojamiento',
+    pantalla: 'Huéspedes y folios',
+    descripcion: 'Folios abiertos, cargos pendientes y check-out.',
+  },
+  {
+    prefijo: '/clientes',
+    modulo: 'Alojamiento',
+    pantalla: 'Clientes',
+    descripcion: 'Empresas, empleados y grupos con cupo y plazo de crédito.',
+  },
+  {
+    prefijo: '/habitaciones',
+    modulo: 'Alojamiento',
+    pantalla: 'Habitaciones',
+    descripcion: 'Estado de las 31 habitaciones rentables.',
+  },
+  {
+    prefijo: '/bar',
+    modulo: 'Bar y servicios',
+    pantalla: 'Bar recepción',
+    descripcion: 'Venta de productos, cobro directo o cargo a la habitación.',
+  },
+  {
+    prefijo: '/caja',
+    modulo: 'Caja',
+    pantalla: 'Caja y turnos',
+    descripcion: 'Apertura, movimientos y cierre del turno de recepción.',
+  },
+  {
+    prefijo: '/cartera',
+    modulo: 'Caja',
+    pantalla: 'Cartera',
+    descripcion: 'Empresas y empleados con saldo pendiente y abonos.',
+  },
+  {
+    prefijo: '/cuenta-socio',
+    modulo: 'Caja',
+    pantalla: 'Cuenta socio',
+    descripcion: 'Aportes y retiros del dueño.',
+  },
+  {
+    prefijo: '/reportes',
+    modulo: 'Análisis',
+    pantalla: 'Reportes',
+    descripcion: 'Ingresos del día, ocupación y movimientos contables.',
+  },
+  {
+    prefijo: '/configuracion',
+    modulo: 'Análisis',
+    pantalla: 'Usuarios y roles',
+    descripcion: 'Crea las cuentas de recepción, caja y gerencia.',
+  },
 ];
 
 function obtenerBreadcrumb(pathname: string) {
@@ -69,7 +134,13 @@ function obtenerBreadcrumb(pathname: string) {
     (item) => pathname === item.prefijo || pathname.startsWith(`${item.prefijo}/`)
   );
 
-  return encontrado ?? { modulo: 'SINMH', pantalla: 'Recepción' };
+  return (
+    encontrado ?? {
+      modulo: 'Sistema de Información',
+      pantalla: 'Recepción',
+      descripcion: 'Sistema de Información New Magdalena Hotel.',
+    }
+  );
 }
 
 export function AppLayout() {
@@ -273,8 +344,9 @@ export function AppLayout() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-cream-dark bg-navy px-4 text-cream lg:px-6">
-          <div className="flex items-center gap-3">
+        <header className="flex min-h-16 items-center justify-between border-b border-cream-dark bg-navy px-4 py-2 text-cream lg:px-6">
+          <h1 className="sr-only">{breadcrumb.pantalla}</h1>
+          <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={() => setMenuMovil(true)}
@@ -285,11 +357,13 @@ export function AppLayout() {
               ☰
             </button>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-cream">
+              <p className="truncate text-sm font-medium">
                 <span className="hidden text-cream/50 sm:inline">{breadcrumb.modulo} / </span>
                 <span className="text-gold">{breadcrumb.pantalla}</span>
               </p>
-              <p className="text-[11px] text-cream/45">Hotel New Magdalena</p>
+              <p className="hidden max-w-2xl truncate text-[11px] text-cream/55 sm:block">
+                {breadcrumb.descripcion}
+              </p>
             </div>
           </div>
 

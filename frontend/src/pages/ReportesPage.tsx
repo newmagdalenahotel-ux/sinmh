@@ -105,14 +105,7 @@ export function ReportesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-gold-dark">Análisis</p>
-          <h1 className="font-display text-3xl text-stone">Reportes</h1>
-          <p className="mt-1 text-sm text-stone-light">
-            Ingresos del día, ocupación y movimientos contables.
-          </p>
-        </div>
+      <div className="flex justify-end">
         <div className="flex flex-wrap items-end gap-2">
           <div>
             <label className="label" htmlFor="fecha">Fecha</label>

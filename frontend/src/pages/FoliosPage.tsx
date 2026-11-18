@@ -188,14 +188,7 @@ export function FoliosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-gold-dark">Alojamiento</p>
-          <h1 className="font-display text-3xl text-stone">Huéspedes en casa</h1>
-          <p className="mt-1 text-sm text-stone-light">
-            Folios abiertos, cargos pendientes y check-out.
-          </p>
-        </div>
+      <div className="flex justify-end">
         <Link to="/checkin" className="btn-primary">
           Nuevo check-in
         </Link>

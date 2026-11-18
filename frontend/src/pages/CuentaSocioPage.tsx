@@ -51,14 +51,7 @@ export function CuentaSocioPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-gold-dark">Caja</p>
-          <h1 className="font-display text-3xl text-stone">Cuenta socio</h1>
-          <p className="mt-1 text-sm text-stone-light">
-            Aportes y retiros del dueño. Saldo positivo: dinero del socio en el hotel.
-          </p>
-        </div>
+      <div className="flex justify-end">
         <Link to="/caja" className="btn-secondary">Ir a caja</Link>
       </div>
 

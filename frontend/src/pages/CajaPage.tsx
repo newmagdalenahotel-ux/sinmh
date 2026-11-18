@@ -257,14 +257,7 @@ export function CajaPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-gold-dark">Caja</p>
-          <h1 className="font-display text-3xl text-stone">Caja</h1>
-          <p className="mt-1 text-sm text-stone-light">
-            Apertura, movimientos y cierre del turno de recepción.
-          </p>
-        </div>
+      <div className="flex justify-end">
         <Link to="/checkin" className="btn-primary">
           Ir a check-in
         </Link>

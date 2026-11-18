@@ -32,7 +32,7 @@ function formatoMoneda(valor: number) {
 }
 
 export function DashboardPage() {
-  const { token, usuario } = useAuth();
+  const { token } = useAuth();
   const [ocupacion, setOcupacion] = useState({ ocupadas: 0, total: 0, porcentaje: 0 });
   const [ingresos, setIngresos] = useState(0);
   const [sesion, setSesion] = useState<SesionCaja | null>(null);
@@ -125,16 +125,6 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium text-gold-dark">Principal</p>
-        <h1 className="font-display text-3xl text-stone">
-          Buen día, {usuario?.nombre?.split(' ')[0] ?? 'equipo'}
-        </h1>
-        <p className="mt-1 text-sm text-stone-light">
-          Resumen de la operación de hoy, {hoy}.
-        </p>
-      </div>
-
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

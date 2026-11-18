@@ -102,14 +102,7 @@ export function CarteraPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-gold-dark">Cartera</p>
-          <h1 className="font-display text-3xl text-stone">Cuentas por cobrar</h1>
-          <p className="mt-1 text-sm text-stone-light">
-            Empresas y empleados con saldo pendiente y abonos.
-          </p>
-        </div>
+      <div className="flex justify-end">
         <div className="rounded-xl bg-navy px-4 py-2 text-right text-cream">
           <p className="text-xs text-cream/60">Cartera total</p>
           <p className="font-display text-xl text-gold">{formatoMoneda(total)}</p>

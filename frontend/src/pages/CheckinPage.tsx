@@ -280,14 +280,6 @@ export function CheckinPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium text-gold-dark">Alojamiento</p>
-        <h1 className="font-display text-3xl text-stone">Check-in</h1>
-        <p className="mt-1 text-sm text-stone-light">
-          Busca disponibilidad, cotiza y registra al huésped en una sola pantalla.
-        </p>
-      </div>
-
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
 
       {cajaAbierta === false && (

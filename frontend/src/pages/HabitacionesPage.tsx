@@ -97,14 +97,7 @@ export function HabitacionesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-gold-dark">Alojamiento</p>
-          <h1 className="font-display text-3xl text-stone">Tablero de habitaciones</h1>
-          <p className="mt-1 text-sm text-stone-light">
-            Estado de las 31 habitaciones rentables.
-          </p>
-        </div>
+      <div className="flex justify-end">
         <Link to="/checkin" className="btn-primary">Nuevo check-in</Link>
       </div>
 
