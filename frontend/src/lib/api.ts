@@ -164,3 +164,63 @@ export function checkinApi(token: string, payload: CheckinPayload) {
     token
   );
 }
+
+export type MovimientoCaja = {
+  id: number;
+  tipo: string;
+  monto: string;
+  referencia_tipo: string | null;
+  referencia_id: number | null;
+  fecha: string;
+  notas: string | null;
+};
+
+export type SesionCaja = {
+  id: number;
+  punto_venta_id: number;
+  punto_venta: string;
+  usuario_apertura_id: number;
+  usuario_cierre_id: number | null;
+  fecha_apertura: string;
+  fecha_cierre: string | null;
+  monto_apertura: string;
+  monto_sistema_efectivo: string | null;
+  monto_declarado: string | null;
+  diferencia: string | null;
+  autorizado_por_id: number | null;
+  estado: 'ABIERTA' | 'CERRADA';
+  notas: string | null;
+  efectivo_esperado: number;
+  movimientos: MovimientoCaja[];
+};
+
+export function sesionActualApi(token: string) {
+  return request<{ sesion: SesionCaja | null }>('/caja/sesion-actual', {}, token);
+}
+
+export function abrirCajaApi(token: string, montoApertura: number, notas?: string) {
+  return request<{ sesion: SesionCaja }>(
+    '/caja/sesiones',
+    {
+      method: 'POST',
+      body: JSON.stringify({ monto_apertura: montoApertura, notas }),
+    },
+    token
+  );
+}
+
+export function cerrarCajaApi(
+  token: string,
+  sesionId: number,
+  montoDeclarado: number,
+  notas?: string
+) {
+  return request<{ sesion: SesionCaja; efectivo_esperado: number }>(
+    `/caja/sesiones/${sesionId}/cerrar`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ monto_declarado: montoDeclarado, notas }),
+    },
+    token
+  );
+}

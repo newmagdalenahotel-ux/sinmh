@@ -111,6 +111,27 @@ checkinRouter.post('/', async (req, res) => {
 
   const saldo = total - montoPagado;
 
+  let sesionCajaId: number | null = null;
+
+  if (datos.pago?.metodo_pago === 'EFECTIVO' && montoPagado > 0) {
+    const caja = await db.query<{ id: number }>(
+      `SELECT sc.id
+       FROM sesion_caja sc
+       JOIN punto_venta pv ON pv.id = sc.punto_venta_id
+       WHERE pv.codigo = 'RECEPCION' AND sc.estado = 'ABIERTA'
+       LIMIT 1`
+    );
+
+    if (!caja.rows[0]) {
+      res.status(409).json({
+        error: 'No hay caja abierta. Abre la caja antes de cobrar en efectivo.',
+      });
+      return;
+    }
+
+    sesionCajaId = caja.rows[0].id;
+  }
+
   const resultado = await db.transaction(async (tx) => {
     let clienteId: number | undefined;
 
@@ -261,8 +282,8 @@ checkinRouter.post('/', async (req, res) => {
     if (montoPagado > 0 && datos.pago) {
       const cobro = await tx.query<{ id: number }>(
         `INSERT INTO cobro
-           (folio_id, cliente_id, tipo_documento, monto, metodo_pago, usuario_id, notas)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+           (folio_id, cliente_id, tipo_documento, monto, metodo_pago, sesion_caja_id, usuario_id, notas)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING id`,
         [
           folioId,
@@ -270,11 +291,21 @@ checkinRouter.post('/', async (req, res) => {
           datos.pago.tipo_documento,
           montoPagado,
           datos.pago.metodo_pago,
+          sesionCajaId,
           usuarioId,
           datos.pago.notas ?? null,
         ]
       );
       cobroId = cobro.rows[0]?.id ?? null;
+
+      if (cobroId && sesionCajaId !== null) {
+        await tx.query(
+          `INSERT INTO movimiento_caja
+             (sesion_caja_id, tipo, monto, referencia_tipo, referencia_id, usuario_id)
+           VALUES ($1, 'VENTA_EFECTIVO', $2, 'COBRO', $3, $4)`,
+          [sesionCajaId, montoPagado, cobroId, usuarioId]
+        );
+      }
     }
 
     await tx.query('UPDATE folio SET saldo = $1 WHERE id = $2', [saldo, folioId]);
@@ -296,7 +327,12 @@ checkinRouter.post('/', async (req, res) => {
       folio: { id: folioId, saldo },
       cargos: { alojamiento: totalAlojamiento, desayuno: totalDesayuno },
       cobro: cobroId
-        ? { id: cobroId, monto: montoPagado, metodo_pago: datos.pago?.metodo_pago }
+        ? {
+            id: cobroId,
+            monto: montoPagado,
+            metodo_pago: datos.pago?.metodo_pago,
+            sesion_caja_id: sesionCajaId,
+          }
         : null,
       desayuno: { modo: datos.desayuno, pax: desayunosPax, total: desayunosTotal },
     };

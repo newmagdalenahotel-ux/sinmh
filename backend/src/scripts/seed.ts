@@ -74,6 +74,8 @@ const centrosBase = [
   ['TOUR_REPRESA', 'Tour Represa de Prado', 'INGRESO'],
 ] as const;
 
+const puntosVentaBase = [['RECEPCION', 'Recepción', 'ALOJAMIENTO']] as const;
+
 const adminUsername = 'admin';
 const adminPassword = 'admin123';
 
@@ -103,6 +105,15 @@ await db.transaction(async (tx) => {
     await tx.query(
       'INSERT INTO centro (codigo, nombre, tipo) VALUES ($1, $2, $3) ON CONFLICT (codigo) DO NOTHING',
       [codigo, nombre, tipo]
+    );
+  }
+
+  for (const [codigo, nombre, centroCodigo] of puntosVentaBase) {
+    await tx.query(
+      `INSERT INTO punto_venta (codigo, nombre, centro_id)
+       VALUES ($1, $2, (SELECT id FROM centro WHERE codigo = $3))
+       ON CONFLICT (codigo) DO NOTHING`,
+      [codigo, nombre, centroCodigo]
     );
   }
 

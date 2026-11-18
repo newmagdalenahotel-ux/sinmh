@@ -3,6 +3,7 @@ import express, { type ErrorRequestHandler } from 'express';
 import { config } from './config.js';
 import { db } from './db.js';
 import { authRouter } from './modules/auth/auth.routes.js';
+import { cajaRouter } from './modules/caja/caja.routes.js';
 import { checkinRouter } from './modules/checkin/checkin.routes.js';
 import { disponibilidadRouter } from './modules/disponibilidad/disponibilidad.routes.js';
 import { habitacionesRouter } from './modules/habitaciones/habitaciones.routes.js';
@@ -28,6 +29,7 @@ app.use('/habitaciones', habitacionesRouter);
 app.use('/tarifas', tarifasRouter);
 app.use('/disponibilidad', disponibilidadRouter);
 app.use('/checkin', checkinRouter);
+app.use('/caja', cajaRouter);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);

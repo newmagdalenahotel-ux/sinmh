@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import {
   checkinApi,
   cotizarApi,
   disponibilidadApi,
+  sesionActualApi,
   type CheckinResultado,
   type Cotizacion,
   type Habitacion,
@@ -69,6 +71,7 @@ export function CheckinPage() {
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState<CheckinResultado | null>(null);
+  const [cajaAbierta, setCajaAbierta] = useState<boolean | null>(null);
 
   const noches = Math.max(0, nochesEntre(desde, hasta));
   const precioNoche = cotizacion?.precio ?? 0;
@@ -82,6 +85,24 @@ export function CheckinPage() {
     if (token) void buscar();
     // La búsqueda inicial usa las fechas y pax por defecto.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    let activo = true;
+
+    sesionActualApi(token)
+      .then((respuesta) => {
+        if (activo) setCajaAbierta(Boolean(respuesta.sesion));
+      })
+      .catch(() => {
+        if (activo) setCajaAbierta(false);
+      });
+
+    return () => {
+      activo = false;
+    };
   }, [token]);
 
   useEffect(() => {
@@ -268,6 +289,16 @@ export function CheckinPage() {
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+
+      {cajaAbierta === false && (
+        <div className="rounded-xl bg-warning/10 px-4 py-3 text-sm text-warning">
+          No hay caja abierta. Para cobrar en efectivo,{' '}
+          <Link to="/caja" className="font-semibold underline">
+            abre la caja
+          </Link>
+          . Los pagos con tarjeta o transferencia no la necesitan.
+        </div>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
