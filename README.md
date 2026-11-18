@@ -44,6 +44,7 @@ npm run dev
 - Caja: `GET /caja/sesion-actual`, `POST /caja/sesiones`, `POST /caja/sesiones/:id/cerrar`
 - Folios: `GET /folios`, `GET /folios/:id`, `POST /folios/:id/checkout`
 - Reportes: `GET /reportes/ingresos?fecha=...`, `GET /reportes/ocupacion`, `GET /reportes/libro?desde=...&hasta=...`
+- Administración: `GET /admin/usuarios`, `GET /admin/roles`, `POST /admin/usuarios`, `PUT /admin/usuarios/:id`
 - Semilla: 33 habitaciones, 31 rentables y 50 tarifas
 - Base: PostgreSQL embebido (PGlite) en `backend/.data`; el mismo esquema corre en PostgreSQL real.
 - Los datos de `datos y procesos/` no se versionan.
@@ -70,6 +71,8 @@ npm run dev
 
 ![Reportes](docs/capturas/reportes.png)
 
+![Usuarios y roles](docs/capturas/configuracion.png)
+
 ## Todo desde la raíz
 
 ```bash
@@ -81,7 +84,7 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-La contabilidad base y los reportes de ingresos, ocupación y libro ya funcionan. Siguen: usuarios/roles, cargos manuales al folio, bar recepción, PDF de recibo y respaldos.
+Usuarios y roles ya funcionan. Siguen: cargos manuales al folio, reporte de desayunos del día, PDF de recibo, bar recepción y caja avanzada.
 
 ## Repositorio remoto
 

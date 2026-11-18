@@ -3,6 +3,7 @@ import express, { type ErrorRequestHandler } from 'express';
 import { config } from './config.js';
 import { db } from './db.js';
 import { authRouter } from './modules/auth/auth.routes.js';
+import { adminRouter } from './modules/admin/admin.routes.js';
 import { cajaRouter } from './modules/caja/caja.routes.js';
 import { checkinRouter } from './modules/checkin/checkin.routes.js';
 import { disponibilidadRouter } from './modules/disponibilidad/disponibilidad.routes.js';
@@ -27,6 +28,7 @@ app.get('/health', async (_req, res) => {
 });
 
 app.use('/auth', authRouter);
+app.use('/admin', adminRouter);
 app.use('/habitaciones', habitacionesRouter);
 app.use('/tarifas', tarifasRouter);
 app.use('/disponibilidad', disponibilidadRouter);

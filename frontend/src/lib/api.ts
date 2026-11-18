@@ -346,3 +346,60 @@ export function reporteLibroApi(token: string, desde: string, hasta: string) {
     token
   );
 }
+
+export type UsuarioAdmin = {
+  id: number;
+  username: string;
+  nombre_completo: string;
+  email: string | null;
+  activo: boolean;
+  rol: string | null;
+  created_at: string;
+};
+
+export type RolAdmin = {
+  id: number;
+  codigo: string;
+  nombre: string;
+};
+
+export type NuevoUsuario = {
+  username: string;
+  nombre_completo: string;
+  email?: string;
+  password: string;
+  rol: 'ADMIN' | 'GERENTE' | 'RECEPCION' | 'CAJERO';
+  activo?: boolean;
+};
+
+export type EditarUsuario = {
+  nombre_completo?: string;
+  email?: string;
+  password?: string;
+  rol?: 'ADMIN' | 'GERENTE' | 'RECEPCION' | 'CAJERO';
+  activo?: boolean;
+};
+
+export function usuariosAdminApi(token: string) {
+  return request<{ usuarios: UsuarioAdmin[] }>('/admin/usuarios', {}, token);
+}
+
+export function rolesAdminApi(token: string) {
+  return request<{ roles: RolAdmin[] }>('/admin/roles', {}, token);
+}
+
+export function crearUsuarioApi(token: string, payload: NuevoUsuario) {
+  return request<{ usuario: UsuarioAdmin }>(
+    '/admin/usuarios',
+    { method: 'POST', body: JSON.stringify(payload) },
+    token
+  );
+}
+
+export function actualizarUsuarioApi(token: string, usuarioId: number, payload: EditarUsuario) {
+  return request<{ ok: boolean }>(
+    `/admin/usuarios/${usuarioId}`,
+    { method: 'PUT', body: JSON.stringify(payload) },
+    token
+  );
+}

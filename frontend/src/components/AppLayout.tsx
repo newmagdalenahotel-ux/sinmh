@@ -8,7 +8,7 @@ const navegacion = [
   { to: '/habitaciones', label: 'Habitaciones', activo: false },
   { to: '/caja', label: 'Caja', activo: true },
   { to: '/reportes', label: 'Reportes', activo: true },
-  { to: '/configuracion', label: 'Configuración', activo: false },
+  { to: '/configuracion', label: 'Configuración', activo: true },
 ];
 
 export function AppLayout() {
