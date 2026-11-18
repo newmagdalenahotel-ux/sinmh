@@ -58,6 +58,8 @@ npm run dev
 
 ![Login](docs/capturas/franja-0-login.png)
 
+![Check-in](docs/capturas/checkin-form.png)
+
 ## Todo desde la raíz
 
 ```bash
@@ -69,7 +71,7 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 ## Siguiente paso
 
-Franja 1: check-in walk-in con tarifa por pax, descuento, datos del huésped, habitación, cobro y folio. Después, caja y cierre.
+La Franja 1 ya tiene catálogo, disponibilidad, cotización, check-in y cobro. Sigue la **caja**: apertura de turno, cierre y arqueo, para enlazar los cobros a la sesión de caja.
 
 ## Repositorio remoto
 

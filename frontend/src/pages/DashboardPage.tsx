@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
@@ -68,6 +69,9 @@ export function DashboardPage() {
             <span className="rounded-full bg-gold/10 px-3 py-1 text-gold-dark">Suite 105</span>
             <span className="rounded-full bg-gold/10 px-3 py-1 text-gold-dark">Desayuno 15.000</span>
           </div>
+          <Link to="/checkin" className="btn-primary mt-4">
+            Nuevo check-in
+          </Link>
         </div>
 
         <div className="card">

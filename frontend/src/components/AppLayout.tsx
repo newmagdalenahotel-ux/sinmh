@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 
 const navegacion = [
   { to: '/dashboard', label: 'Recepción', activo: true },
+  { to: '/checkin', label: 'Check-in', activo: true },
   { to: '/habitaciones', label: 'Habitaciones', activo: false },
   { to: '/caja', label: 'Caja', activo: false },
   { to: '/reportes', label: 'Reportes', activo: false },
