@@ -207,8 +207,147 @@ reservasRouter.get('/:id', async (req, res) => {
   res.json({ reserva: rows[0] });
 });
 
-reservasRouter.get('/:id/contrato', async (req, res) => {
+reservasRouter.get('/:id/detalle', async (req, res) => {
+  type DetalleReserva = {
+    id: number;
+    codigo: string;
+    estado: string;
+    created_at: unknown;
+    saldo: string;
+    reserva_habitacion_id: number;
+    habitacion: string;
+  };
+  type DetalleHuesped = {
+    checkin_ts: unknown;
+    checkout_ts: unknown;
+  };
+  type DetallePago = {
+    fecha: unknown;
+    monto: string;
+    metodo_pago: string;
+    es_anticipo: boolean;
+  };
+
   const reservaId = Number(req.params.id);
+  if (!Number.isInteger(reservaId) || reservaId <= 0) {
+    res.status(400).json({ error: 'Reserva inválida' });
+    return;
+  }
+
+  const consulta = await db.query<DetalleReserva>(
+    `SELECT r.id, r.codigo, r.estado, r.created_at, r.fecha_entrada, r.fecha_salida,
+            r.modalidad, r.total, r.saldo, r.anticipo, r.notas,
+            r.incluye_desayuno, r.desayuno_modo, r.desayunos_pax, r.desayunos_total,
+            r.total_desayuno, r.temporada, r.escenario, r.maestra_id,
+            rm.codigo AS maestra_codigo,
+            r.motivo_visita, r.como_llego, r.placa_vehiculo,
+            r.tarifa_plan, r.tarifa_negociada, r.tarifa_motivo,
+            rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche, rh.estado AS rh_estado,
+            h.id AS habitacion_id, h.numero AS habitacion, h.clima, h.es_suite,
+            h.capacidad_max, h.piso, h.notas AS habitacion_notas,
+            c.id AS cliente_id, c.razon_social AS cliente, c.tipo AS cliente_tipo,
+            c.tipo_documento, c.numero_documento, c.telefono, c.email,
+            c.direccion, c.ciudad, c.notas AS cliente_notas
+     FROM reserva r
+     JOIN reserva_habitacion rh ON rh.reserva_id = r.id
+     JOIN habitacion h ON h.id = rh.habitacion_id
+     LEFT JOIN cliente c ON c.id = r.titular_cliente_id
+     LEFT JOIN reserva_maestra rm ON rm.id = r.maestra_id
+     WHERE r.id = $1`,
+    [reservaId]
+  );
+
+  const reserva = consulta.rows[0];
+  if (!reserva) {
+    res.status(404).json({ error: 'Reserva no encontrada' });
+    return;
+  }
+
+  const huesped = await db.query<DetalleHuesped>(
+    `SELECT nombre_completo, tipo_documento, numero_documento, telefono, email,
+            es_titular, checkin_ts, checkout_ts
+     FROM huesped
+     WHERE reserva_habitacion_id = $1
+     ORDER BY es_titular DESC, id
+     LIMIT 1`,
+    [reserva.reserva_habitacion_id]
+  );
+
+  const cargos = await db.query(
+    `SELECT fc.id, fc.fecha, fc.concepto, fc.cantidad, fc.precio_unitario,
+            fc.monto, fc.es_cortesia, fc.anulado, ce.nombre AS centro
+     FROM folio f
+     JOIN folio_cargo fc ON fc.folio_id = f.id
+     LEFT JOIN centro ce ON ce.id = fc.centro_id
+     WHERE f.reserva_id = $1
+     ORDER BY fc.fecha, fc.id`,
+    [reservaId]
+  );
+
+  const pagos = await db.query<DetallePago>(
+    `SELECT c.id, c.fecha, c.monto, c.metodo_pago, c.tipo_documento,
+            c.es_anticipo, c.aplicado, c.notas, u.nombre_completo AS usuario
+     FROM cobro c
+     LEFT JOIN usuario u ON u.id = c.usuario_id
+     WHERE c.reserva_id = $1
+        OR c.folio_id IN (SELECT id FROM folio WHERE reserva_id = $1)
+     ORDER BY c.fecha, c.id`,
+    [reservaId]
+  );
+
+  const cuentas = await db.query(
+    `SELECT cc.id, cc.monto_original, cc.saldo, cc.estado, cc.fecha_emision,
+            cc.fecha_vencimiento
+     FROM cuenta_cobrar cc
+     WHERE cc.folio_id IN (SELECT id FROM folio WHERE reserva_id = $1)
+     ORDER BY cc.id`,
+    [reservaId]
+  );
+
+  const historial: Array<{ fecha: unknown; titulo: string; detalle?: string }> = [];
+  historial.push({
+    fecha: reserva.created_at,
+    titulo: 'Reserva creada',
+    detalle: `Código ${reserva.codigo}`,
+  });
+
+  if (huesped.rows[0]?.checkin_ts) {
+    historial.push({
+      fecha: huesped.rows[0].checkin_ts,
+      titulo: 'Check-in',
+      detalle: `Habitación ${reserva.habitacion}`,
+    });
+  }
+
+  for (const pago of pagos.rows) {
+    historial.push({
+      fecha: pago.fecha,
+      titulo: pago.es_anticipo ? 'Anticipo recibido' : 'Pago recibido',
+      detalle: `${pago.metodo_pago} · ${Number(pago.monto).toLocaleString('es-CO')}`,
+    });
+  }
+
+  if (huesped.rows[0]?.checkout_ts) {
+    historial.push({
+      fecha: huesped.rows[0].checkout_ts,
+      titulo: 'Check-out',
+      detalle: `Saldo ${Number(reserva.saldo).toLocaleString('es-CO')}`,
+    });
+  }
+
+  historial.sort((a, b) => new Date(String(a.fecha)).getTime() - new Date(String(b.fecha)).getTime());
+
+  res.json({
+    reserva,
+    huesped: huesped.rows[0] ?? null,
+    cargos: cargos.rows,
+    pagos: pagos.rows,
+    cuentas_cobrar: cuentas.rows,
+    historial,
+  });
+});
+
+reservasRouter.get('/:id/contrato', async (req, res) => {  const reservaId = Number(req.params.id);
   if (!Number.isInteger(reservaId) || reservaId <= 0) {
     res.status(400).json({ error: 'Reserva inválida' });
     return;

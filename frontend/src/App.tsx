@@ -10,6 +10,7 @@ import { ReportesPage } from './pages/ReportesPage';
 import { ConfiguracionPage } from './pages/ConfiguracionPage';
 import { BarPage } from './pages/BarPage';
 import { ReservasPage } from './pages/ReservasPage';
+import { ReservaDetallePage } from './pages/ReservaDetallePage';
 import { ClientesPage } from './pages/ClientesPage';
 import { CarteraPage } from './pages/CarteraPage';
 import { CuentaSocioPage } from './pages/CuentaSocioPage';
@@ -24,6 +25,7 @@ export function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/checkin" element={<CheckinPage />} />
           <Route path="/reservas" element={<ReservasPage />} />
+          <Route path="/reservas/:id" element={<ReservaDetallePage />} />
           <Route path="/clientes" element={<ClientesPage />} />
           <Route path="/cartera" element={<CarteraPage />} />
           <Route path="/cuenta-socio" element={<CuentaSocioPage />} />

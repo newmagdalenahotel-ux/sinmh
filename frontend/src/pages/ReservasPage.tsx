@@ -76,6 +76,8 @@ function formatoFechaCreacion(valor: string) {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   })
     .format(new Date(valor))
     .replace('.', '')
@@ -111,7 +113,8 @@ type NombreIcono =
   | 'editar'
   | 'cancelar'
   | 'folio'
-  | 'flecha';
+  | 'flecha'
+  | 'ver';
 
 function Icono({ nombre, className = 'h-4 w-4' }: { nombre: NombreIcono; className?: string }) {
   const contenido: Record<NombreIcono, ReactNode> = {
@@ -158,6 +161,12 @@ function Icono({ nombre, className = 'h-4 w-4' }: { nombre: NombreIcono; classNa
       </>
     ),
     flecha: <path d="m9 18 6-6-6-6" />,
+    ver: (
+      <>
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ),
   };
 
   return (
@@ -303,15 +312,30 @@ export function ReservasPage() {
     setError('');
 
     try {
+      const estadoApi =
+        filtroEstado === 'ACTIVAS' || filtroEstado === 'HISTORICO'
+          ? undefined
+          : filtroEstado || undefined;
       const [respuesta, respuestaClientes, respuestaHabitaciones] = await Promise.all([
         reservasApi(token, {
-          estado: filtroEstado || undefined,
+          estado: estadoApi,
           buscar: buscar.trim() || undefined,
         }),
         clientesApi(token),
         habitacionesApi(token),
       ]);
-      setReservas(respuesta.reservas);
+      const filtradas =
+        filtroEstado === 'ACTIVAS'
+          ? respuesta.reservas.filter((reserva) =>
+              ['PENDIENTE', 'CONFIRMADA', 'CHECKIN'].includes(reserva.estado)
+            )
+          : filtroEstado === 'HISTORICO'
+            ? respuesta.reservas.filter((reserva) =>
+                ['CHECKOUT', 'CANCELADA', 'NO_SHOW'].includes(reserva.estado)
+              )
+            : respuesta.reservas;
+
+      setReservas(filtradas);
       setClientes(respuestaClientes.clientes);
       setHabitacionesTodas(respuestaHabitaciones.habitaciones);
     } catch (err) {
@@ -667,7 +691,9 @@ export function ReservasPage() {
               onChange={(event) => setFiltroEstado(event.target.value)}
               aria-label="Filtrar por estado"
             >
-              <option value="">Todos los estados</option>
+              <option value="">Todas las reservas</option>
+              <option value="ACTIVAS">Activas</option>
+              <option value="HISTORICO">Histórico</option>
               <option value="CONFIRMADA">Confirmadas</option>
               <option value="PENDIENTE">Pendientes</option>
               <option value="CHECKIN">En casa</option>
@@ -801,6 +827,15 @@ export function ReservasPage() {
 
                           <td className="px-4 py-4 align-middle">
                             <div className="flex items-center justify-end gap-1">
+                              <Link
+                                to={`/reservas/${reserva.id}`}
+                                title="Ver detalle"
+                                aria-label={`Ver detalle de ${reserva.codigo}`}
+                                className="rounded-lg p-2 text-stone-light transition hover:bg-cream hover:text-navy"
+                              >
+                                <Icono nombre="ver" />
+                              </Link>
+
                               <button
                                 type="button"
                                 title="Contrato"

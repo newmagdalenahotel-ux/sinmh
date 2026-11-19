@@ -68,6 +68,7 @@ overlay y cierre al elegir una pantalla o al presionar Escape.
 
 **Alojamiento**
 - `/alojamiento/reservas`: lista compacta con búsqueda, filtro por estado, paginación, acciones por fila y botones de reserva/grupo/check-in.
+- `/alojamiento/reservas/:id`: detalle completo con estadía, huésped, tarifa, consumos, pagos, cuentas por cobrar e historial.
 - `/alojamiento/clientes`: ficha con contacto, dirección, ciudad y tarifa negociada.
 - `/alojamiento/tablero`: estado visual de las 31 habitaciones.
 - `/alojamiento/checkin`: check-in de reserva o walk-in, con cobro en el mismo panel.

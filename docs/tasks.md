@@ -509,6 +509,20 @@ design, design-system y tasks.
 - [x] Paginación de 10, 20 o 50 filas.
 - [x] Búsqueda con espera de 350 ms.
 - [x] Se retiraron las ayudas contextuales.
+- [x] Fecha de creación con hora.
+- [x] Filtros activas, histórico y todas.
+- [x] Acción “Ver” hacia el detalle.
+
+### T11.5 — Vista completa de la reserva
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Endpoint `GET /reservas/:id/detalle`.
+- [x] Página `/reservas/:id`.
+- [x] Estadía, huésped, pagador y tarifa.
+- [x] Consumos y pagos con fecha y usuario.
+- [x] Cuentas por cobrar e historial.
+- [x] Check-in y check-out con hora.
 
 ---
 

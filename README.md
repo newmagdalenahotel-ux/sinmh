@@ -44,7 +44,7 @@ npm run dev
 - Disponibilidad: `GET /disponibilidad?desde=2026-11-20&hasta=2026-11-22&pax=2`
 - Cotización: `GET /tarifas/cotizar?habitacion_id=1&pax=2&temporada=BAJA&escenario=NORMAL`
 - Check-in: `POST /checkin` (cliente, reserva, huésped, folio, cargos y cobro)
-- Reservas: `GET/POST /reservas`, `POST /reservas/maestra`, `GET /reservas/maestra/:id`, `POST /reservas/maestra/:id/cancelar`, `PUT /reservas/:id`, `POST /reservas/:id/cancelar`, `POST /reservas/:id/checkin`, `GET /reservas/:id/contrato`, anticipo opcional
+- Reservas: `GET/POST /reservas`, `GET /reservas/:id/detalle`, `POST /reservas/maestra`, `GET /reservas/maestra/:id`, `POST /reservas/maestra/:id/cancelar`, `PUT /reservas/:id`, `POST /reservas/:id/cancelar`, `POST /reservas/:id/checkin`, `GET /reservas/:id/contrato`, anticipo opcional
 - Clientes: `GET/POST /clientes`, `PUT /clientes/:id` (dirección, ciudad, tarifa y vigencia)
 - Cartera: `GET /cuentas-cobrar`, `GET /cuentas-cobrar/:id`, `POST /cuentas-cobrar/:id/abonos`
 - Cuenta socio: `GET /caja/cuenta-socio`
@@ -85,6 +85,8 @@ npm run dev
 ![Tablero de habitaciones](docs/capturas/habitaciones.png)
 
 ![Reservas](docs/capturas/reservas.png)
+
+![Detalle de reserva](docs/capturas/reserva-detalle.png)
 
 ![Nueva reserva en drawer](docs/capturas/reservas-drawer.png)
 
@@ -133,14 +135,15 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 
 1. Abre caja de recepción.
 2. Crea una reserva con anticipo y edítala.
-3. Haz check-in desde la reserva.
-4. Agrega un cargo y haz check-out.
-5. Crea una empresa en Clientes con plan `EMPRESA`, tarifa por noche y vigencia.
-6. Crea una reserva a su nombre y verifica que aplique la tarifa negociada.
-7. Usa **Reserva grupal** para reservar dos habitaciones con la empresa como pagadora.
-8. Haz check-out a crédito, abona en Cartera y revisa Cuenta socio.
-9. Abre bar terraza, traslada efectivo a recepción y haz cambio de turno.
-10. Genera el cuadre PDF y revisa Reportes.
+3. Usa el ojo **Ver** para revisar la vista completa: pagos, consumos e historial.
+4. Haz check-in desde la reserva.
+5. Agrega un cargo y haz check-out.
+6. Crea una empresa en Clientes con plan `EMPRESA`, tarifa por noche y vigencia.
+7. Crea una reserva a su nombre y verifica que aplique la tarifa negociada.
+8. Usa **Reserva grupal** para reservar dos habitaciones con la empresa como pagadora.
+9. Haz check-out a crédito, abona en Cartera y revisa Cuenta socio.
+10. Abre bar terraza, traslada efectivo a recepción y haz cambio de turno.
+11. Genera el cuadre PDF y revisa Reportes.
 
 ## Siguiente paso
 

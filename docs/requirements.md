@@ -428,6 +428,17 @@ pagador del grupo.
 - El grupo se puede consultar y cancelar mientras no haya check-in.
 - Cada habitación conserva su check-in, folio y check-out.
 
+### FR-47 — Detalle e histórico de la reserva
+**Fase:** actual · **Estado:** Hecho
+
+**Aceptación:**
+- La fecha de creación muestra fecha y hora.
+- Cada reserva tiene una vista `/reservas/:id`.
+- La vista muestra estadía, huésped, tarifa, consumos, pagos, cuentas por cobrar e historial.
+- Los check-in y check-out muestran fecha y hora.
+- El filtro permite ver activas, histórico o todas.
+- Las reservas con check-out o canceladas se conservan.
+
 ---
 
 ## Módulo: Reportes

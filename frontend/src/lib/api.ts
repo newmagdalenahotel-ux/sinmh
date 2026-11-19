@@ -753,6 +753,68 @@ export function reservaApi(token: string, reservaId: number) {
   return request<{ reserva: ReservaDetalle }>(`/reservas/${reservaId}`, {}, token);
 }
 
+export type ReservaDetalleCompleto = {
+  reserva: ReservaDetalle & {
+    created_at: string;
+    cliente_tipo: string | null;
+    direccion: string | null;
+    ciudad: string | null;
+    cliente_notas: string | null;
+    placa_vehiculo: string | null;
+    tarifa_motivo: string | null;
+    maestra_codigo: string | null;
+    habitacion_notas: string | null;
+    es_suite: boolean;
+    capacidad_max: number;
+    piso: number | null;
+  };
+  huesped: {
+    nombre_completo: string;
+    tipo_documento: string | null;
+    numero_documento: string | null;
+    telefono: string | null;
+    email: string | null;
+    es_titular: boolean;
+    checkin_ts: string | null;
+    checkout_ts: string | null;
+  } | null;
+  cargos: Array<{
+    id: number;
+    fecha: string;
+    concepto: string;
+    cantidad: string;
+    precio_unitario: string;
+    monto: string;
+    es_cortesia: boolean;
+    anulado: boolean;
+    centro: string | null;
+  }>;
+  pagos: Array<{
+    id: number;
+    fecha: string;
+    monto: string;
+    metodo_pago: string;
+    tipo_documento: string;
+    es_anticipo: boolean;
+    aplicado: boolean;
+    notas: string | null;
+    usuario: string | null;
+  }>;
+  cuentas_cobrar: Array<{
+    id: number;
+    monto_original: string;
+    saldo: string;
+    estado: string;
+    fecha_emision: string;
+    fecha_vencimiento: string | null;
+  }>;
+  historial: Array<{ fecha: string; titulo: string; detalle?: string }>;
+};
+
+export function reservaDetalleApi(token: string, reservaId: number) {
+  return request<ReservaDetalleCompleto>(`/reservas/${reservaId}/detalle`, {}, token);
+}
+
 export function crearReservaApi(token: string, payload: ReservaPayload) {
   return request<{ reserva: ReservaResumen }>(
     '/reservas',
