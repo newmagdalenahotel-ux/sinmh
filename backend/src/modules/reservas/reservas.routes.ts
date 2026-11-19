@@ -449,6 +449,7 @@ const crearSchema = z.object({
   cliente: clienteSchema,
   desayuno: z.enum(['NO', 'PAGADO', 'INCLUIDO']).default('NO'),
   anticipo: anticipoSchema.optional(),
+  pagos: z.array(anticipoSchema).min(1).max(5).optional(),
   notas: z.string().trim().max(500).optional(),
   motivo_visita: z.string().trim().max(120).optional(),
   como_llego: z.string().trim().max(60).optional(),
@@ -508,15 +509,20 @@ reservasRouter.post('/', async (req, res) => {
   const desayunosTotal = desayuno === 'NO' ? 0 : datos.pax * noches;
   const totalDesayuno = desayuno === 'PAGADO' ? desayunosTotal * 15_000 : 0;
   const total = totalAlojamiento + totalDesayuno;
-  const montoAnticipo = datos.anticipo?.monto ?? 0;
+  const pagos = datos.pagos?.length
+    ? datos.pagos
+    : datos.anticipo
+      ? [datos.anticipo]
+      : [];
+  const montoAnticipo = pagos.reduce((suma, pago) => suma + pago.monto, 0);
 
   if (montoAnticipo > total) {
-    res.status(400).json({ error: 'El anticipo no puede ser mayor al total' });
+    res.status(400).json({ error: 'Los pagos no pueden ser mayores al total' });
     return;
   }
 
   let sesionAnticipoId: number | null = null;
-  if (montoAnticipo > 0 && datos.anticipo?.metodo_pago === 'EFECTIVO') {
+  if (pagos.some((pago) => pago.metodo_pago === 'EFECTIVO')) {
     const caja = await db.query<{ id: number }>(
       `SELECT sc.id
        FROM sesion_caja sc
@@ -526,7 +532,7 @@ reservasRouter.post('/', async (req, res) => {
     );
 
     if (!caja.rows[0]) {
-      res.status(409).json({ error: 'No hay caja abierta para recibir el anticipo en efectivo' });
+      res.status(409).json({ error: 'No hay caja abierta para recibir pagos en efectivo' });
       return;
     }
 
@@ -615,49 +621,51 @@ reservasRouter.post('/', async (req, res) => {
     const reservaId = reserva.rows[0]?.id;
     if (!reservaId) throw new Error('No se pudo crear la reserva');
 
-    if (montoAnticipo > 0 && datos.anticipo && clienteId) {
-      const cobro = await tx.query<{ id: number }>(
-        `INSERT INTO cobro
-           (folio_id, cliente_id, reserva_id, tipo_documento, monto, metodo_pago,
-            sesion_caja_id, usuario_id, notas, es_anticipo)
-         VALUES (NULL, $1, $2, $3, $4, $5, $6, $7, $8, true)
-         RETURNING id`,
-        [
-          clienteId,
-          reservaId,
-          datos.anticipo.tipo_documento,
-          montoAnticipo,
-          datos.anticipo.metodo_pago,
-          sesionAnticipoId,
-          usuarioId,
-          `Anticipo reserva ${codigo}`,
-        ]
-      );
-
-      const cobroId = cobro.rows[0]?.id;
-      if (!cobroId) throw new Error('No se pudo registrar el anticipo');
-
-      if (sesionAnticipoId !== null) {
-        await tx.query(
-          `INSERT INTO movimiento_caja
-             (sesion_caja_id, tipo, monto, referencia_tipo, referencia_id, usuario_id)
-           VALUES ($1, 'VENTA_EFECTIVO', $2, 'COBRO', $3, $4)`,
-          [sesionAnticipoId, montoAnticipo, cobroId, usuarioId]
+    if (pagos.length > 0 && clienteId) {
+      for (const pago of pagos) {
+        const cobro = await tx.query<{ id: number }>(
+          `INSERT INTO cobro
+             (folio_id, cliente_id, reserva_id, tipo_documento, monto, metodo_pago,
+              sesion_caja_id, usuario_id, notas, es_anticipo)
+           VALUES (NULL, $1, $2, $3, $4, $5, $6, $7, $8, true)
+           RETURNING id`,
+          [
+            clienteId,
+            reservaId,
+            pago.tipo_documento,
+            pago.monto,
+            pago.metodo_pago,
+            pago.metodo_pago === 'EFECTIVO' ? sesionAnticipoId : null,
+            usuarioId,
+            `Anticipo reserva ${codigo}`,
+          ]
         );
+
+        const cobroId = cobro.rows[0]?.id;
+        if (!cobroId) throw new Error('No se pudo registrar el pago');
+
+        if (pago.metodo_pago === 'EFECTIVO' && sesionAnticipoId !== null) {
+          await tx.query(
+            `INSERT INTO movimiento_caja
+               (sesion_caja_id, tipo, monto, referencia_tipo, referencia_id, usuario_id)
+             VALUES ($1, 'VENTA_EFECTIVO', $2, 'COBRO', $3, $4)`,
+            [sesionAnticipoId, pago.monto, cobroId, usuarioId]
+          );
+        }
+
+        const cuentaPago = pago.metodo_pago === 'EFECTIVO' ? '1101' : '1102';
+
+        await registrarAsiento(tx, {
+          descripcion: `Anticipo reserva ${codigo}`,
+          origenTipo: 'ANTICIPO_RESERVA',
+          origenId: cobroId,
+          usuarioId,
+          lineas: [
+            { cuenta: cuentaPago, debe: pago.monto },
+            { cuenta: '2103', haber: pago.monto },
+          ],
+        });
       }
-
-      const cuentaPago = datos.anticipo.metodo_pago === 'EFECTIVO' ? '1101' : '1102';
-
-      await registrarAsiento(tx, {
-        descripcion: `Anticipo reserva ${codigo}`,
-        origenTipo: 'ANTICIPO_RESERVA',
-        origenId: cobroId,
-        usuarioId,
-        lineas: [
-          { cuenta: cuentaPago, debe: montoAnticipo },
-          { cuenta: '2103', haber: montoAnticipo },
-        ],
-      });
 
       await tx.query('UPDATE reserva SET anticipo = $1, saldo = $2 WHERE id = $3', [
         montoAnticipo,
@@ -1231,6 +1239,18 @@ const checkinSchema = z.object({
       notas: z.string().trim().max(300).optional(),
     })
     .optional(),
+  pagos: z
+    .array(
+      z.object({
+        monto: z.coerce.number().min(0),
+        metodo_pago: z.enum(['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'CREDITO']),
+        tipo_documento: z.enum(['NINGUNO', 'RECIBO_CAJA', 'FACTURA_ELECTRONICA']).default('NINGUNO'),
+        notas: z.string().trim().max(300).optional(),
+      })
+    )
+    .min(1)
+    .max(5)
+    .optional(),
 });
 
 reservasRouter.post('/:id/checkin', async (req, res) => {
@@ -1309,20 +1329,25 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
   const totalAlojamiento = total - totalDesayuno;
   const anticipo = Number(reserva.anticipo);
   const noches = calcularNoches(fechaTexto(reserva.fecha_entrada), fechaTexto(reserva.fecha_salida));
-  const montoPagado = parsed.data.pago?.monto ?? 0;
+  const pagos = parsed.data.pagos?.length
+    ? parsed.data.pagos
+    : parsed.data.pago
+      ? [parsed.data.pago]
+      : [];
+  const montoPagado = pagos.reduce((suma, pago) => suma + pago.monto, 0);
 
   if (montoPagado > total - anticipo) {
-    res.status(400).json({ error: 'El pago no puede ser mayor al saldo pendiente' });
+    res.status(400).json({ error: 'Los pagos no pueden ser mayores al saldo pendiente' });
     return;
   }
 
-  if (parsed.data.pago?.metodo_pago === 'CREDITO' && montoPagado > 0) {
+  if (pagos.some((pago) => pago.metodo_pago === 'CREDITO' && pago.monto > 0)) {
     res.status(400).json({ error: 'Un pago a crédito no puede tener monto' });
     return;
   }
 
   let sesionCajaId: number | null = null;
-  if (parsed.data.pago?.metodo_pago === 'EFECTIVO' && montoPagado > 0) {
+  if (pagos.some((pago) => pago.metodo_pago === 'EFECTIVO' && pago.monto > 0)) {
     const caja = await db.query<{ id: number }>(
       `SELECT sc.id
        FROM sesion_caja sc
@@ -1467,7 +1492,9 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
 
     let cobroId: number | null = null;
 
-    if (montoPagado > 0 && parsed.data.pago) {
+    for (const pago of pagos) {
+      if (pago.monto <= 0) continue;
+
       const cobro = await tx.query<{ id: number }>(
         `INSERT INTO cobro
            (folio_id, cliente_id, tipo_documento, monto, metodo_pago, sesion_caja_id, usuario_id, notas)
@@ -1476,37 +1503,38 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
         [
           folioId,
           reserva.cliente_id,
-          parsed.data.pago.tipo_documento,
-          montoPagado,
-          parsed.data.pago.metodo_pago,
-          sesionCajaId,
+          pago.tipo_documento,
+          pago.monto,
+          pago.metodo_pago,
+          pago.metodo_pago === 'EFECTIVO' ? sesionCajaId : null,
           usuarioId,
-          parsed.data.pago.notas ?? null,
+          pago.notas ?? null,
         ]
       );
 
-      cobroId = cobro.rows[0]?.id ?? null;
+      const cobroActualId = cobro.rows[0]?.id ?? null;
+      if (cobroId === null) cobroId = cobroActualId;
 
-      if (cobroId && sesionCajaId !== null) {
+      if (cobroActualId && pago.metodo_pago === 'EFECTIVO' && sesionCajaId !== null) {
         await tx.query(
           `INSERT INTO movimiento_caja
              (sesion_caja_id, tipo, monto, referencia_tipo, referencia_id, usuario_id)
            VALUES ($1, 'VENTA_EFECTIVO', $2, 'COBRO', $3, $4)`,
-          [sesionCajaId, montoPagado, cobroId, usuarioId]
+          [sesionCajaId, pago.monto, cobroActualId, usuarioId]
         );
       }
 
-      if (cobroId) {
-        const cuentaPago = parsed.data.pago.metodo_pago === 'EFECTIVO' ? '1101' : '1102';
+      if (cobroActualId) {
+        const cuentaPago = pago.metodo_pago === 'EFECTIVO' ? '1101' : '1102';
 
         await registrarAsiento(tx, {
           descripcion: `Cobro check-in ${reserva.codigo}`,
           origenTipo: 'COBRO',
-          origenId: cobroId,
+          origenId: cobroActualId,
           usuarioId,
           lineas: [
-            { cuenta: cuentaPago, debe: montoPagado },
-            { cuenta: '1103', haber: montoPagado },
+            { cuenta: cuentaPago, debe: pago.monto },
+            { cuenta: '1103', haber: pago.monto },
           ],
         });
       }
@@ -1545,7 +1573,7 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
       folio: { id: folioId, saldo },
       cargos: { alojamiento: totalAlojamiento, desayuno: totalDesayuno },
       cobro: cobroId
-        ? { id: cobroId, monto: montoPagado, metodo_pago: parsed.data.pago?.metodo_pago }
+        ? { id: cobroId, monto: montoPagado, metodo_pago: pagos[0]?.metodo_pago }
         : null,
     };
   });

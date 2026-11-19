@@ -519,6 +519,9 @@ design, design-system y tasks.
 - [x] Filtros Reservadas, En casa, Histórico, Salieron y Canceladas.
 - [x] Check-in fuera del menú; queda como acción y “Check-in sin reserva”.
 - [x] Formulario de reserva en 3 pasos.
+- [x] Tarjetas de habitaciones disponibles.
+- [x] Buscador de cliente existente.
+- [x] Pagos divididos y anticipo opcional.
 - [x] Motivo turismo/corporativo y origen de la reserva.
 - [x] Acción “Ver” abre el detalle en el panel.
 

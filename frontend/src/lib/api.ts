@@ -727,6 +727,11 @@ export type ReservaPayload = {
     metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
     tipo_documento: 'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA';
   };
+  pagos?: Array<{
+    monto: number;
+    metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
+    tipo_documento: 'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA';
+  }>;
   notas?: string;
 };
 
@@ -737,6 +742,12 @@ export type CheckinReservaPayload = {
     tipo_documento?: 'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA';
     notas?: string;
   };
+  pagos?: Array<{
+    monto: number;
+    metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CREDITO';
+    tipo_documento?: 'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA';
+    notas?: string;
+  }>;
 };
 
 export function reservasApi(token: string, filtros?: { estado?: string; buscar?: string }) {

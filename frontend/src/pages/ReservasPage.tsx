@@ -239,12 +239,20 @@ export function ReservasPage() {
   const [anticipoMetodo, setAnticipoMetodo] = useState<'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'>(
     'EFECTIVO'
   );
+  const [pagosExtra, setPagosExtra] = useState<
+    Array<{ monto: number | ''; metodo: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' }>
+  >([]);
+  const totalPagosReserva =
+    Number(anticipoMonto || 0) +
+    pagosExtra.reduce((suma, pago) => suma + Number(pago.monto || 0), 0);
   const [precioNoche, setPrecioNoche] = useState<number | null>(null);
   const [cargando, setCargando] = useState(true);
   const [creando, setCreando] = useState(false);
   const [error, setError] = useState('');
   const [drawerAbierto, setDrawerAbierto] = useState(false);
   const [pasoReserva, setPasoReserva] = useState(1);
+  const [busquedaCliente, setBusquedaCliente] = useState('');
+  const [listaClientesAbierta, setListaClientesAbierta] = useState(false);
   const [drawerGrupo, setDrawerGrupo] = useState(false);
   const [reservaVer, setReservaVer] = useState<ReservaResumen | null>(null);
   const [grupoVer, setGrupoVer] = useState<number | null>(null);
@@ -277,6 +285,9 @@ export function ReservasPage() {
   });
   const [reservaCheckin, setReservaCheckin] = useState<ReservaResumen | null>(null);
   const [pagoMonto, setPagoMonto] = useState<number | ''>('');
+  const [pagosCheckinExtra, setPagosCheckinExtra] = useState<
+    Array<{ monto: number | ''; metodo: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' }>
+  >([]);
   const [pagoMetodo, setPagoMetodo] = useState<
     'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CREDITO'
   >('EFECTIVO');
@@ -433,6 +444,25 @@ export function ReservasPage() {
     setCreando(true);
     setError('');
 
+    const pagos = [
+      ...(Number(anticipoMonto || 0) > 0
+        ? [
+            {
+              monto: Number(anticipoMonto),
+              metodo_pago: anticipoMetodo,
+              tipo_documento: 'NINGUNO' as const,
+            },
+          ]
+        : []),
+      ...pagosExtra
+        .filter((pago) => Number(pago.monto || 0) > 0)
+        .map((pago) => ({
+          monto: Number(pago.monto),
+          metodo_pago: pago.metodo,
+          tipo_documento: 'NINGUNO' as const,
+        })),
+    ];
+
     try {
       const respuesta = await crearReservaApi(token, {
         ...form,
@@ -441,14 +471,10 @@ export function ReservasPage() {
           email: form.cliente.email?.trim() || undefined,
           numero_documento: form.cliente.numero_documento?.trim() || undefined,
         },
-        anticipo:
-          Number(anticipoMonto || 0) > 0
-            ? {
-                monto: Number(anticipoMonto),
-                metodo_pago: anticipoMetodo,
-                tipo_documento: 'NINGUNO',
-              }
-            : undefined,
+        anticipo: pagos.length
+          ? { monto: pagos.reduce((suma, pago) => suma + pago.monto, 0), metodo_pago: 'EFECTIVO', tipo_documento: 'NINGUNO' }
+          : undefined,
+        pagos: pagos.length ? pagos : undefined,
         notas: form.notas?.trim() || undefined,
       });
       toast.success(
@@ -462,6 +488,7 @@ export function ReservasPage() {
         habitacion_id: respuesta.reserva.habitacion_id ?? form.habitacion_id,
       });
       setAnticipoMonto('');
+      setPagosExtra([]);
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear la reserva');
@@ -491,6 +518,7 @@ export function ReservasPage() {
     setReservaCheckin(reserva);
     setPagoMonto(Number(reserva.saldo));
     setPagoMetodo('EFECTIVO');
+    setPagosCheckinExtra([]);
     setPagoDocumento('NINGUNO');
     setError('');
     setDrawerAbierto(true);
@@ -502,6 +530,9 @@ export function ReservasPage() {
     setReservaVer(null);
     setGrupoVer(null);
     setPasoReserva(1);
+    setBusquedaCliente('');
+    setListaClientesAbierta(false);
+    setPagosExtra([]);
     setError('');
     setDrawerAbierto(true);
   }
@@ -592,16 +623,30 @@ export function ReservasPage() {
     if (!token || !reservaCheckin) return;
 
     const monto = pagoMetodo === 'CREDITO' ? 0 : Number(pagoMonto || 0);
+    const pagos = pagoMetodo === 'CREDITO'
+      ? []
+      : [
+          {
+            monto,
+            metodo_pago: pagoMetodo,
+            tipo_documento: pagoDocumento,
+          },
+          ...pagosCheckinExtra
+            .filter((pago) => Number(pago.monto || 0) > 0)
+            .map((pago) => ({
+              monto: Number(pago.monto),
+              metodo_pago: pago.metodo,
+              tipo_documento: pagoDocumento,
+            })),
+        ];
     setProcesandoCheckin(true);
     setError('');
 
     try {
       const respuesta = await checkinReservaApi(token, reservaCheckin.id, {
-        pago: {
-          monto,
-          metodo_pago: pagoMetodo,
-          tipo_documento: pagoDocumento,
-        },
+        ...(pagos.length
+          ? { pagos }
+          : { pago: { monto: 0, metodo_pago: 'CREDITO' as const, tipo_documento: pagoDocumento } }),
       });
       toast.success(
         `Check-in de ${respuesta.reserva.codigo} · folio #${respuesta.folio.id} · saldo ${formatoMoneda(respuesta.reserva.saldo)}`
@@ -683,6 +728,33 @@ export function ReservasPage() {
     }
   }
 
+  function seleccionarCliente(cliente: Cliente) {
+    setForm({
+      ...form,
+      cliente_id: cliente.id,
+      cliente: {
+        ...form.cliente,
+        nombre: cliente.razon_social,
+        tipo_documento: cliente.tipo_documento ?? 'CC',
+        numero_documento: cliente.numero_documento ?? '',
+        telefono: cliente.telefono ?? '',
+        email: cliente.email ?? '',
+      },
+    });
+    setBusquedaCliente(cliente.razon_social);
+    setListaClientesAbierta(false);
+  }
+
+  function limpiarCliente() {
+    setForm({
+      ...form,
+      cliente_id: undefined,
+      cliente: { ...form.cliente, nombre: '', numero_documento: '' },
+    });
+    setBusquedaCliente('');
+    setListaClientesAbierta(false);
+  }
+
   if (!token) return null;
 
   const noches = Math.max(
@@ -694,6 +766,15 @@ export function ReservasPage() {
   );
   const clienteSeleccionado = clientes.find((cliente) => cliente.id === form.cliente_id);
   const pagadorGrupo = clientes.find((cliente) => cliente.id === grupoForm.cliente_id);
+  const clientesFiltrados = clientes
+    .filter((cliente) => {
+      const texto = busquedaCliente.trim().toLowerCase();
+      if (!texto) return true;
+      return `${cliente.razon_social} ${cliente.numero_documento ?? ''}`
+        .toLowerCase()
+        .includes(texto);
+    })
+    .slice(0, 8);
   const tarifaNegociada =
     clienteSeleccionado &&
     clienteSeleccionado.tarifa_plan !== 'PUBLICA' &&
@@ -1233,6 +1314,85 @@ export function ReservasPage() {
                 </div>
               </div>
 
+              {pagoMetodo !== 'CREDITO' && (
+                <>
+                  {pagosCheckinExtra.map((pago, indice) => (
+                    <div key={indice} className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="label" htmlFor={`pago_checkin_extra_${indice}`}>
+                          Pago {indice + 2}
+                        </label>
+                        <MoneyInput
+                          id={`pago_checkin_extra_${indice}`}
+                          value={pago.monto}
+                          onChange={(valor) =>
+                            setPagosCheckinExtra((actuales) =>
+                              actuales.map((fila, posicion) =>
+                                posicion === indice ? { ...fila, monto: valor } : fila
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="label" htmlFor={`pago_checkin_metodo_${indice}`}>
+                          Método
+                        </label>
+                        <div className="flex gap-2">
+                          <select
+                            id={`pago_checkin_metodo_${indice}`}
+                            className="input"
+                            value={pago.metodo}
+                            onChange={(event) =>
+                              setPagosCheckinExtra((actuales) =>
+                                actuales.map((fila, posicion) =>
+                                  posicion === indice
+                                    ? {
+                                        ...fila,
+                                        metodo: event.target.value as
+                                          | 'EFECTIVO'
+                                          | 'TARJETA'
+                                          | 'TRANSFERENCIA',
+                                      }
+                                    : fila
+                                )
+                              )
+                            }
+                          >
+                            <option value="EFECTIVO">Efectivo</option>
+                            <option value="TARJETA">Tarjeta</option>
+                            <option value="TRANSFERENCIA">Transferencia</option>
+                          </select>
+                          <button
+                            type="button"
+                            className="rounded-lg border border-error/30 px-3 text-xs text-error"
+                            onClick={() =>
+                              setPagosCheckinExtra((actuales) =>
+                                actuales.filter((_, posicion) => posicion !== indice)
+                              )
+                            }
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="btn-secondary mt-3 px-3 py-2 text-xs"
+                    onClick={() =>
+                      setPagosCheckinExtra((actuales) => [
+                        ...actuales,
+                        { monto: '', metodo: 'TRANSFERENCIA' },
+                      ])
+                    }
+                  >
+                    + Agregar pago
+                  </button>
+                </>
+              )}
+
               <div className="mt-3">
                 <label className="label" htmlFor="pago_documento">Documento</label>
                 <select
@@ -1333,31 +1493,50 @@ export function ReservasPage() {
                         onChange={(event) => setForm({ ...form, pax: Number(event.target.value) })}
                       />
                     </div>
-                    <div>
-                      <label className="label" htmlFor="habitacion">Habitación disponible</label>
-                      <select
-                        id="habitacion"
-                        className="input"
-                        value={form.habitacion_id || ''}
-                        onChange={(event) =>
-                          setForm({ ...form, habitacion_id: Number(event.target.value) })
-                        }
-                      >
-                        <option value="">Selecciona una habitación</option>
-                        {habitaciones.map((habitacion) => (
-                          <option key={habitacion.id} value={habitacion.id}>
-                            {habitacion.numero} · {habitacion.capacidad_max} pax · {habitacion.clima}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="sm:col-span-2">
+                      <label className="label">Habitaciones disponibles</label>
+                      <div className="mt-2 grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2">
+                        {habitaciones.map((habitacion) => {
+                          const activa = form.habitacion_id === habitacion.id;
+                          return (
+                            <button
+                              key={habitacion.id}
+                              type="button"
+                              onClick={() =>
+                                setForm({ ...form, habitacion_id: habitacion.id })
+                              }
+                              className={`rounded-xl border p-3 text-left transition ${
+                                activa
+                                  ? 'border-gold bg-gold/10 ring-2 ring-gold/30'
+                                  : 'border-cream-dark bg-white hover:border-gold/50'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="font-semibold text-stone">Hab. {habitacion.numero}</p>
+                                <span className="text-xs text-stone-light">
+                                  {habitacion.es_suite ? 'Suite' : `${habitacion.capacidad_max} pax`}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs text-stone-light">
+                                {habitacion.clima === 'AC' ? 'Aire acondicionado' : 'Ventilador'}
+                                {habitacion.es_suite ? ' · Suite' : ''}
+                              </p>
+                              {activa && (
+                                <p className="mt-1 text-[11px] font-medium text-gold-dark">
+                                  Seleccionada
+                                </p>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {habitaciones.length === 0 && (
+                        <p className="mt-2 rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">
+                          No hay habitaciones disponibles para esas fechas y personas.
+                        </p>
+                      )}
                     </div>
                   </div>
-
-                  {habitaciones.length === 0 && (
-                    <p className="rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">
-                      No hay habitaciones disponibles para esas fechas y personas.
-                    </p>
-                  )}
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
@@ -1439,40 +1618,74 @@ export function ReservasPage() {
                   <h2 className="font-display text-xl text-stone">2. Huésped y origen</h2>
 
                   <div>
-                    <label className="label" htmlFor="cliente_existente">Cliente existente</label>
-                    <select
-                      id="cliente_existente"
-                      className="input"
-                      value={form.cliente_id ?? ''}
-                      onChange={(event) => {
-                        const id = Number(event.target.value);
-                        const cliente = clientes.find((item) => item.id === id);
-                        setForm({
-                          ...form,
-                          cliente_id: id || undefined,
-                          cliente: cliente
-                            ? {
-                                ...form.cliente,
-                                nombre: cliente.razon_social,
-                                tipo_documento: cliente.tipo_documento ?? 'CC',
-                                numero_documento: cliente.numero_documento ?? '',
-                                telefono: cliente.telefono ?? '',
-                                email: cliente.email ?? '',
-                              }
-                            : { ...form.cliente, nombre: '', numero_documento: '' },
-                        });
-                      }}
-                    >
-                      <option value="">Nuevo cliente particular</option>
-                      {clientes.map((cliente) => (
-                        <option key={cliente.id} value={cliente.id}>
-                          {cliente.razon_social} · {cliente.tipo}
-                          {cliente.tarifa_plan !== 'PUBLICA'
-                            ? ` · ${cliente.tarifa_plan} ${formatoMoneda(Number(cliente.tarifa_precio_noche ?? 0))}`
-                            : ''}
-                        </option>
-                      ))}
-                    </select>
+                    <label className="label" htmlFor="buscar_cliente">Buscar cliente existente</label>
+                    <div className="relative">
+                      <input
+                        id="buscar_cliente"
+                        className="input"
+                        placeholder="Nombre, documento o teléfono…"
+                        value={busquedaCliente}
+                        onChange={(event) => {
+                          setBusquedaCliente(event.target.value);
+                          setListaClientesAbierta(true);
+                          if (form.cliente_id) {
+                            setForm({ ...form, cliente_id: undefined });
+                          }
+                        }}
+                        onFocus={() => setListaClientesAbierta(true)}
+                        autoComplete="off"
+                      />
+                      {listaClientesAbierta && (
+                        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-xl border border-cream-dark bg-white p-1 shadow-xl">
+                          <button
+                            type="button"
+                            className="w-full rounded-lg px-3 py-2 text-left text-sm text-gold-dark hover:bg-gold/10"
+                            onClick={limpiarCliente}
+                          >
+                            + Nuevo cliente
+                          </button>
+                          {clientesFiltrados.length === 0 ? (
+                            <p className="px-3 py-2 text-sm text-stone-light">
+                              No hay coincidencias.
+                            </p>
+                          ) : (
+                            clientesFiltrados.map((cliente) => (
+                              <button
+                                key={cliente.id}
+                                type="button"
+                                className="w-full rounded-lg px-3 py-2 text-left hover:bg-cream"
+                                onClick={() => seleccionarCliente(cliente)}
+                              >
+                                <p className="text-sm font-medium text-stone">
+                                  {cliente.razon_social}
+                                </p>
+                                <p className="text-xs text-stone-light">
+                                  {cliente.tipo} · {cliente.tipo_documento ?? ''}{' '}
+                                  {cliente.numero_documento ?? ''}
+                                  {cliente.tarifa_plan !== 'PUBLICA'
+                                    ? ` · ${cliente.tarifa_plan}`
+                                    : ''}
+                                </p>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    {clienteSeleccionado ? (
+                      <p className="mt-2 flex items-center justify-between rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold-dark">
+                        <span>
+                          {clienteSeleccionado.razon_social} · {clienteSeleccionado.tipo}
+                        </span>
+                        <button type="button" className="underline" onClick={limpiarCliente}>
+                          Quitar
+                        </button>
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-xs text-stone-light">
+                        Escribe para buscar o crea un cliente nuevo.
+                      </p>
+                    )}
                     {clienteSeleccionado && tarifaNegociada > 0 && (
                       <p className="mt-2 rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold-dark">
                         Tarifa {clienteSeleccionado.tarifa_plan}:{' '}
@@ -1606,7 +1819,7 @@ export function ReservasPage() {
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="label" htmlFor="anticipo">Anticipo</label>
+                      <label className="label" htmlFor="anticipo">Pago 1</label>
                       <MoneyInput
                         id="anticipo"
                         value={anticipoMonto}
@@ -1614,7 +1827,7 @@ export function ReservasPage() {
                       />
                     </div>
                     <div>
-                      <label className="label" htmlFor="anticipo_metodo">Método del anticipo</label>
+                      <label className="label" htmlFor="anticipo_metodo">Método del pago 1</label>
                       <select
                         id="anticipo_metodo"
                         className="input"
@@ -1631,6 +1844,88 @@ export function ReservasPage() {
                       </select>
                     </div>
                   </div>
+
+                  {pagosExtra.map((pago, indice) => (
+                    <div key={indice} className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="label" htmlFor={`pago_extra_${indice}`}>
+                          Pago {indice + 2}
+                        </label>
+                        <MoneyInput
+                          id={`pago_extra_${indice}`}
+                          value={pago.monto}
+                          onChange={(valor) =>
+                            setPagosExtra((actuales) =>
+                              actuales.map((fila, posicion) =>
+                                posicion === indice ? { ...fila, monto: valor } : fila
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="label" htmlFor={`pago_extra_metodo_${indice}`}>
+                          Método del pago {indice + 2}
+                        </label>
+                        <div className="flex gap-2">
+                          <select
+                            id={`pago_extra_metodo_${indice}`}
+                            className="input"
+                            value={pago.metodo}
+                            onChange={(event) =>
+                              setPagosExtra((actuales) =>
+                                actuales.map((fila, posicion) =>
+                                  posicion === indice
+                                    ? {
+                                        ...fila,
+                                        metodo: event.target.value as
+                                          | 'EFECTIVO'
+                                          | 'TARJETA'
+                                          | 'TRANSFERENCIA',
+                                      }
+                                    : fila
+                                )
+                              )
+                            }
+                          >
+                            <option value="EFECTIVO">Efectivo</option>
+                            <option value="TARJETA">Tarjeta</option>
+                            <option value="TRANSFERENCIA">Transferencia</option>
+                          </select>
+                          <button
+                            type="button"
+                            className="rounded-lg border border-error/30 px-3 text-xs text-error"
+                            onClick={() =>
+                              setPagosExtra((actuales) =>
+                                actuales.filter((_, posicion) => posicion !== indice)
+                              )
+                            }
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    className="btn-secondary px-3 py-2 text-xs"
+                    onClick={() =>
+                      setPagosExtra((actuales) => [
+                        ...actuales,
+                        { monto: '', metodo: 'TRANSFERENCIA' },
+                      ])
+                    }
+                  >
+                    + Agregar pago
+                  </button>
+
+                  <p className="rounded-lg bg-cream px-3 py-2 text-xs text-stone-light">
+                    {totalPagosReserva > 0
+                      ? `Pagos registrados: ${formatoMoneda(totalPagosReserva)}.`
+                      : 'Sin anticipo: la reserva queda confirmada con el saldo total. Déjalo en 0 si la política no exige abono.'}
+                  </p>
 
                   <div>
                     <label className="label" htmlFor="notas_reserva">Notas</label>
@@ -1655,16 +1950,16 @@ export function ReservasPage() {
                       <span>Total estimado</span>
                       <span>{formatoMoneda(totalAlojamientoMostrado + totalDesayuno)}</span>
                     </div>
-                    {Number(anticipoMonto || 0) > 0 && (
+                    {totalPagosReserva > 0 && (
                       <div className="mt-1 flex justify-between text-gold-dark">
-                        <span>Saldo con anticipo</span>
+                        <span>Saldo con pagos</span>
                         <span>
                           {formatoMoneda(
                             Math.max(
                               0,
                               totalAlojamientoMostrado +
                                 totalDesayuno -
-                                Number(anticipoMonto || 0)
+                                totalPagosReserva
                             )
                           )}
                         </span>

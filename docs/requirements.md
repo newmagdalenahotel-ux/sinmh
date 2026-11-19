@@ -342,9 +342,9 @@ la información principal del día.
 
 **Aceptación:**
 - Formulario en 3 pasos: estadía, huésped/origen y pago.
-- Paso 1: fechas, pax, habitación disponible, temporada, escenario y desayuno.
-- Paso 2: huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
-- Paso 3: anticipo, método, notas y resumen.
+- Paso 1: fechas, pax, tarjetas de habitaciones disponibles, temporada, escenario y desayuno.
+- Paso 2: buscador de cliente existente, huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
+- Paso 3: pagos divididos, anticipo opcional, notas y resumen.
 - La placa del vehículo se registra en el check-in, no en la reserva.
 - Calendario o lista de reservas.
 - Convertir reserva en check-in.
@@ -447,8 +447,18 @@ pagador del grupo.
 - La reserva grupal tiene vista `/reservas/grupo/:id` con pagador y habitaciones.
 - El cliente tiene ficha `/clientes/:id` con contacto, crédito y tarifa.
 - Los check-in y check-out muestran fecha y hora.
-- El filtro permite ver activas, histórico o todas.
+- El filtro permite ver reservadas, en casa, histórico, salieron y canceladas.
 - Las reservas con check-out o canceladas se conservan.
+
+### FR-48 — Pago dividido y anticipo opcional
+**Fase:** actual · **Estado:** Hecho
+
+**Aceptación:**
+- La reserva y el check-in permiten varios pagos con métodos distintos.
+- Cada pago se guarda como un cobro independiente.
+- Solo los pagos en efectivo generan movimiento de caja.
+- El anticipo puede ser cero; en ese caso la reserva queda con saldo total.
+- El formulario avisa cuando el anticipo es opcional.
 
 ---
 
