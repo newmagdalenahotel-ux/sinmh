@@ -389,6 +389,52 @@ mezclar la lista con el formulario y para que la operación sea clara.
 - El contenido de la pantalla queda visible detrás del drawer.
 - En móvil el drawer ocupa el ancho completo.
 
+### FR-43 — Ficha de cliente y datos de estadía
+**Fase:** actual · **Estado:** Hecho
+**Descripción:** Completar los datos del cliente y separar lo permanente de lo
+que corresponde a una estadía.
+
+**Aceptación:**
+- Cliente guarda email, dirección, ciudad y notas.
+- Reserva guarda motivo de visita, cómo llegó y placa del vehículo.
+- El cliente se puede crear y editar desde el drawer de Clientes.
+- Los datos de estadía se conservan en la reserva y no sobrescriben la ficha.
+
+### FR-44 — Planes de tarifa para empresas y empleados
+**Fase:** actual · **Estado:** Hecho
+**Descripción:** Aplicar tarifas negociadas por cliente sin escribir el precio en
+cada reserva.
+
+**Aceptación:**
+- El cliente tiene plan `PUBLICA`, `EMPRESA`, `EMPLEADO` o `GRUPO`.
+- La tarifa negociada tiene precio por noche y vigencia.
+- La reserva aplica el precio negociado si está vigente; si no, usa la matriz pública.
+- La reserva guarda el plan y el precio aplicado para auditoría.
+- La pantalla de reserva muestra la tarifa del cliente seleccionado.
+
+### FR-45 — Reserva maestra con varias habitaciones y pagador
+**Fase:** actual · **Estado:** Hecho
+**Descripción:** Una empresa o persona reserva varias habitaciones y queda como
+pagador del grupo.
+
+**Aceptación:**
+- Crear una reserva maestra con fechas, pagador y varias habitaciones.
+- Cada habitación genera una reserva hija con su código y habitación.
+- Todas las hijas comparten el pagador y el código maestro `G-...`.
+- La lista muestra el código del grupo en cada reserva.
+- El grupo se puede consultar y cancelar mientras no haya check-in.
+- Cada habitación conserva su check-in, folio y check-out.
+
+### FR-46 — Ayudas contextuales por submódulo
+**Fase:** actual · **Estado:** Hecho
+**Descripción:** Explicar en dos o tres bullets qué se hace en cada pantalla, sin
+llenar el contenido de párrafos permanentes.
+
+**Aceptación:**
+- Cada ruta principal tiene una ayuda plegable “¿Cómo funciona …?”.
+- La ayuda tiene 2–3 bullets operativos.
+- El dashboard sigue mostrando la información general.
+
 ---
 
 ## Módulo: Reportes

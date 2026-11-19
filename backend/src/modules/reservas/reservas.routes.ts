@@ -37,6 +37,11 @@ function fechaTexto(valor: unknown): string {
   return String(valor).slice(0, 10);
 }
 
+function fechaONull(valor: unknown): string | null {
+  if (!valor) return null;
+  return fechaTexto(valor);
+}
+
 async function habitacionDisponible(
   habitacionId: number,
   desde: string,
@@ -55,6 +60,63 @@ async function habitacionDisponible(
     [habitacionId, desde, hasta, excluirReservaHabitacionId ?? null]
   );
   return rows.length === 0;
+}
+
+type TarifaCliente = {
+  plan: 'PUBLICA' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO';
+  precio_noche: number;
+  desayuno_incluido: boolean;
+};
+
+async function tarifaDeCliente(
+  clienteId: number | undefined,
+  fechaEntrada: string
+): Promise<TarifaCliente | null> {
+  if (!clienteId) return null;
+
+  const { rows } = await db.query<{
+    tarifa_plan: 'PUBLICA' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO';
+    tarifa_precio_noche: string | null;
+    tarifa_desayuno_incluido: boolean;
+    tarifa_vigente_desde: string | null;
+    tarifa_vigente_hasta: string | null;
+  }>(
+    `SELECT tarifa_plan, tarifa_precio_noche, tarifa_desayuno_incluido,
+            tarifa_vigente_desde, tarifa_vigente_hasta
+     FROM cliente
+     WHERE id = $1 AND activo = true`,
+    [clienteId]
+  );
+
+  const cliente = rows[0];
+  if (!cliente || cliente.tarifa_plan === 'PUBLICA') return null;
+
+  const precio = Number(cliente.tarifa_precio_noche ?? 0);
+  if (precio <= 0) return null;
+
+  const desde = fechaONull(cliente.tarifa_vigente_desde);
+  const hasta = fechaONull(cliente.tarifa_vigente_hasta);
+  if (desde && fechaEntrada < desde) return null;
+  if (hasta && fechaEntrada > hasta) return null;
+
+  return {
+    plan: cliente.tarifa_plan,
+    precio_noche: precio,
+    desayuno_incluido: cliente.tarifa_desayuno_incluido,
+  };
+}
+
+async function clienteExistentePorDocumento(numeroDocumento: string | undefined) {
+  if (!numeroDocumento) return undefined;
+
+  const { rows } = await db.query<{ id: number }>(
+    `SELECT id FROM cliente
+     WHERE numero_documento = $1 AND tipo = 'PARTICULAR'
+     LIMIT 1`,
+    [numeroDocumento]
+  );
+
+  return rows[0]?.id;
 }
 
 reservasRouter.get('/', async (req, res) => {
@@ -90,7 +152,8 @@ reservasRouter.get('/', async (req, res) => {
   const { rows } = await db.query(
     `SELECT r.id, r.codigo, r.estado, r.fecha_entrada, r.fecha_salida,
             r.total, r.saldo, r.anticipo, r.desayuno_modo, r.desayunos_total,
-            r.temporada, r.escenario,
+            r.temporada, r.escenario, r.maestra_id, rm.codigo AS maestra_codigo,
+            r.motivo_visita, r.como_llego, r.tarifa_plan, r.tarifa_negociada,
             c.razon_social AS cliente, c.numero_documento,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche,
             h.id AS habitacion_id, h.numero AS habitacion
@@ -98,6 +161,7 @@ reservasRouter.get('/', async (req, res) => {
      JOIN reserva_habitacion rh ON rh.reserva_id = r.id
      JOIN habitacion h ON h.id = rh.habitacion_id
      LEFT JOIN cliente c ON c.id = r.titular_cliente_id
+     LEFT JOIN reserva_maestra rm ON rm.id = r.maestra_id
      ${where}
      ORDER BY r.fecha_entrada DESC, r.id DESC
      LIMIT 200`,
@@ -118,7 +182,10 @@ reservasRouter.get('/:id', async (req, res) => {
     `SELECT r.id, r.codigo, r.estado, r.fecha_entrada, r.fecha_salida,
             r.modalidad, r.total, r.saldo, r.anticipo, r.notas,
             r.incluye_desayuno, r.desayuno_modo, r.desayunos_pax, r.desayunos_total,
-            r.total_desayuno, r.temporada, r.escenario,
+            r.total_desayuno, r.temporada, r.escenario, r.maestra_id,
+            r.motivo_visita, r.como_llego, r.placa_vehiculo,
+            r.tarifa_plan, r.tarifa_negociada, r.tarifa_motivo,
+            rm.codigo AS maestra_codigo, rm.pagador_cliente_id,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche, rh.estado AS rh_estado,
             h.id AS habitacion_id, h.numero AS habitacion, h.clima,
             c.id AS cliente_id, c.razon_social AS cliente, c.tipo_documento, c.numero_documento,
@@ -127,6 +194,7 @@ reservasRouter.get('/:id', async (req, res) => {
      JOIN reserva_habitacion rh ON rh.reserva_id = r.id
      JOIN habitacion h ON h.id = rh.habitacion_id
      LEFT JOIN cliente c ON c.id = r.titular_cliente_id
+     LEFT JOIN reserva_maestra rm ON rm.id = r.maestra_id
      WHERE r.id = $1`,
     [reservaId]
   );
@@ -242,6 +310,9 @@ const crearSchema = z.object({
   desayuno: z.enum(['NO', 'PAGADO', 'INCLUIDO']).default('NO'),
   anticipo: anticipoSchema.optional(),
   notas: z.string().trim().max(500).optional(),
+  motivo_visita: z.string().trim().max(120).optional(),
+  como_llego: z.string().trim().max(60).optional(),
+  placa_vehiculo: z.string().trim().max(20).optional(),
 });
 
 reservasRouter.post('/', async (req, res) => {
@@ -264,6 +335,11 @@ reservasRouter.post('/', async (req, res) => {
     return;
   }
 
+  const clienteTarifaId =
+    datos.cliente_id ?? (await clienteExistentePorDocumento(datos.cliente.numero_documento));
+  const tarifaCliente = await tarifaDeCliente(clienteTarifaId, datos.fecha_entrada);
+  const planTarifa = tarifaCliente?.plan ?? 'PUBLICA';
+
   const cotizacion = await cotizarHabitacion(
     datos.habitacion_id,
     datos.pax,
@@ -281,11 +357,13 @@ reservasRouter.post('/', async (req, res) => {
     return;
   }
 
-  const precioNoche = Number(cotizacion.cotizacion.precio);
+  const precioNoche = tarifaCliente?.precio_noche ?? Number(cotizacion.cotizacion.precio);
+  const desayuno =
+    tarifaCliente?.desayuno_incluido && datos.desayuno === 'NO' ? 'INCLUIDO' : datos.desayuno;
   const totalAlojamiento = precioNoche * noches;
-  const desayunosPax = datos.desayuno === 'NO' ? 0 : datos.pax;
-  const desayunosTotal = datos.desayuno === 'NO' ? 0 : datos.pax * noches;
-  const totalDesayuno = datos.desayuno === 'PAGADO' ? desayunosTotal * 15_000 : 0;
+  const desayunosPax = desayuno === 'NO' ? 0 : datos.pax;
+  const desayunosTotal = desayuno === 'NO' ? 0 : datos.pax * noches;
+  const totalDesayuno = desayuno === 'PAGADO' ? desayunosTotal * 15_000 : 0;
   const total = totalAlojamiento + totalDesayuno;
   const montoAnticipo = datos.anticipo?.monto ?? 0;
 
@@ -361,8 +439,11 @@ reservasRouter.post('/', async (req, res) => {
       `INSERT INTO reserva
          (codigo, titular_cliente_id, fecha_entrada, fecha_salida, modalidad, estado,
           temporada, escenario, total, saldo, notas, incluye_desayuno, desayuno_modo,
-          desayunos_pax, desayunos_total, total_desayuno)
-       VALUES ($1, $2, $3::date, $4::date, 'NOCHE', 'CONFIRMADA', $5, $6, $7, $7, $8, $9, $10, $11, $12, $13)
+          desayunos_pax, desayunos_total, total_desayuno,
+          tarifa_plan, tarifa_negociada, tarifa_motivo, motivo_visita, como_llego,
+          placa_vehiculo)
+       VALUES ($1, $2, $3::date, $4::date, 'NOCHE', 'CONFIRMADA', $5, $6, $7, $7, $8, $9,
+               $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
        RETURNING id`,
       [
         codigo,
@@ -373,11 +454,17 @@ reservasRouter.post('/', async (req, res) => {
         datos.escenario,
         total,
         datos.notas ?? null,
-        datos.desayuno === 'INCLUIDO',
-        datos.desayuno,
+        desayuno === 'INCLUIDO',
+        desayuno,
         desayunosPax,
         desayunosTotal,
         totalDesayuno,
+        planTarifa,
+        tarifaCliente?.precio_noche ?? null,
+        tarifaCliente ? `Tarifa ${planTarifa} del cliente` : null,
+        datos.motivo_visita ?? null,
+        datos.como_llego ?? null,
+        datos.placa_vehiculo ?? null,
       ]
     );
 
@@ -463,10 +550,323 @@ reservasRouter.post('/', async (req, res) => {
       total,
       saldo: saldoInicial,
       anticipo: montoAnticipo,
+      tarifa_plan: planTarifa,
+      tarifa_negociada: tarifaCliente?.precio_noche ?? null,
+      precio_noche: precioNoche,
     };
   });
 
   res.status(201).json({ reserva: resultado });
+});
+
+const grupoSchema = z.object({
+  cliente_id: z.coerce.number().int().positive().optional(),
+  cliente: clienteSchema.extend({
+    tipo: z.enum(['PARTICULAR', 'EMPRESA', 'EMPLEADO', 'GRUPO_TRABAJO', 'SOCIO']).default('PARTICULAR'),
+  }),
+  fecha_entrada: fechaSchema,
+  fecha_salida: fechaSchema,
+  habitaciones: z
+    .array(
+      z.object({
+        habitacion_id: z.coerce.number().int().positive(),
+        pax: z.coerce.number().int().min(1).max(6),
+        desayuno: z.enum(['NO', 'PAGADO', 'INCLUIDO']).default('NO'),
+      })
+    )
+    .min(1)
+    .max(10),
+  notas: z.string().trim().max(500).optional(),
+});
+
+reservasRouter.post('/maestra', async (req, res) => {
+  const parsed = grupoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: 'Datos inválidos', detalles: parsed.error.issues });
+    return;
+  }
+
+  const datos = parsed.data;
+  const noches = calcularNoches(datos.fecha_entrada, datos.fecha_salida);
+  if (noches < 1) {
+    res.status(400).json({ error: 'La fecha de salida debe ser posterior a la de entrada' });
+    return;
+  }
+
+  const ids = new Set(datos.habitaciones.map((item) => item.habitacion_id));
+  if (ids.size !== datos.habitaciones.length) {
+    res.status(400).json({ error: 'No se puede repetir la misma habitación' });
+    return;
+  }
+
+  for (const item of datos.habitaciones) {
+    if (!(await habitacionDisponible(item.habitacion_id, datos.fecha_entrada, datos.fecha_salida))) {
+      res.status(409).json({ error: `La habitación ${item.habitacion_id} no está disponible` });
+      return;
+    }
+  }
+
+  const clienteTarifaId =
+    datos.cliente_id ?? (await clienteExistentePorDocumento(datos.cliente.numero_documento));
+  const tarifaCliente = await tarifaDeCliente(clienteTarifaId, datos.fecha_entrada);
+
+  const cotizaciones: Array<{
+    habitacion_id: number;
+    pax: number;
+    desayuno: 'NO' | 'PAGADO' | 'INCLUIDO';
+    cotizacion: { habitacion: { numero: string; clima: string } };
+    precioNoche: number;
+    totalAlojamiento: number;
+    totalDesayuno: number;
+    total: number;
+  }> = [];
+  for (const item of datos.habitaciones) {
+    const cotizacion = await cotizarHabitacion(
+      item.habitacion_id,
+      item.pax,
+      'BAJA',
+      'NORMAL'
+    );
+
+    if (!cotizacion.ok) {
+      res.status(cotizacion.status).json({ error: cotizacion.error });
+      return;
+    }
+
+    const precioNoche = tarifaCliente?.precio_noche ?? Number(cotizacion.cotizacion.precio);
+    const desayuno =
+      tarifaCliente?.desayuno_incluido && item.desayuno === 'NO' ? 'INCLUIDO' : item.desayuno;
+    const totalAlojamiento = precioNoche * noches;
+    const totalDesayuno = desayuno === 'PAGADO' ? item.pax * noches * 15_000 : 0;
+
+    cotizaciones.push({
+      ...item,
+      cotizacion: cotizacion.cotizacion,
+      desayuno,
+      precioNoche,
+      totalAlojamiento,
+      totalDesayuno,
+      total: totalAlojamiento + totalDesayuno,
+    });
+  }
+
+  const totalGrupo = cotizaciones.reduce((suma, item) => suma + item.total, 0);
+
+  const resultado = await db.transaction(async (tx) => {
+    let pagadorId = datos.cliente_id;
+
+    if (pagadorId) {
+      const existente = await tx.query<{ id: number }>(
+        'SELECT id FROM cliente WHERE id = $1 AND activo = true',
+        [pagadorId]
+      );
+      if (!existente.rows[0]) throw new Error('Cliente pagador no encontrado');
+    } else {
+      if (datos.cliente.numero_documento) {
+        const existente = await tx.query<{ id: number }>(
+          'SELECT id FROM cliente WHERE numero_documento = $1 AND activo = true LIMIT 1',
+          [datos.cliente.numero_documento]
+        );
+        pagadorId = existente.rows[0]?.id;
+      }
+
+      if (!pagadorId) {
+        const creado = await tx.query<{ id: number }>(
+          `INSERT INTO cliente
+             (tipo, razon_social, tipo_documento, numero_documento, telefono, email)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING id`,
+          [
+            datos.cliente.tipo,
+            datos.cliente.nombre,
+            datos.cliente.tipo_documento ?? null,
+            datos.cliente.numero_documento ?? null,
+            datos.cliente.telefono ?? null,
+            datos.cliente.email ?? null,
+          ]
+        );
+        pagadorId = creado.rows[0]?.id;
+      }
+    }
+
+    if (!pagadorId) throw new Error('No se pudo crear el cliente pagador');
+
+    const secuenciaMaestra = await tx.query<{ n: string }>(
+      "SELECT nextval('reserva_maestra_codigo_seq') AS n"
+    );
+    const consecutivoMaestra = String(secuenciaMaestra.rows[0]?.n ?? '0').padStart(4, '0');
+    const codigoMaestra = `G-${datos.fecha_entrada.replaceAll('-', '')}-${consecutivoMaestra}`;
+
+    const maestra = await tx.query<{ id: number }>(
+      `INSERT INTO reserva_maestra
+         (codigo, pagador_cliente_id, fecha_entrada, fecha_salida, estado, notas)
+       VALUES ($1, $2, $3::date, $4::date, 'CONFIRMADA', $5)
+       RETURNING id`,
+      [
+        codigoMaestra,
+        pagadorId,
+        datos.fecha_entrada,
+        datos.fecha_salida,
+        datos.notas ?? null,
+      ]
+    );
+
+    const maestraId = maestra.rows[0]?.id;
+    if (!maestraId) throw new Error('No se pudo crear la reserva maestra');
+
+    const hijas = [];
+    for (const item of cotizaciones) {
+      const secuencia = await tx.query<{ n: string }>("SELECT nextval('reserva_codigo_seq') AS n");
+      const consecutivo = String(secuencia.rows[0]?.n ?? '0').padStart(4, '0');
+      const codigo = `R-${datos.fecha_entrada.replaceAll('-', '')}-${consecutivo}`;
+
+      const reserva = await tx.query<{ id: number }>(
+        `INSERT INTO reserva
+           (codigo, titular_cliente_id, fecha_entrada, fecha_salida, modalidad, estado,
+            temporada, escenario, total, saldo, notas, incluye_desayuno, desayuno_modo,
+            desayunos_pax, desayunos_total, total_desayuno, tarifa_plan,
+            tarifa_negociada, tarifa_motivo, maestra_id)
+         VALUES ($1, $2, $3::date, $4::date, 'NOCHE', 'CONFIRMADA', 'BAJA', 'NORMAL',
+                 $5, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+         RETURNING id`,
+        [
+          codigo,
+          pagadorId,
+          datos.fecha_entrada,
+          datos.fecha_salida,
+          item.total,
+          datos.notas ?? null,
+          item.desayuno === 'INCLUIDO',
+          item.desayuno,
+          item.desayuno === 'NO' ? 0 : item.pax,
+          item.desayuno === 'NO' ? 0 : item.pax * noches,
+          item.totalDesayuno,
+          tarifaCliente?.plan ?? 'PUBLICA',
+          tarifaCliente?.precio_noche ?? null,
+          tarifaCliente ? `Tarifa ${tarifaCliente.plan} del pagador` : null,
+          maestraId,
+        ]
+      );
+
+      const reservaId = reserva.rows[0]?.id;
+      if (!reservaId) throw new Error('No se pudo crear una reserva del grupo');
+
+      await tx.query(
+        `INSERT INTO reserva_habitacion
+           (reserva_id, habitacion_id, pax, clima, precio_noche, fecha_entrada, fecha_salida, estado)
+         VALUES ($1, $2, $3, $4, $5, $6::date, $7::date, 'ACTIVA')`,
+        [
+          reservaId,
+          item.habitacion_id,
+          item.pax,
+          item.cotizacion.habitacion.clima,
+          item.precioNoche,
+          datos.fecha_entrada,
+          datos.fecha_salida,
+        ]
+      );
+
+      hijas.push({
+        id: reservaId,
+        codigo,
+        habitacion: item.cotizacion.habitacion.numero,
+        habitacion_id: item.habitacion_id,
+        pax: item.pax,
+        total: item.total,
+        saldo: item.total,
+      });
+    }
+
+    return {
+      maestra: {
+        id: maestraId,
+        codigo: codigoMaestra,
+        pagador_cliente_id: pagadorId,
+        pagador: datos.cliente.nombre,
+        fecha_entrada: datos.fecha_entrada,
+        fecha_salida: datos.fecha_salida,
+        noches,
+        total: totalGrupo,
+        habitaciones: hijas.length,
+      },
+      reservas: hijas,
+    };
+  });
+
+  res.status(201).json(resultado);
+});
+
+reservasRouter.get('/maestra/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ error: 'Reserva maestra inválida' });
+    return;
+  }
+
+  const maestra = await db.query(
+    `SELECT rm.id, rm.codigo, rm.estado, rm.fecha_entrada, rm.fecha_salida, rm.notas,
+            c.id AS pagador_cliente_id, c.razon_social AS pagador
+     FROM reserva_maestra rm
+     JOIN cliente c ON c.id = rm.pagador_cliente_id
+     WHERE rm.id = $1`,
+    [id]
+  );
+
+  if (!maestra.rows[0]) {
+    res.status(404).json({ error: 'Reserva maestra no encontrada' });
+    return;
+  }
+
+  const hijas = await db.query(
+    `SELECT r.id, r.codigo, r.estado, r.total, r.saldo,
+            rh.pax, rh.precio_noche, h.numero AS habitacion, h.id AS habitacion_id
+     FROM reserva r
+     JOIN reserva_habitacion rh ON rh.reserva_id = r.id
+     JOIN habitacion h ON h.id = rh.habitacion_id
+     WHERE r.maestra_id = $1
+     ORDER BY h.numero`,
+    [id]
+  );
+
+  res.json({ maestra: maestra.rows[0], reservas: hijas.rows });
+});
+
+reservasRouter.post('/maestra/:id/cancelar', async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    res.status(400).json({ error: 'Reserva maestra inválida' });
+    return;
+  }
+
+  const hijas = await db.query<{ id: number; estado: string }>(
+    'SELECT id, estado FROM reserva WHERE maestra_id = $1',
+    [id]
+  );
+
+  if (hijas.rows.length === 0) {
+    res.status(404).json({ error: 'Reserva maestra no encontrada' });
+    return;
+  }
+
+  if (hijas.rows.some((item) => !['PENDIENTE', 'CONFIRMADA'].includes(item.estado))) {
+    res.status(409).json({ error: 'El grupo ya inició; no se puede cancelar completo' });
+    return;
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.query(
+      "UPDATE reserva SET estado = 'CANCELADA' WHERE maestra_id = $1",
+      [id]
+    );
+    await tx.query(
+      `UPDATE reserva_habitacion SET estado = 'CANCELADA'
+       WHERE reserva_id IN (SELECT id FROM reserva WHERE maestra_id = $1)`,
+      [id]
+    );
+    await tx.query("UPDATE reserva_maestra SET estado = 'CANCELADA' WHERE id = $1", [id]);
+  });
+
+  res.json({ ok: true });
 });
 
 const actualizarSchema = z.object({
@@ -478,6 +878,9 @@ const actualizarSchema = z.object({
   escenario: z.enum(['NORMAL', 'A', 'B', 'C']).optional(),
   desayuno: z.enum(['NO', 'PAGADO', 'INCLUIDO']).optional(),
   notas: z.string().trim().max(500).optional(),
+  motivo_visita: z.string().trim().max(120).optional(),
+  como_llego: z.string().trim().max(60).optional(),
+  placa_vehiculo: z.string().trim().max(20).optional(),
 });
 
 reservasRouter.put('/:id', async (req, res) => {
@@ -507,9 +910,11 @@ reservasRouter.put('/:id', async (req, res) => {
     precio_noche: string;
     clima: string;
     desayuno_modo: string;
+    tarifa_plan: string;
+    tarifa_negociada: string | null;
   }>(
     `SELECT r.id, r.estado, r.fecha_entrada, r.fecha_salida, r.total_desayuno,
-            r.temporada, r.escenario,
+            r.temporada, r.escenario, r.tarifa_plan, r.tarifa_negociada,
             rh.id AS rh_id, rh.habitacion_id, rh.pax, rh.precio_noche, rh.clima,
             r.desayuno_modo
      FROM reserva r
@@ -560,7 +965,10 @@ reservasRouter.put('/:id', async (req, res) => {
     return;
   }
 
-  const precioNoche = Number(cotizacion.cotizacion.precio);
+  const precioNoche =
+    reserva.tarifa_plan !== 'PUBLICA' && reserva.tarifa_negociada
+      ? Number(reserva.tarifa_negociada)
+      : Number(cotizacion.cotizacion.precio);
   const totalAlojamiento = precioNoche * noches;
   const desayunosPax = desayuno === 'NO' ? 0 : pax;
   const desayunosTotal = desayuno === 'NO' ? 0 : pax * noches;
@@ -570,11 +978,15 @@ reservasRouter.put('/:id', async (req, res) => {
   await db.transaction(async (tx) => {
     await tx.query(
       `UPDATE reserva
-       SET fecha_entrada = $1::date, fecha_salida = $2::date, total = $3, saldo = $3,
+       SET fecha_entrada = $1::date, fecha_salida = $2::date, total = $3,
+           saldo = GREATEST(0, $3 - anticipo),
            notas = COALESCE($4, notas), incluye_desayuno = $5, desayuno_modo = $6,
            desayunos_pax = $7, desayunos_total = $8, total_desayuno = $9,
-           temporada = $10, escenario = $11
-       WHERE id = $12`,
+           temporada = $10, escenario = $11,
+           motivo_visita = COALESCE($12, motivo_visita),
+           como_llego = COALESCE($13, como_llego),
+           placa_vehiculo = COALESCE($14, placa_vehiculo)
+       WHERE id = $15`,
       [
         fechaEntrada,
         fechaSalida,
@@ -587,6 +999,9 @@ reservasRouter.put('/:id', async (req, res) => {
         totalDesayuno,
         temporada,
         escenario,
+        parsed.data.motivo_visita ?? null,
+        parsed.data.como_llego ?? null,
+        parsed.data.placa_vehiculo ?? null,
         reservaId,
       ]
     );
@@ -938,6 +1353,13 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
     await tx.query("UPDATE reserva_habitacion SET estado = 'CHECKIN' WHERE id = $1", [
       reserva.rh_id,
     ]);
+    await tx.query(
+      `UPDATE reserva_maestra
+       SET estado = 'CHECKIN'
+       WHERE id = (SELECT maestra_id FROM reserva WHERE id = $1)
+         AND estado IN ('PENDIENTE', 'CONFIRMADA')`,
+      [reserva.id]
+    );
     await tx.query('UPDATE folio SET saldo = $1 WHERE id = $2', [saldo, folioId]);
 
     return {

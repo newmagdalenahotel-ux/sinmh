@@ -11,6 +11,7 @@ import {
   contratoReservaPdfApi,
   cotizarApi,
   crearReservaApi,
+  crearReservaMaestraApi,
   disponibilidadApi,
   habitacionesApi,
   reservaApi,
@@ -73,6 +74,9 @@ const formularioInicial: ReservaPayload = {
   },
   desayuno: 'NO',
   notas: '',
+  motivo_visita: '',
+  como_llego: '',
+  placa_vehiculo: '',
 };
 
 export function ReservasPage() {
@@ -106,6 +110,21 @@ export function ReservasPage() {
   const [creando, setCreando] = useState(false);
   const [error, setError] = useState('');
   const [drawerAbierto, setDrawerAbierto] = useState(false);
+  const [drawerGrupo, setDrawerGrupo] = useState(false);
+  const [grupoError, setGrupoError] = useState('');
+  const [creandoGrupo, setCreandoGrupo] = useState(false);
+  const [grupoForm, setGrupoForm] = useState({
+    fecha_entrada: fechaLocal(0),
+    fecha_salida: fechaLocal(1),
+    cliente_id: 0,
+    cliente_nombre: '',
+    cliente_documento: '',
+    notas: '',
+    habitaciones: [
+      { habitacion_id: 0, pax: 2, desayuno: 'NO' as 'NO' | 'PAGADO' | 'INCLUIDO' },
+      { habitacion_id: 0, pax: 2, desayuno: 'NO' as 'NO' | 'PAGADO' | 'INCLUIDO' },
+    ],
+  });
   const [reservaCheckin, setReservaCheckin] = useState<ReservaResumen | null>(null);
   const [pagoMonto, setPagoMonto] = useState<number | ''>('');
   const [pagoMetodo, setPagoMetodo] = useState<
@@ -127,6 +146,17 @@ export function ReservasPage() {
     return () => window.removeEventListener('keydown', cerrarConEscape);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drawerAbierto]);
+
+  useEffect(() => {
+    if (!drawerGrupo) return;
+
+    const cerrarConEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDrawerGrupo(false);
+    };
+    window.addEventListener('keydown', cerrarConEscape);
+
+    return () => window.removeEventListener('keydown', cerrarConEscape);
+  }, [drawerGrupo]);
 
   useEffect(() => {
     if (token) void cargar();
@@ -297,6 +327,56 @@ export function ReservasPage() {
     setError('');
   }
 
+  function abrirGrupo() {
+    setDrawerAbierto(false);
+    setEdicion(null);
+    setReservaCheckin(null);
+    setGrupoError('');
+    setDrawerGrupo(true);
+  }
+
+  async function crearGrupo() {
+    if (!token) return;
+
+    const habitaciones = grupoForm.habitaciones.filter((item) => item.habitacion_id > 0);
+    if (habitaciones.length === 0) {
+      setGrupoError('Selecciona al menos una habitación');
+      return;
+    }
+
+    if (!grupoForm.cliente_nombre.trim()) {
+      setGrupoError('Escribe el nombre del pagador');
+      return;
+    }
+
+    setCreandoGrupo(true);
+    setGrupoError('');
+
+    try {
+      const respuesta = await crearReservaMaestraApi(token, {
+        cliente_id: grupoForm.cliente_id || undefined,
+        cliente: {
+          nombre: grupoForm.cliente_nombre.trim(),
+          numero_documento: grupoForm.cliente_documento.trim() || undefined,
+        },
+        fecha_entrada: grupoForm.fecha_entrada,
+        fecha_salida: grupoForm.fecha_salida,
+        habitaciones,
+        notas: grupoForm.notas.trim() || undefined,
+      });
+
+      toast.success(
+        `${respuesta.maestra.codigo}: ${respuesta.maestra.habitaciones} habitaciones · ${formatoMoneda(respuesta.maestra.total)}`
+      );
+      setDrawerGrupo(false);
+      await cargar();
+    } catch (err) {
+      setGrupoError(err instanceof Error ? err.message : 'No se pudo crear la reserva grupal');
+    } finally {
+      setCreandoGrupo(false);
+    }
+  }
+
   async function hacerCheckin() {
     if (!token || !reservaCheckin) return;
 
@@ -399,7 +479,20 @@ export function ReservasPage() {
         86_400_000
     )
   );
-  const totalAlojamiento = (precioNoche ?? 0) * noches;
+  const clienteSeleccionado = clientes.find((cliente) => cliente.id === form.cliente_id);
+  const pagadorGrupo = clientes.find((cliente) => cliente.id === grupoForm.cliente_id);
+  const tarifaNegociada =
+    clienteSeleccionado &&
+    clienteSeleccionado.tarifa_plan !== 'PUBLICA' &&
+    Number(clienteSeleccionado.tarifa_precio_noche ?? 0) > 0 &&
+    (!clienteSeleccionado.tarifa_vigente_desde ||
+      form.fecha_entrada >= clienteSeleccionado.tarifa_vigente_desde.slice(0, 10)) &&
+    (!clienteSeleccionado.tarifa_vigente_hasta ||
+      form.fecha_entrada <= clienteSeleccionado.tarifa_vigente_hasta.slice(0, 10))
+      ? Number(clienteSeleccionado.tarifa_precio_noche)
+      : 0;
+  const precioNocheMostrado = tarifaNegociada > 0 ? tarifaNegociada : precioNoche ?? 0;
+  const totalAlojamientoMostrado = precioNocheMostrado * noches;
   const totalDesayuno =
     form.desayuno === 'PAGADO'
       ? form.pax * noches * 15_000
@@ -410,6 +503,9 @@ export function ReservasPage() {
       <div className="flex flex-wrap justify-end gap-2">
         <button className="btn-primary" onClick={abrirNuevaReserva}>
           Nueva reserva
+        </button>
+        <button className="btn-secondary" onClick={abrirGrupo}>
+          Reserva grupal
         </button>
         <Link to="/checkin" className="btn-secondary">Check-in directo</Link>
       </div>
@@ -466,6 +562,9 @@ export function ReservasPage() {
                     <tr key={reserva.id} className="border-b border-cream-dark/60 align-top">
                       <td className="py-3 pr-3">
                         <p className="font-medium">{reserva.codigo}</p>
+                        {reserva.maestra_codigo && (
+                          <p className="text-[10px] text-gold-dark">Grupo {reserva.maestra_codigo}</p>
+                        )}
                         <span className="rounded-full bg-cream px-2 py-0.5 text-[10px] text-stone-light">
                           {etiquetaEstado(reserva.estado)}
                         </span>
@@ -933,9 +1032,19 @@ export function ReservasPage() {
                   {clientes.map((cliente) => (
                     <option key={cliente.id} value={cliente.id}>
                       {cliente.razon_social} · {cliente.tipo}
+                      {cliente.tarifa_plan !== 'PUBLICA'
+                        ? ` · ${cliente.tarifa_plan} ${formatoMoneda(Number(cliente.tarifa_precio_noche ?? 0))}`
+                        : ''}
                     </option>
                   ))}
                 </select>
+                {clienteSeleccionado && tarifaNegociada > 0 && (
+                  <p className="mt-2 rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold-dark">
+                    Tarifa {clienteSeleccionado.tarifa_plan}:{' '}
+                    {formatoMoneda(Number(clienteSeleccionado.tarifa_precio_noche ?? 0))} por noche
+                    {clienteSeleccionado.tarifa_desayuno_incluido ? ' · incluye desayuno' : ''}.
+                  </p>
+                )}
               </div>
               <div>
                 <label className="label" htmlFor="cliente">Cliente</label>
@@ -982,6 +1091,45 @@ export function ReservasPage() {
               </div>
             </div>
 
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="motivo_visita">Motivo de visita</label>
+                <input
+                  id="motivo_visita"
+                  className="input"
+                  value={form.motivo_visita ?? ''}
+                  onChange={(event) => setForm({ ...form, motivo_visita: event.target.value })}
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="como_llego">Cómo llegó</label>
+                <select
+                  id="como_llego"
+                  className="input"
+                  value={form.como_llego ?? ''}
+                  onChange={(event) => setForm({ ...form, como_llego: event.target.value })}
+                >
+                  <option value="">Sin dato</option>
+                  <option value="CAMINANDO">Caminando</option>
+                  <option value="CARRO">Carro</option>
+                  <option value="TAXI">Taxi</option>
+                  <option value="BUS">Bus</option>
+                  <option value="TRANSFER">Transfer</option>
+                  <option value="RECOMENDACION">Recomendación</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <label className="label" htmlFor="placa_vehiculo">Placa del vehículo (opcional)</label>
+              <input
+                id="placa_vehiculo"
+                className="input"
+                value={form.placa_vehiculo ?? ''}
+                onChange={(event) => setForm({ ...form, placa_vehiculo: event.target.value })}
+              />
+            </div>
+
             <div className="mt-3">
               <label className="label" htmlFor="notas_reserva">Notas</label>
               <input
@@ -995,7 +1143,7 @@ export function ReservasPage() {
             <div className="mt-4 rounded-xl border border-cream-dark bg-cream/50 p-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-stone-light">Alojamiento</span>
-                <span>{formatoMoneda(totalAlojamiento)}</span>
+                <span>{formatoMoneda(totalAlojamientoMostrado)}</span>
               </div>
               <div className="mt-1 flex justify-between">
                 <span className="text-stone-light">Desayuno</span>
@@ -1003,14 +1151,14 @@ export function ReservasPage() {
               </div>
               <div className="mt-2 flex justify-between border-t border-cream-dark pt-2 font-semibold">
                 <span>Total estimado</span>
-                <span>{formatoMoneda(totalAlojamiento + totalDesayuno)}</span>
+                <span>{formatoMoneda(totalAlojamientoMostrado + totalDesayuno)}</span>
               </div>
               {Number(anticipoMonto || 0) > 0 && (
                 <div className="mt-1 flex justify-between text-gold-dark">
                   <span>Saldo con anticipo</span>
                   <span>
                     {formatoMoneda(
-                      Math.max(0, totalAlojamiento + totalDesayuno - Number(anticipoMonto || 0))
+                      Math.max(0, totalAlojamientoMostrado + totalDesayuno - Number(anticipoMonto || 0))
                     )}
                   </span>
                 </div>
@@ -1023,6 +1171,263 @@ export function ReservasPage() {
               disabled={creando || !form.cliente.nombre || !form.habitacion_id || noches < 1}
             >
               {creando ? 'Creando…' : 'Crear reserva'}
+            </button>
+          </section>
+        </div>
+
+        {drawerGrupo && (
+          <button
+            type="button"
+            aria-label="Cerrar reserva grupal"
+            className="fixed inset-0 z-40 bg-navy-dark/60"
+            onClick={() => setDrawerGrupo(false)}
+          />
+        )}
+
+        <div
+          className={
+            drawerGrupo
+              ? 'fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-cream p-4 shadow-2xl sm:p-6'
+              : 'hidden'
+          }
+          role="dialog"
+          aria-modal="true"
+          aria-label="Reserva grupal"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-stone-light">
+                Reserva grupal
+              </p>
+              <p className="text-xs text-stone-light">Un pagador, varias habitaciones.</p>
+            </div>
+            <button
+              type="button"
+              className="btn-secondary px-3 py-1.5 text-xs"
+              onClick={() => setDrawerGrupo(false)}
+            >
+              Cerrar
+            </button>
+          </div>
+
+          {grupoError && (
+            <div className="mb-3 rounded-xl bg-error/10 px-4 py-3 text-sm text-error">
+              {grupoError}
+            </div>
+          )}
+
+          <section className="card">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="grupo_entrada">Entrada</label>
+                <input
+                  id="grupo_entrada"
+                  type="date"
+                  className="input"
+                  value={grupoForm.fecha_entrada}
+                  onChange={(event) =>
+                    setGrupoForm({ ...grupoForm, fecha_entrada: event.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="grupo_salida">Salida</label>
+                <input
+                  id="grupo_salida"
+                  type="date"
+                  className="input"
+                  value={grupoForm.fecha_salida}
+                  onChange={(event) =>
+                    setGrupoForm({ ...grupoForm, fecha_salida: event.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="label" htmlFor="grupo_pagador">Pagador existente</label>
+              <select
+                id="grupo_pagador"
+                className="input"
+                value={grupoForm.cliente_id || ''}
+                onChange={(event) => {
+                  const id = Number(event.target.value);
+                  const cliente = clientes.find((item) => item.id === id);
+                  setGrupoForm({
+                    ...grupoForm,
+                    cliente_id: id,
+                    cliente_nombre: cliente?.razon_social ?? '',
+                    cliente_documento: cliente?.numero_documento ?? '',
+                  });
+                }}
+              >
+                <option value="">Nuevo pagador</option>
+                {clientes.map((cliente) => (
+                  <option key={cliente.id} value={cliente.id}>
+                    {cliente.razon_social} · {cliente.tipo}
+                  </option>
+                ))}
+              </select>
+              {pagadorGrupo &&
+                pagadorGrupo.tarifa_plan !== 'PUBLICA' &&
+                Number(pagadorGrupo.tarifa_precio_noche ?? 0) > 0 && (
+                <p className="mt-2 rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold-dark">
+                  El pagador tiene tarifa {pagadorGrupo.tarifa_plan} de{' '}
+                  {formatoMoneda(Number(pagadorGrupo.tarifa_precio_noche ?? 0))} por noche. Se
+                  aplicará a las habitaciones si está vigente.
+                </p>
+              )}
+            </div>
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="grupo_nombre">Nombre del pagador</label>
+                <input
+                  id="grupo_nombre"
+                  className="input"
+                  value={grupoForm.cliente_nombre}
+                  onChange={(event) =>
+                    setGrupoForm({ ...grupoForm, cliente_nombre: event.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="grupo_documento">Documento / NIT</label>
+                <input
+                  id="grupo_documento"
+                  className="input"
+                  value={grupoForm.cliente_documento}
+                  onChange={(event) =>
+                    setGrupoForm({ ...grupoForm, cliente_documento: event.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center justify-between">
+              <p className="text-sm font-semibold text-stone">Habitaciones</p>
+              <button
+                type="button"
+                className="btn-secondary px-3 py-1.5 text-xs"
+                onClick={() =>
+                  setGrupoForm({
+                    ...grupoForm,
+                    habitaciones: [
+                      ...grupoForm.habitaciones,
+                      { habitacion_id: 0, pax: 2, desayuno: 'NO' },
+                    ],
+                  })
+                }
+                disabled={grupoForm.habitaciones.length >= 10}
+              >
+                Agregar habitación
+              </button>
+            </div>
+
+            <div className="mt-2 space-y-3">
+              {grupoForm.habitaciones.map((item, indice) => (
+                <div key={indice} className="rounded-xl border border-cream-dark p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-stone-light">
+                      Habitación {indice + 1}
+                    </p>
+                    {grupoForm.habitaciones.length > 1 && (
+                      <button
+                        type="button"
+                        className="text-xs text-error"
+                        onClick={() =>
+                          setGrupoForm({
+                            ...grupoForm,
+                            habitaciones: grupoForm.habitaciones.filter(
+                              (_, posicion) => posicion !== indice
+                            ),
+                          })
+                        }
+                      >
+                        Quitar
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor={`grupo_hab_${indice}`}>Habitación</label>
+                      <select
+                        id={`grupo_hab_${indice}`}
+                        className="input"
+                        value={item.habitacion_id || ''}
+                        onChange={(event) =>
+                          setGrupoForm({
+                            ...grupoForm,
+                            habitaciones: grupoForm.habitaciones.map((fila, posicion) =>
+                              posicion === indice
+                                ? { ...fila, habitacion_id: Number(event.target.value) }
+                                : fila
+                            ),
+                          })
+                        }
+                      >
+                        <option value="">Selecciona</option>
+                        {habitacionesTodas
+                          .filter(
+                            (habitacion) =>
+                              habitacion.tipo_uso === 'HABITACION' &&
+                              habitacion.capacidad_max > 0
+                          )
+                          .map((habitacion) => (
+                          <option key={habitacion.id} value={habitacion.id}>
+                            {habitacion.numero} · {habitacion.capacidad_max} pax
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label" htmlFor={`grupo_pax_${indice}`}>Personas</label>
+                      <select
+                        id={`grupo_pax_${indice}`}
+                        className="input"
+                        value={item.pax}
+                        onChange={(event) =>
+                          setGrupoForm({
+                            ...grupoForm,
+                            habitaciones: grupoForm.habitaciones.map((fila, posicion) =>
+                              posicion === indice
+                                ? { ...fila, pax: Number(event.target.value) }
+                                : fila
+                            ),
+                          })
+                        }
+                      >
+                        {[1, 2, 3, 4, 5, 6].map((pax) => (
+                          <option key={pax} value={pax}>{pax}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4">
+              <label className="label" htmlFor="grupo_notas">Notas</label>
+              <input
+                id="grupo_notas"
+                className="input"
+                value={grupoForm.notas}
+                onChange={(event) => setGrupoForm({ ...grupoForm, notas: event.target.value })}
+              />
+            </div>
+
+            <button
+              className="btn-primary mt-4 w-full"
+              onClick={() => void crearGrupo()}
+              disabled={
+                creandoGrupo ||
+                !grupoForm.cliente_nombre.trim() ||
+                grupoForm.habitaciones.every((item) => !item.habitacion_id)
+              }
+            >
+              {creandoGrupo ? 'Creando grupo…' : 'Crear reserva grupal'}
             </button>
           </section>
         </div>

@@ -666,6 +666,12 @@ export type ReservaResumen = {
   desayunos_total: number;
   temporada: 'BAJA' | 'ALTA';
   escenario: 'NORMAL' | 'A' | 'B' | 'C';
+  maestra_id: number | null;
+  maestra_codigo: string | null;
+  motivo_visita: string | null;
+  como_llego: string | null;
+  tarifa_plan: 'PUBLICA' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO';
+  tarifa_negociada: string | null;
   cliente: string | null;
   numero_documento: string | null;
   reserva_habitacion_id: number;
@@ -687,6 +693,10 @@ export type ReservaDetalle = ReservaResumen & {
   tipo_documento: string | null;
   telefono: string | null;
   email: string | null;
+  placa_vehiculo: string | null;
+  tarifa_motivo: string | null;
+  maestra_codigo: string | null;
+  pagador_cliente_id: number | null;
 };
 
 export type ReservaPayload = {
@@ -705,6 +715,9 @@ export type ReservaPayload = {
     email?: string;
   };
   desayuno: 'NO' | 'PAGADO' | 'INCLUIDO';
+  motivo_visita?: string;
+  como_llego?: string;
+  placa_vehiculo?: string;
   anticipo?: {
     monto: number;
     metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
@@ -741,6 +754,57 @@ export function reservaApi(token: string, reservaId: number) {
 export function crearReservaApi(token: string, payload: ReservaPayload) {
   return request<{ reserva: ReservaResumen }>(
     '/reservas',
+    { method: 'POST', body: JSON.stringify(payload) },
+    token
+  );
+}
+
+export type ReservaMaestraPayload = {
+  cliente_id?: number;
+  cliente: {
+    nombre: string;
+    tipo?: 'PARTICULAR' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO_TRABAJO' | 'SOCIO';
+    tipo_documento?: string;
+    numero_documento?: string;
+    telefono?: string;
+    email?: string;
+  };
+  fecha_entrada: string;
+  fecha_salida: string;
+  habitaciones: Array<{
+    habitacion_id: number;
+    pax: number;
+    desayuno: 'NO' | 'PAGADO' | 'INCLUIDO';
+  }>;
+  notas?: string;
+};
+
+export type ReservaMaestra = {
+  maestra: {
+    id: number;
+    codigo: string;
+    pagador_cliente_id: number;
+    pagador: string;
+    fecha_entrada: string;
+    fecha_salida: string;
+    noches: number;
+    total: number;
+    habitaciones: number;
+  };
+  reservas: Array<{
+    id: number;
+    codigo: string;
+    habitacion: string;
+    habitacion_id: number;
+    pax: number;
+    total: number;
+    saldo: number;
+  }>;
+};
+
+export function crearReservaMaestraApi(token: string, payload: ReservaMaestraPayload) {
+  return request<ReservaMaestra>(
+    '/reservas/maestra',
     { method: 'POST', body: JSON.stringify(payload) },
     token
   );
@@ -801,9 +865,36 @@ export type Cliente = {
   numero_documento: string | null;
   telefono: string | null;
   email: string | null;
+  direccion: string | null;
+  ciudad: string | null;
+  notas: string | null;
   cupo_credito: string;
   dias_credito: number;
+  tarifa_plan: 'PUBLICA' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO';
+  tarifa_precio_noche: string | null;
+  tarifa_desayuno_incluido: boolean;
+  tarifa_vigente_desde: string | null;
+  tarifa_vigente_hasta: string | null;
   activo: boolean;
+};
+
+export type ClientePayload = {
+  tipo: 'PARTICULAR' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO_TRABAJO' | 'SOCIO';
+  razon_social: string;
+  tipo_documento?: string;
+  numero_documento?: string;
+  telefono?: string;
+  email?: string;
+  direccion?: string;
+  ciudad?: string;
+  notas?: string;
+  cupo_credito?: number;
+  dias_credito?: number;
+  tarifa_plan?: 'PUBLICA' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO';
+  tarifa_precio_noche?: number;
+  tarifa_desayuno_incluido?: boolean;
+  tarifa_vigente_desde?: string;
+  tarifa_vigente_hasta?: string;
 };
 
 export function clientesApi(token: string, buscar?: string) {
@@ -819,16 +910,7 @@ export function clientesApi(token: string, buscar?: string) {
 
 export function crearClienteApi(
   token: string,
-  payload: {
-    tipo: 'PARTICULAR' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO_TRABAJO' | 'SOCIO';
-    razon_social: string;
-    tipo_documento?: string;
-    numero_documento?: string;
-    telefono?: string;
-    email?: string;
-    cupo_credito?: number;
-    dias_credito?: number;
-  }
+  payload: ClientePayload
 ) {
   return request<{ cliente: Cliente }>(
     '/clientes',
@@ -840,16 +922,7 @@ export function crearClienteApi(
 export function actualizarClienteApi(
   token: string,
   clienteId: number,
-  payload: {
-    tipo?: 'PARTICULAR' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO_TRABAJO' | 'SOCIO';
-    razon_social?: string;
-    tipo_documento?: string;
-    numero_documento?: string;
-    telefono?: string;
-    email?: string;
-    cupo_credito?: number;
-    dias_credito?: number;
-  }
+  payload: Partial<ClientePayload>
 ) {
   return request<{ cliente: Cliente }>(
     `/clientes/${clienteId}`,

@@ -13,6 +13,61 @@ type SeccionNavegacion = {
   items: ItemNavegacion[];
 };
 
+const ayudas: Record<string, string[]> = {
+  '/dashboard': [
+    'Revisa ocupación, ingresos, caja y ventas del día.',
+    'Las alertas te llevan a la pantalla que requiere atención.',
+  ],
+  '/reservas': [
+    'Crea una reserva individual o una reserva grupal con un solo pagador.',
+    'El anticipo puede ser efectivo, tarjeta o transferencia.',
+    'Desde la reserva puedes editar, generar contrato o hacer check-in.',
+  ],
+  '/checkin': [
+    'Busca disponibilidad por fechas y personas.',
+    'El check-in crea el folio y permite cobrar el saldo o dejarlo a crédito.',
+    'Si cobras en efectivo, abre la caja de recepción primero.',
+  ],
+  '/folios': [
+    'Aquí viven los huéspedes en casa y sus consumos.',
+    'Agrega cargos, registra pagos y haz el check-out.',
+    'Al cerrar el folio se libera la habitación.',
+  ],
+  '/clientes': [
+    'Las empresas y empleados pueden tener tarifa y cupo de crédito.',
+    'La tarifa negociada se aplica automáticamente en sus reservas.',
+  ],
+  '/habitaciones': [
+    'Este tablero muestra el estado operativo de las 31 habitaciones.',
+    'Puedes marcar limpieza, mantenimiento o consultar la reserva activa.',
+  ],
+  '/bar': [
+    'Vende productos con cobro directo o cargo a la habitación.',
+    'El stock baja automáticamente con cada venta.',
+  ],
+  '/caja': [
+    'Abre el turno antes de recibir efectivo.',
+    'Registra gastos, retiros, aportes y traslados entre cajas.',
+    'Al cerrar, declara el efectivo y descarga el cuadre en PDF.',
+  ],
+  '/cartera': [
+    'Aquí están las cuentas por cobrar de empresas y empleados.',
+    'Registra abonos en efectivo, tarjeta o transferencia.',
+  ],
+  '/cuenta-socio': [
+    'Registra aportes y retiros del dueño.',
+    'El saldo positivo significa dinero del socio en el hotel.',
+  ],
+  '/reportes': [
+    'Consulta ingresos, ocupación, libro contable y desayunos.',
+    'Cambia la fecha para revisar otro día.',
+  ],
+  '/configuracion': [
+    'Crea usuarios de recepción, caja y gerencia.',
+    'Cambia el rol o desactiva un usuario sin borrar su historial.',
+  ],
+};
+
 const navegacion: SeccionNavegacion[] = [
   {
     titulo: 'Principal',
@@ -136,6 +191,7 @@ function obtenerBreadcrumb(pathname: string) {
 
   return (
     encontrado ?? {
+      prefijo: '',
       modulo: 'Sistema de Información',
       pantalla: 'Recepción',
       descripcion: 'Sistema de Información New Magdalena Hotel.',
@@ -147,6 +203,7 @@ export function AppLayout() {
   const { usuario, cerrarSesion } = useAuth();
   const location = useLocation();
   const breadcrumb = obtenerBreadcrumb(location.pathname);
+  const ayuda = ayudas[breadcrumb.prefijo] ?? [];
   const [menuMovil, setMenuMovil] = useState(false);
   const [seccionAbierta, setSeccionAbierta] = useState<string | null>(null);
 
@@ -377,6 +434,18 @@ export function AppLayout() {
         </header>
 
         <main className="flex-1 p-4 lg:p-8">
+          {ayuda.length > 0 && (
+            <details className="mb-4 rounded-xl border border-gold/20 bg-white/60 px-4 py-3 text-sm">
+              <summary className="cursor-pointer font-medium text-stone">
+                ¿Cómo funciona {breadcrumb.pantalla}?
+              </summary>
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-stone-light">
+                {ayuda.map((linea) => (
+                  <li key={linea}>{linea}</li>
+                ))}
+              </ul>
+            </details>
+          )}
           <Outlet />
         </main>
       </div>

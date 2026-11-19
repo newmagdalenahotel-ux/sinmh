@@ -7,7 +7,8 @@ anticipo, edición y contrato, check-in, folios, cargos, check-out, caja con
 traslados y cambio de turno, contabilidad, reportes, usuarios, bar recepción,
 clientes con crédito, cuentas por cobrar, abonos, cuenta socio, tablero de
 habitaciones, dashboard, menú desplegable y móvil, formularios en drawer, montos
-con separador de miles, notificaciones auto-descartables y cuadre de caja en PDF.
+con separador de miles, notificaciones auto-descartables, tarifas negociadas para
+empresas/empleados, reserva grupal con pagador y cuadre de caja en PDF.
 Falta la validación manual y compras/inventario del bar.
 
 ## Documentos
@@ -43,8 +44,8 @@ npm run dev
 - Disponibilidad: `GET /disponibilidad?desde=2026-11-20&hasta=2026-11-22&pax=2`
 - Cotización: `GET /tarifas/cotizar?habitacion_id=1&pax=2&temporada=BAJA&escenario=NORMAL`
 - Check-in: `POST /checkin` (cliente, reserva, huésped, folio, cargos y cobro)
-- Reservas: `GET/POST /reservas`, `PUT /reservas/:id`, `POST /reservas/:id/cancelar`, `POST /reservas/:id/checkin`, `GET /reservas/:id/contrato`, anticipo opcional
-- Clientes: `GET/POST /clientes`, `PUT /clientes/:id`
+- Reservas: `GET/POST /reservas`, `POST /reservas/maestra`, `GET /reservas/maestra/:id`, `POST /reservas/maestra/:id/cancelar`, `PUT /reservas/:id`, `POST /reservas/:id/cancelar`, `POST /reservas/:id/checkin`, `GET /reservas/:id/contrato`, anticipo opcional
+- Clientes: `GET/POST /clientes`, `PUT /clientes/:id` (dirección, ciudad, tarifa y vigencia)
 - Cartera: `GET /cuentas-cobrar`, `GET /cuentas-cobrar/:id`, `POST /cuentas-cobrar/:id/abonos`
 - Cuenta socio: `GET /caja/cuenta-socio`
 - Caja: `GET /caja/sesion-actual`, `GET /caja/puntos-venta`, `GET /caja/sesiones-abiertas`, `POST /caja/sesiones`, `POST /caja/sesiones/:id/cerrar`
@@ -86,6 +87,10 @@ npm run dev
 ![Reservas](docs/capturas/reservas.png)
 
 ![Nueva reserva en drawer](docs/capturas/reservas-drawer.png)
+
+![Reserva grupal con pagador](docs/capturas/reserva-grupal.png)
+
+![Tarifa negociada de cliente](docs/capturas/cliente-tarifa.png)
 
 ![Edición de reserva](docs/capturas/reserva-edicion.png)
 
@@ -130,16 +135,20 @@ Levanta la API y la web al mismo tiempo con `concurrently`.
 2. Crea una reserva con anticipo y edítala.
 3. Haz check-in desde la reserva.
 4. Agrega un cargo y haz check-out.
-5. Crea una empresa en Clientes, reserva a su nombre y haz check-out a crédito.
-6. Abona en Cartera y revisa Cuenta socio.
-7. Abre bar terraza, traslada efectivo a recepción y haz cambio de turno.
-8. Genera el cuadre PDF y revisa Reportes.
+5. Crea una empresa en Clientes con plan `EMPRESA`, tarifa por noche y vigencia.
+6. Crea una reserva a su nombre y verifica que aplique la tarifa negociada.
+7. Usa **Reserva grupal** para reservar dos habitaciones con la empresa como pagadora.
+8. Haz check-out a crédito, abona en Cartera y revisa Cuenta socio.
+9. Abre bar terraza, traslada efectivo a recepción y haz cambio de turno.
+10. Genera el cuadre PDF y revisa Reportes.
 
 ## Siguiente paso
 
-La 1A está implementada y lista para validación manual. Después siguen compras,
-almacenes, traslados de inventario y crédito de empleados del bar; luego la
-Fase 1B (mensualidad, contratos y extensiones).
+La 1A está implementada y lista para validación manual. Queda pendiente la
+factura consolidada única para una reserva grupal; hoy cada habitación conserva
+su folio y su cobro, con el mismo pagador. Después siguen compras, almacenes,
+traslados de inventario y crédito de empleados del bar; luego la Fase 1B
+(mensualidad, contratos y extensiones).
 
 ## Repositorio remoto
 

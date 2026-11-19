@@ -11,7 +11,7 @@
 
 Este documento contiene el mapa de módulos y pantallas del frontend y el esquema
 de base de datos organizado por migraciones. La implementación actual está
-consolidada en las migraciones 001–009; las migraciones 010–025 del diseño
+consolidada en las migraciones 001–015; las migraciones 016–025 del diseño
 original quedan como objetivo de las fases siguientes.
 
 ---
@@ -67,11 +67,15 @@ overlay y cierre al elegir una pantalla o al presionar Escape.
 - Alertas: caja cerrada, habitaciones sucias, stock bajo, folios con saldo.
 
 **Alojamiento**
-- `/alojamiento/reservas`: lista con acciones; nueva reserva y edición en drawer.
+- `/alojamiento/reservas`: lista con acciones; nueva reserva, edición y reserva grupal en drawer.
+- `/alojamiento/clientes`: ficha con contacto, dirección, ciudad y tarifa negociada.
 - `/alojamiento/tablero`: estado visual de las 31 habitaciones.
 - `/alojamiento/checkin`: check-in de reserva o walk-in, con cobro en el mismo panel.
 - `/alojamiento/huespedes`: folios abiertos y huéspedes en casa.
 - `/alojamiento/folios/:id`: detalle, cargos, pagos y check-out.
+
+Cada ruta principal incluye una ayuda plegable con 2–3 bullets operativos. El
+dashboard conserva la información general; las ayudas no lo reemplazan.
 
 **Bar y servicios**
 - `/bar/venta`: catálogo, carrito y cobro.
@@ -130,10 +134,24 @@ La implementación consolidó el esquema en estas migraciones:
 | `012_financiero.sql` | CxC, pagos, cuenta socio y cobro relacionado |
 | `013_habitacion_estado.sql` | Estado operativo de habitaciones |
 | `014_anticipos.sql` | Anticipos de reserva y su aplicación |
+| `015_cliente_estadia_tarifas_grupo.sql` | Dirección/ciudad del cliente, tarifa negociada, datos de estadía y reserva maestra |
 
 El diseño de las migraciones 001–025 sigue siendo el objetivo funcional. Cuando
 una tabla implementada se simplifica, la diferencia se registra en este documento
 y en `tasks.md`; no se crea una tabla por fuera del diseño sin actualizarlo.
+
+### Modelo de tarifas y reserva grupal (015)
+
+- `cliente` agrega `direccion`, `ciudad`, `notas`, `tarifa_plan`,
+  `tarifa_precio_noche`, `tarifa_desayuno_incluido` y vigencia de la tarifa.
+- Los planes son `PUBLICA`, `EMPRESA`, `EMPLEADO` y `GRUPO`. Si el plan no es
+  público y la tarifa está vigente, la reserva usa el precio negociado; si no,
+  vuelve a la matriz pública.
+- `reserva` guarda `motivo_visita`, `como_llego`, `placa_vehiculo`, el plan y el
+  precio negociado aplicado, para conservar el histórico aunque el cliente cambie.
+- `reserva_maestra` agrupa una o varias reservas hijas con un solo
+  `pagador_cliente_id`; cada hija conserva su habitación, huésped, folio y
+  check-in/check-out. El código de la maestra es `G-AAAAMMDD-####`.
 
 ---
 

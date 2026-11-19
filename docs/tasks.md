@@ -465,6 +465,49 @@ design, design-system y tasks.
 
 ---
 
+## Bloque 11 — Cliente, tarifas y grupos
+
+### T11.1 — Ficha de cliente y estadía
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Cliente con dirección, ciudad, notas, email y teléfono.
+- [x] Reserva con motivo de visita, cómo llegó y placa.
+- [x] Drawer de cliente para crear y editar.
+- [x] Los campos de estadía quedan en la reserva.
+
+### T11.2 — Planes de tarifa
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Plan público, empresa, empleado y grupo.
+- [x] Precio negociado por noche y vigencia.
+- [x] Desayuno incluido por plan.
+- [x] La reserva aplica la tarifa vigente y guarda el precio aplicado.
+- [x] La pantalla de reserva muestra la tarifa del cliente.
+
+### T11.3 — Reserva maestra y pagador
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Migración `reserva_maestra` y `reserva.maestra_id`.
+- [x] Endpoint para crear grupo con varias habitaciones.
+- [x] Código maestro y código independiente por habitación.
+- [x] Payer único para todas las hijas.
+- [x] Consulta y cancelación del grupo.
+- [x] Check-in y check-out por habitación.
+- [ ] Factura consolidada única del grupo (fase 1B).
+
+### T11.4 — Ayudas contextuales
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Ayuda plegable por ruta principal.
+- [x] Bullets operativos de 2–3 líneas.
+- [x] No reemplaza la información general del dashboard.
+
+---
+
 ## Orden de ejecución
 
 1. **T4.1, T4.2, T4.3, T4.5 y T4.6:** almacenes, compras, traslados y crédito de bar.

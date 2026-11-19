@@ -463,6 +463,17 @@ foliosRouter.post('/:id/checkout', async (req, res) => {
       [folio.reserva_id]
     );
     await tx.query(
+      `UPDATE reserva_maestra
+       SET estado = 'CHECKOUT'
+       WHERE id = (SELECT maestra_id FROM reserva WHERE id = $1)
+         AND NOT EXISTS (
+           SELECT 1 FROM reserva
+           WHERE maestra_id = (SELECT maestra_id FROM reserva WHERE id = $1)
+             AND estado NOT IN ('CHECKOUT', 'CANCELADA')
+         )`,
+      [folio.reserva_id]
+    );
+    await tx.query(
       `UPDATE huesped SET checkout_ts = now()
        WHERE reserva_habitacion_id IN (SELECT id FROM reserva_habitacion WHERE reserva_id = $1)`,
       [folio.reserva_id]

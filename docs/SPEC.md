@@ -1,4 +1,4 @@
-﻿# SPEC — Sistema Hotel New Magdalena
+# SPEC — Sistema Hotel New Magdalena
 
 > **Documento vigente y fuente única de alcance.** Los documentos de trabajo son
 > `SPEC.md`, `requirements.md`, `design.md`, `design-system.md` y `tasks.md`.
@@ -54,6 +54,9 @@ pero son parte de la operación diaria que se va a probar ahora.
 ### 4.1 Alojamiento
 
 - Crear, editar y cancelar reservas con fechas, pax, habitación, tarifa y abono.
+- Reserva grupal con un pagador y varias habitaciones.
+- Ficha de cliente con contacto, dirección, ciudad, notas y datos de estadía.
+- Tarifas negociadas para empresa, empleado o grupo, con vigencia.
 - Consultar disponibilidad y ocupación.
 - Tablero de habitaciones: libre, ocupada, sucia, mantenimiento.
 - Check-in walk-in y check-in de reserva.

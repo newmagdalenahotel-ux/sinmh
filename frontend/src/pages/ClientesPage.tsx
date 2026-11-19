@@ -24,8 +24,16 @@ const formularioInicial = {
   numero_documento: '',
   telefono: '',
   email: '',
+  direccion: '',
+  ciudad: '',
+  notas: '',
   cupo_credito: 0 as number | '',
   dias_credito: '0',
+  tarifa_plan: 'PUBLICA' as 'PUBLICA' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO',
+  tarifa_precio_noche: 0 as number | '',
+  tarifa_desayuno_incluido: false,
+  tarifa_vigente_desde: '',
+  tarifa_vigente_hasta: '',
 };
 
 export function ClientesPage() {
@@ -37,6 +45,7 @@ export function ClientesPage() {
   const [creando, setCreando] = useState(false);
   const [error, setError] = useState('');
   const [drawerAbierto, setDrawerAbierto] = useState(false);
+  const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
 
   useEffect(() => {
     if (!drawerAbierto) return;
@@ -69,6 +78,37 @@ export function ClientesPage() {
     }
   }
 
+  function abrirNuevo() {
+    setClienteEditando(null);
+    setForm(formularioInicial);
+    setError('');
+    setDrawerAbierto(true);
+  }
+
+  function abrirEditar(cliente: Cliente) {
+    setClienteEditando(cliente);
+    setForm({
+      tipo: cliente.tipo as typeof formularioInicial.tipo,
+      razon_social: cliente.razon_social,
+      tipo_documento: cliente.tipo_documento ?? 'CC',
+      numero_documento: cliente.numero_documento ?? '',
+      telefono: cliente.telefono ?? '',
+      email: cliente.email ?? '',
+      direccion: cliente.direccion ?? '',
+      ciudad: cliente.ciudad ?? '',
+      notas: cliente.notas ?? '',
+      cupo_credito: Number(cliente.cupo_credito),
+      dias_credito: String(cliente.dias_credito),
+      tarifa_plan: cliente.tarifa_plan,
+      tarifa_precio_noche: Number(cliente.tarifa_precio_noche ?? 0),
+      tarifa_desayuno_incluido: cliente.tarifa_desayuno_incluido,
+      tarifa_vigente_desde: cliente.tarifa_vigente_desde?.slice(0, 10) ?? '',
+      tarifa_vigente_hasta: cliente.tarifa_vigente_hasta?.slice(0, 10) ?? '',
+    });
+    setError('');
+    setDrawerAbierto(true);
+  }
+
   async function crear() {
     if (!token) return;
     if (!form.razon_social.trim()) {
@@ -79,46 +119,42 @@ export function ClientesPage() {
     setCreando(true);
     setError('');
 
+    const payload = {
+      tipo: form.tipo,
+      razon_social: form.razon_social.trim(),
+      tipo_documento: form.tipo_documento || undefined,
+      numero_documento: form.numero_documento.trim() || undefined,
+      telefono: form.telefono.trim() || undefined,
+      email: form.email.trim() || undefined,
+      direccion: form.direccion.trim() || undefined,
+      ciudad: form.ciudad.trim() || undefined,
+      notas: form.notas.trim() || undefined,
+      cupo_credito: Number(form.cupo_credito || 0),
+      dias_credito: Number(form.dias_credito || 0),
+      tarifa_plan: form.tarifa_plan,
+      tarifa_precio_noche:
+        form.tarifa_plan === 'PUBLICA' ? undefined : Number(form.tarifa_precio_noche || 0),
+      tarifa_desayuno_incluido: form.tarifa_desayuno_incluido,
+      tarifa_vigente_desde: form.tarifa_vigente_desde || undefined,
+      tarifa_vigente_hasta: form.tarifa_vigente_hasta || undefined,
+    };
+
     try {
-      const respuesta = await crearClienteApi(token, {
-        tipo: form.tipo,
-        razon_social: form.razon_social.trim(),
-        tipo_documento: form.tipo_documento || undefined,
-        numero_documento: form.numero_documento.trim() || undefined,
-        telefono: form.telefono.trim() || undefined,
-        email: form.email.trim() || undefined,
-        cupo_credito: Number(form.cupo_credito || 0),
-        dias_credito: Number(form.dias_credito || 0),
-      });
-      toast.success(`Cliente ${respuesta.cliente.razon_social} creado`);
+      if (clienteEditando) {
+        const respuesta = await actualizarClienteApi(token, clienteEditando.id, payload);
+        toast.success(`Cliente ${respuesta.cliente.razon_social} actualizado`);
+      } else {
+        const respuesta = await crearClienteApi(token, payload);
+        toast.success(`Cliente ${respuesta.cliente.razon_social} creado`);
+      }
       setForm(formularioInicial);
+      setClienteEditando(null);
       setDrawerAbierto(false);
       await cargar();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear el cliente');
+      setError(err instanceof Error ? err.message : 'No se pudo guardar el cliente');
     } finally {
       setCreando(false);
-    }
-  }
-
-  async function editarCredito(cliente: Cliente) {
-    if (!token) return;
-
-    const cupo = window.prompt('Cupo de crédito', String(Number(cliente.cupo_credito)));
-    if (cupo === null) return;
-    const dias = window.prompt('Días de crédito', String(cliente.dias_credito));
-    if (dias === null) return;
-
-    setError('');
-    try {
-      await actualizarClienteApi(token, cliente.id, {
-        cupo_credito: Number(cupo || 0),
-        dias_credito: Number(dias || 0),
-      });
-      toast.success(`Crédito de ${cliente.razon_social} actualizado`);
-      await cargar();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo actualizar el cliente');
     }
   }
 
@@ -127,7 +163,7 @@ export function ClientesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <button className="btn-primary" onClick={() => setDrawerAbierto(true)}>
+        <button className="btn-primary" onClick={abrirNuevo}>
           Nuevo cliente
         </button>
       </div>
@@ -149,6 +185,7 @@ export function ClientesPage() {
                   <tr className="border-b border-cream-dark text-xs uppercase tracking-wide text-stone-light">
                     <th className="py-2 pr-3">Cliente</th>
                     <th className="py-2 pr-3">Tipo</th>
+                    <th className="py-2 pr-3">Tarifa</th>
                     <th className="py-2 pr-3">Documento</th>
                     <th className="py-2 pr-3 text-right">Cupo</th>
                     <th className="py-2 pr-3 text-right">Días</th>
@@ -166,6 +203,14 @@ export function ClientesPage() {
                       </td>
                       <td className="py-3 pr-3 text-stone-light">{cliente.tipo}</td>
                       <td className="py-3 pr-3 text-stone-light">
+                        <p>{cliente.tarifa_plan}</p>
+                        {cliente.tarifa_precio_noche && (
+                          <p className="text-xs">
+                            {formatoMoneda(Number(cliente.tarifa_precio_noche))}
+                          </p>
+                        )}
+                      </td>
+                      <td className="py-3 pr-3 text-stone-light">
                         {cliente.numero_documento ?? '—'}
                       </td>
                       <td className="py-3 pr-3 text-right">
@@ -175,9 +220,9 @@ export function ClientesPage() {
                       <td className="py-3 text-right">
                         <button
                           className="rounded-lg border border-gold/40 px-2 py-1 text-xs text-gold-dark"
-                          onClick={() => void editarCredito(cliente)}
+                          onClick={() => abrirEditar(cliente)}
                         >
-                          Crédito
+                          Editar
                         </button>
                       </td>
                     </tr>
@@ -205,11 +250,11 @@ export function ClientesPage() {
           }
           role="dialog"
           aria-modal="true"
-          aria-label="Nuevo cliente"
+          aria-label={clienteEditando ? 'Editar cliente' : 'Nuevo cliente'}
         >
           <div className="mb-4 flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wide text-stone-light">
-              Nuevo cliente
+              {clienteEditando ? 'Editar cliente' : 'Nuevo cliente'}
             </p>
             <button
               type="button"
@@ -314,12 +359,128 @@ export function ClientesPage() {
               />
             </div>
 
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="direccion_cliente">Dirección</label>
+                <input
+                  id="direccion_cliente"
+                  className="input"
+                  value={form.direccion}
+                  onChange={(event) => setForm({ ...form, direccion: event.target.value })}
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="ciudad_cliente">Ciudad</label>
+                <input
+                  id="ciudad_cliente"
+                  className="input"
+                  value={form.ciudad}
+                  onChange={(event) => setForm({ ...form, ciudad: event.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-gold/20 bg-cream-dark/40 p-3">
+              <p className="text-sm font-semibold text-stone">Tarifa del cliente</p>
+              <p className="mt-1 text-xs text-stone-light">
+                Pública usa la matriz normal. Empresa, empleado o grupo usan el precio negociado.
+              </p>
+
+              <div className="mt-3">
+                <label className="label" htmlFor="tarifa_plan">Plan de tarifa</label>
+                <select
+                  id="tarifa_plan"
+                  className="input"
+                  value={form.tarifa_plan}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      tarifa_plan: event.target.value as typeof form.tarifa_plan,
+                    })
+                  }
+                >
+                  <option value="PUBLICA">Pública</option>
+                  <option value="EMPRESA">Empresa</option>
+                  <option value="EMPLEADO">Empleado</option>
+                  <option value="GRUPO">Grupo</option>
+                </select>
+              </div>
+
+              {form.tarifa_plan !== 'PUBLICA' && (
+                <>
+                  <div className="mt-3">
+                    <label className="label" htmlFor="tarifa_precio">Precio por noche</label>
+                    <MoneyInput
+                      id="tarifa_precio"
+                      value={form.tarifa_precio_noche}
+                      onChange={(value) => setForm({ ...form, tarifa_precio_noche: value })}
+                    />
+                  </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="tarifa_desde">Vigente desde</label>
+                      <input
+                        id="tarifa_desde"
+                        type="date"
+                        className="input"
+                        value={form.tarifa_vigente_desde}
+                        onChange={(event) =>
+                          setForm({ ...form, tarifa_vigente_desde: event.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="tarifa_hasta">Vigente hasta</label>
+                      <input
+                        id="tarifa_hasta"
+                        type="date"
+                        className="input"
+                        value={form.tarifa_vigente_hasta}
+                        onChange={(event) =>
+                          setForm({ ...form, tarifa_vigente_hasta: event.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <label className="mt-3 flex items-center gap-2 text-sm text-stone">
+                    <input
+                      type="checkbox"
+                      checked={form.tarifa_desayuno_incluido}
+                      onChange={(event) =>
+                        setForm({ ...form, tarifa_desayuno_incluido: event.target.checked })
+                      }
+                    />
+                    Incluye desayuno
+                  </label>
+                </>
+              )}
+            </div>
+
+            <div>
+              <label className="label" htmlFor="notas_cliente">Notas</label>
+              <textarea
+                id="notas_cliente"
+                className="input"
+                rows={2}
+                value={form.notas}
+                onChange={(event) => setForm({ ...form, notas: event.target.value })}
+              />
+            </div>
+
             <button
               className="btn-primary w-full"
               onClick={() => void crear()}
-              disabled={creando || !form.razon_social.trim()}
+              disabled={
+                creando ||
+                !form.razon_social.trim() ||
+                (form.tarifa_plan !== 'PUBLICA' && Number(form.tarifa_precio_noche || 0) <= 0)
+              }
             >
-              {creando ? 'Creando…' : 'Crear cliente'}
+              {creando
+                ? 'Guardando…'
+                : clienteEditando
+                  ? 'Guardar cambios'
+                  : 'Crear cliente'}
             </button>
           </div>
         </section>
