@@ -342,10 +342,13 @@ la información principal del día.
 
 **Aceptación:**
 - Formulario en 3 pasos: estadía, huésped/origen y pago.
-- Paso 1: fechas, pax, tarjetas de habitaciones disponibles, temporada, escenario y desayuno.
+- Paso 1: fechas, pax, tarjetas de habitaciones, temporada, escenario y desayuno.
+- Las tarjetas muestran ocupadas, mantenimiento y falta de acomodación con el motivo.
+- Las habitaciones sucias se muestran con advertencia de limpieza.
 - Paso 2: buscador de cliente existente, huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
 - Paso 3: pagos divididos, anticipo opcional, notas y resumen.
 - La placa del vehículo se registra en el check-in, no en la reserva.
+- No se puede continuar sin nombre, motivo y teléfono o correo.
 - Calendario o lista de reservas.
 - Convertir reserva en check-in.
 - Editar y cancelar.

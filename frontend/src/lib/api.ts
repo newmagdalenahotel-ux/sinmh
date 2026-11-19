@@ -89,12 +89,20 @@ type MeResponse = {
   };
 };
 
+export type HabitacionDisponible = Habitacion & {
+  estado_operativo: 'LIMPIA' | 'SUCIA' | 'MANTENIMIENTO';
+  permitido: number | null;
+  motivo: 'MANTENIMIENTO' | 'SIN_ACOMODACION' | 'OCUPADA' | null;
+  advertencia: 'LIMPIEZA' | null;
+  disponible: boolean;
+};
+
 type DisponibilidadResponse = {
   desde: string;
   hasta: string;
   pax: number;
   total: number;
-  habitaciones: Habitacion[];
+  habitaciones: HabitacionDisponible[];
 };
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {

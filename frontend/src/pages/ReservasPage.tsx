@@ -21,6 +21,7 @@ import {
   reservasApi,
   type Cliente,
   type Habitacion,
+  type HabitacionDisponible,
   type ReservaDetalle,
   type ReservaPayload,
   type ReservaResumen,
@@ -215,7 +216,7 @@ export function ReservasPage() {
   const toast = useToast();
   const [reservas, setReservas] = useState<ReservaResumen[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
+  const [habitaciones, setHabitaciones] = useState<HabitacionDisponible[]>([]);
   const [habitacionesTodas, setHabitacionesTodas] = useState<Habitacion[]>([]);
   const [edicion, setEdicion] = useState<ReservaDetalle | null>(null);
   const [editForm, setEditForm] = useState({
@@ -391,11 +392,13 @@ export function ReservasPage() {
       .then((respuesta) => {
         if (!activo) return;
         setHabitaciones(respuesta.habitaciones);
-        if (respuesta.habitaciones.length > 0) {
-          const existe = respuesta.habitaciones.some((h) => h.id === form.habitacion_id);
-          if (!existe) setForm((actual) => ({ ...actual, habitacion_id: respuesta.habitaciones[0].id }));
-        } else {
-          setForm((actual) => ({ ...actual, habitacion_id: 0 }));
+        const disponibles = respuesta.habitaciones.filter((h) => h.disponible);
+        const existe = disponibles.some((h) => h.id === form.habitacion_id);
+        if (!existe) {
+          setForm((actual) => ({
+            ...actual,
+            habitacion_id: disponibles[0]?.id ?? 0,
+          }));
         }
       })
       .catch(() => {
@@ -438,6 +441,11 @@ export function ReservasPage() {
 
     if (!form.habitacion_id) {
       setError('Selecciona una habitación disponible');
+      return;
+    }
+
+    if (!datosHuespedCompletos) {
+      setError('Completa nombre, motivo y al menos un teléfono o correo');
       return;
     }
 
@@ -587,6 +595,11 @@ export function ReservasPage() {
 
     if (!grupoForm.cliente_nombre.trim()) {
       setGrupoError('Escribe el nombre del pagador');
+      return;
+    }
+
+    if (habitaciones.some((item) => !item.huesped_nombre?.trim())) {
+      setGrupoError('Escribe el huésped de cada habitación');
       return;
     }
 
@@ -775,6 +788,11 @@ export function ReservasPage() {
         .includes(texto);
     })
     .slice(0, 8);
+  const datosHuespedCompletos = Boolean(
+    form.cliente.nombre.trim() &&
+      form.motivo_visita &&
+      (form.cliente.telefono?.trim() || form.cliente.email?.trim())
+  );
   const tarifaNegociada =
     clienteSeleccionado &&
     clienteSeleccionado.tarifa_plan !== 'PUBLICA' &&
@@ -1495,20 +1513,24 @@ export function ReservasPage() {
                     </div>
                     <div className="sm:col-span-2">
                       <label className="label">Habitaciones disponibles</label>
-                      <div className="mt-2 grid max-h-72 gap-2 overflow-y-auto sm:grid-cols-2">
+                      <div className="mt-2 grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {habitaciones.map((habitacion) => {
                           const activa = form.habitacion_id === habitacion.id;
+                          const bloqueada = !habitacion.disponible;
                           return (
                             <button
                               key={habitacion.id}
                               type="button"
+                              disabled={bloqueada}
                               onClick={() =>
                                 setForm({ ...form, habitacion_id: habitacion.id })
                               }
                               className={`rounded-xl border p-3 text-left transition ${
-                                activa
-                                  ? 'border-gold bg-gold/10 ring-2 ring-gold/30'
-                                  : 'border-cream-dark bg-white hover:border-gold/50'
+                                bloqueada
+                                  ? 'cursor-not-allowed border-cream-dark bg-cream/40 opacity-60'
+                                  : activa
+                                    ? 'border-gold bg-gold/10 ring-2 ring-gold/30'
+                                    : 'border-cream-dark bg-white hover:border-gold/50'
                               }`}
                             >
                               <div className="flex items-center justify-between gap-2">
@@ -1521,6 +1543,20 @@ export function ReservasPage() {
                                 {habitacion.clima === 'AC' ? 'Aire acondicionado' : 'Ventilador'}
                                 {habitacion.es_suite ? ' · Suite' : ''}
                               </p>
+                              {habitacion.motivo && (
+                                <p className="mt-1 text-[11px] font-medium text-error">
+                                  {habitacion.motivo === 'MANTENIMIENTO'
+                                    ? 'Mantenimiento'
+                                    : habitacion.motivo === 'OCUPADA'
+                                      ? 'Ocupada en esas fechas'
+                                      : `No permite ${form.pax} pax`}
+                                </p>
+                              )}
+                              {habitacion.advertencia === 'LIMPIEZA' && (
+                                <p className="mt-1 text-[11px] font-medium text-warning">
+                                  Limpieza pendiente
+                                </p>
+                              )}
                               {activa && (
                                 <p className="mt-1 text-[11px] font-medium text-gold-dark">
                                   Seleccionada
@@ -1797,6 +1833,12 @@ export function ReservasPage() {
                     </div>
                   </div>
 
+                  {!datosHuespedCompletos && (
+                    <p className="rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">
+                      Completa nombre, motivo y al menos un teléfono o correo para continuar.
+                    </p>
+                  )}
+
                   <div className="flex justify-between gap-2 pt-2">
                     <button type="button" className="btn-secondary" onClick={() => setPasoReserva(1)}>
                       Atrás
@@ -1805,7 +1847,7 @@ export function ReservasPage() {
                       type="button"
                       className="btn-primary"
                       onClick={() => setPasoReserva(3)}
-                      disabled={!form.cliente.nombre.trim()}
+                      disabled={!datosHuespedCompletos}
                     >
                       Continuar
                     </button>
@@ -1977,7 +2019,7 @@ export function ReservasPage() {
                       onClick={() => void crear()}
                       disabled={
                         creando ||
-                        !form.cliente.nombre ||
+                        !datosHuespedCompletos ||
                         !form.habitacion_id ||
                         noches < 1
                       }
@@ -2279,7 +2321,10 @@ export function ReservasPage() {
               disabled={
                 creandoGrupo ||
                 !grupoForm.cliente_nombre.trim() ||
-                grupoForm.habitaciones.every((item) => !item.habitacion_id)
+                grupoForm.habitaciones.every((item) => !item.habitacion_id) ||
+                grupoForm.habitaciones.some(
+                  (item) => item.habitacion_id > 0 && !item.huesped_nombre?.trim()
+                )
               }
             >
               {creandoGrupo ? 'Creando grupo…' : 'Crear reserva grupal'}

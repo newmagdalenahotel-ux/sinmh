@@ -451,12 +451,12 @@ const crearSchema = z.object({
   anticipo: anticipoSchema.optional(),
   pagos: z.array(anticipoSchema).min(1).max(5).optional(),
   notas: z.string().trim().max(500).optional(),
-  motivo_visita: z.string().trim().max(120).optional(),
+  motivo_visita: z.enum(['TURISMO', 'CORPORATIVO']),
   como_llego: z.string().trim().max(60).optional(),
   placa_vehiculo: z.string().trim().max(20).optional(),
   origen_reserva: z
     .enum(['WHATSAPP', 'TELEFONO', 'DIRECTO', 'CORREO', 'WEB', 'OTA'])
-    .optional(),
+    .default('DIRECTO'),
 });
 
 reservasRouter.post('/', async (req, res) => {
