@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useToast } from '../components/Toast';
 import {
   actualizarEstadoHabitacionApi,
   tableroHabitacionesApi,
@@ -25,13 +26,13 @@ const etiquetas: Record<HabitacionTablero['estado'], string> = {
 
 export function HabitacionesPage() {
   const { token } = useAuth();
+  const toast = useToast();
   const [habitaciones, setHabitaciones] = useState<HabitacionTablero[]>([]);
   const [piso, setPiso] = useState('');
   const [clima, setClima] = useState('');
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState<number | null>(null);
   const [error, setError] = useState('');
-  const [exito, setExito] = useState('');
 
   useEffect(() => {
     if (token) void cargar();
@@ -60,11 +61,10 @@ export function HabitacionesPage() {
     if (!token) return;
     setProcesando(habitacion.id);
     setError('');
-    setExito('');
 
     try {
       await actualizarEstadoHabitacionApi(token, habitacion.id, estado);
-      setExito(`Habitación ${habitacion.numero}: ${estado.toLowerCase()}`);
+      toast.success(`Habitación ${habitacion.numero}: ${estado.toLowerCase()}`);
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar la habitación');
@@ -102,7 +102,6 @@ export function HabitacionesPage() {
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-      {exito && <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{exito}</div>}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="card"><p className="text-sm text-stone-light">Libres</p><p className="mt-1 font-display text-2xl text-success">{resumen.libres}</p></div>

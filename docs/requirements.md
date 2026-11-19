@@ -364,6 +364,31 @@ la información principal del día.
 - Incluye condiciones básicas y firmas.
 - Se descarga desde la reserva.
 
+### FR-41 — Formato de dinero y notificaciones
+**Fase:** actual · **Estado:** Hecho
+**Descripción:** Evitar errores de lectura en valores monetarios y evitar mensajes
+permanentes que ocupen la pantalla.
+
+**Aceptación:**
+- Los campos de dinero muestran separador de miles (`$ 130.000`).
+- El valor se guarda como número y se muestra formateado.
+- Las notificaciones de éxito desaparecen solas en pocos segundos.
+- Los errores se muestran junto al campo o en un aviso cerrable.
+- Los avisos no tapan los botones principales.
+
+### FR-42 — Formularios en drawer y estándar de usabilidad
+**Fase:** actual · **Estado:** Hecho
+**Descripción:** Los formularios largos se abren en un panel lateral para no
+mezclar la lista con el formulario y para que la operación sea clara.
+
+**Aceptación:**
+- Reserva nueva, edición de reserva, check-in desde reserva y cliente nuevo se abren en drawer.
+- El drawer tiene título, botón Cerrar y fondo oscurecido.
+- Los formularios cortos pueden seguir en modal o inline.
+- Labels arriba, una columna, validación junto al campo y botón principal claro.
+- El contenido de la pantalla queda visible detrás del drawer.
+- En móvil el drawer ocupa el ancho completo.
+
 ---
 
 ## Módulo: Reportes

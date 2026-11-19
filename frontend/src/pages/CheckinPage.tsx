@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { MoneyInput } from '../components/MoneyInput';
 import {
   checkinApi,
   cotizarApi,
@@ -65,7 +66,7 @@ export function CheckinPage() {
   const [tipoDocumentoPago, setTipoDocumentoPago] = useState<
     'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA'
   >('NINGUNO');
-  const [monto, setMonto] = useState('');
+  const [monto, setMonto] = useState<number | ''>('');
   const [notas, setNotas] = useState('');
 
   const [error, setError] = useState('');
@@ -131,7 +132,7 @@ export function CheckinPage() {
   }, [token, seleccion, pax, temporada, escenario]);
 
   useEffect(() => {
-    setMonto(String(total));
+    setMonto(total);
   }, [total]);
 
   async function buscar() {
@@ -577,14 +578,11 @@ export function CheckinPage() {
                     </div>
                     <div>
                       <label className="label" htmlFor="monto">Monto recibido</label>
-                      <input
+                      <MoneyInput
                         id="monto"
-                        type="number"
-                        min="0"
                         max={total}
-                        className="input"
-                        value={metodoPago === 'CREDITO' ? '0' : monto}
-                        onChange={(event) => setMonto(event.target.value)}
+                        value={metodoPago === 'CREDITO' ? 0 : monto}
+                        onChange={setMonto}
                         disabled={metodoPago === 'CREDITO'}
                       />
                     </div>

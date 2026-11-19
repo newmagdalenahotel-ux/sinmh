@@ -432,6 +432,39 @@ design, design-system y tasks.
 
 ---
 
+## Bloque 10 — UX de formularios y dinero
+
+### T10.1 — Formato de dinero
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Componente `MoneyInput` con separador de miles.
+- [x] Reserva, abono, caja, check-in, cargos y cupo usan el componente.
+- [x] El valor se envía como número, no como texto formateado.
+- [x] Los montos de solo lectura siguen usando `formatoMoneda`.
+
+### T10.2 — Toasts auto-descartables
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Proveedor global de notificaciones.
+- [x] Éxito desaparece en 4 segundos.
+- [x] Error permanece más tiempo y se puede cerrar.
+- [x] No tapan los botones de acción principales.
+- [x] Reservas, clientes, caja, bar, folios, cartera y habitaciones usan toast.
+
+### T10.3 — Formularios en drawer
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Nueva reserva, editar reserva y check-in desde reserva en drawer.
+- [x] Cliente nuevo en drawer.
+- [x] Overlay, botón Cerrar y cierre al guardar.
+- [x] Formulario en una columna, labels arriba y acciones claras.
+- [x] En móvil el drawer ocupa el ancho completo.
+
+---
+
 ## Orden de ejecución
 
 1. **T4.1, T4.2, T4.3, T4.5 y T4.6:** almacenes, compras, traslados y crédito de bar.

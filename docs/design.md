@@ -67,9 +67,9 @@ overlay y cierre al elegir una pantalla o al presionar Escape.
 - Alertas: caja cerrada, habitaciones sucias, stock bajo, folios con saldo.
 
 **Alojamiento**
-- `/alojamiento/reservas`: lista y formulario de reserva.
+- `/alojamiento/reservas`: lista con acciones; nueva reserva y edición en drawer.
 - `/alojamiento/tablero`: estado visual de las 31 habitaciones.
-- `/alojamiento/checkin`: check-in de reserva o walk-in.
+- `/alojamiento/checkin`: check-in de reserva o walk-in, con cobro en el mismo panel.
 - `/alojamiento/huespedes`: folios abiertos y huéspedes en casa.
 - `/alojamiento/folios/:id`: detalle, cargos, pagos y check-out.
 

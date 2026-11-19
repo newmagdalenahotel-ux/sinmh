@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { useToast } from '../components/Toast';
 import {
   actualizarUsuarioApi,
   crearUsuarioApi,
@@ -21,13 +22,13 @@ const usuarioNuevo: NuevoUsuario = {
 
 export function ConfiguracionPage() {
   const { token, usuario } = useAuth();
+  const toast = useToast();
   const [usuarios, setUsuarios] = useState<UsuarioAdmin[]>([]);
   const [roles, setRoles] = useState<RolAdmin[]>([]);
   const [nuevo, setNuevo] = useState<NuevoUsuario>(usuarioNuevo);
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
-  const [exito, setExito] = useState('');
 
   useEffect(() => {
     if (token) void cargar();
@@ -57,7 +58,6 @@ export function ConfiguracionPage() {
     if (!token) return;
     setProcesando(true);
     setError('');
-    setExito('');
 
     try {
       await crearUsuarioApi(token, {
@@ -65,7 +65,7 @@ export function ConfiguracionPage() {
         email: nuevo.email?.trim() || undefined,
       });
       setNuevo(usuarioNuevo);
-      setExito('Usuario creado');
+      toast.success('Usuario creado');
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear el usuario');
@@ -78,11 +78,12 @@ export function ConfiguracionPage() {
     if (!token) return;
     setProcesando(true);
     setError('');
-    setExito('');
 
     try {
       await actualizarUsuarioApi(token, usuarioFila.id, { activo: !usuarioFila.activo });
-      setExito(`Usuario ${usuarioFila.username} ${usuarioFila.activo ? 'desactivado' : 'activado'}`);
+      toast.success(
+        `Usuario ${usuarioFila.username} ${usuarioFila.activo ? 'desactivado' : 'activado'}`
+      );
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar el usuario');
@@ -95,13 +96,12 @@ export function ConfiguracionPage() {
     if (!token) return;
     setProcesando(true);
     setError('');
-    setExito('');
 
     try {
       await actualizarUsuarioApi(token, usuarioFila.id, {
         rol: rol as NuevoUsuario['rol'],
       });
-      setExito(`Rol de ${usuarioFila.username} actualizado`);
+      toast.success(`Rol de ${usuarioFila.username} actualizado`);
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cambiar el rol');
@@ -126,7 +126,6 @@ export function ConfiguracionPage() {
   return (
     <div className="space-y-6">
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-      {exito && <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{exito}</div>}
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="card">

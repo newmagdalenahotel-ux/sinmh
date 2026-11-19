@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { MoneyInput } from '../components/MoneyInput';
+import { useToast } from '../components/Toast';
 import {
   actualizarClienteApi,
   clientesApi,
@@ -22,18 +24,30 @@ const formularioInicial = {
   numero_documento: '',
   telefono: '',
   email: '',
-  cupo_credito: '0',
+  cupo_credito: 0 as number | '',
   dias_credito: '0',
 };
 
 export function ClientesPage() {
   const { token } = useAuth();
+  const toast = useToast();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [form, setForm] = useState(formularioInicial);
   const [cargando, setCargando] = useState(true);
   const [creando, setCreando] = useState(false);
   const [error, setError] = useState('');
-  const [exito, setExito] = useState('');
+  const [drawerAbierto, setDrawerAbierto] = useState(false);
+
+  useEffect(() => {
+    if (!drawerAbierto) return;
+
+    const cerrarConEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDrawerAbierto(false);
+    };
+    window.addEventListener('keydown', cerrarConEscape);
+
+    return () => window.removeEventListener('keydown', cerrarConEscape);
+  }, [drawerAbierto]);
 
   useEffect(() => {
     if (token) void cargar();
@@ -64,7 +78,6 @@ export function ClientesPage() {
 
     setCreando(true);
     setError('');
-    setExito('');
 
     try {
       const respuesta = await crearClienteApi(token, {
@@ -77,8 +90,9 @@ export function ClientesPage() {
         cupo_credito: Number(form.cupo_credito || 0),
         dias_credito: Number(form.dias_credito || 0),
       });
-      setExito(`Cliente ${respuesta.cliente.razon_social} creado`);
+      toast.success(`Cliente ${respuesta.cliente.razon_social} creado`);
       setForm(formularioInicial);
+      setDrawerAbierto(false);
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear el cliente');
@@ -96,13 +110,12 @@ export function ClientesPage() {
     if (dias === null) return;
 
     setError('');
-    setExito('');
     try {
       await actualizarClienteApi(token, cliente.id, {
         cupo_credito: Number(cupo || 0),
         dias_credito: Number(dias || 0),
       });
-      setExito(`Crédito de ${cliente.razon_social} actualizado`);
+      toast.success(`Crédito de ${cliente.razon_social} actualizado`);
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar el cliente');
@@ -113,10 +126,15 @@ export function ClientesPage() {
 
   return (
     <div className="space-y-6">
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-      {exito && <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{exito}</div>}
+      <div className="flex justify-end">
+        <button className="btn-primary" onClick={() => setDrawerAbierto(true)}>
+          Nuevo cliente
+        </button>
+      </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
+
+      <div className="space-y-6">
         <section className="card">
           <h2 className="font-display text-xl text-stone">Directorio</h2>
 
@@ -170,8 +188,40 @@ export function ClientesPage() {
           )}
         </section>
 
-        <section className="card">
-          <h2 className="font-display text-xl text-stone">Nuevo cliente</h2>
+        {drawerAbierto && (
+          <button
+            type="button"
+            aria-label="Cerrar formulario"
+            className="fixed inset-0 z-40 bg-navy-dark/60"
+            onClick={() => setDrawerAbierto(false)}
+          />
+        )}
+
+        <div
+          className={
+            drawerAbierto
+              ? 'fixed inset-y-0 right-0 z-50 w-full max-w-lg overflow-y-auto bg-cream p-4 shadow-2xl sm:p-6'
+              : 'hidden'
+          }
+          role="dialog"
+          aria-modal="true"
+          aria-label="Nuevo cliente"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wide text-stone-light">
+              Nuevo cliente
+            </p>
+            <button
+              type="button"
+              className="btn-secondary px-3 py-1.5 text-xs"
+              onClick={() => setDrawerAbierto(false)}
+            >
+              Cerrar
+            </button>
+          </div>
+
+          <section className="card">
+            <h2 className="font-display text-xl text-stone">Datos del cliente</h2>
 
           <div className="mt-4 space-y-3">
             <div>
@@ -227,13 +277,10 @@ export function ClientesPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="label" htmlFor="cupo_credito">Cupo de crédito</label>
-                <input
+                <MoneyInput
                   id="cupo_credito"
-                  type="number"
-                  min="0"
-                  className="input"
                   value={form.cupo_credito}
-                  onChange={(event) => setForm({ ...form, cupo_credito: event.target.value })}
+                  onChange={(value) => setForm({ ...form, cupo_credito: value })}
                 />
               </div>
               <div>
@@ -276,6 +323,7 @@ export function ClientesPage() {
             </button>
           </div>
         </section>
+        </div>
       </div>
     </div>
   );

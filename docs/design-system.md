@@ -124,6 +124,10 @@
 - **Focus:** borde `gold`, ring de 2px `rgba(200, 169, 110, 0.2)`.
 - **Label:** `Inter`, `text-sm`, color `stone`.
 - **Error:** borde `error`, mensaje debajo en `text-sm` `error`.
+- **Formularios largos:** una columna, agrupados por secciones, con el botón principal al final.
+- **Campos de dinero:** usan `MoneyInput`; muestran `$ 130.000` con separador de miles y envían el valor numérico.
+- **Campos obligatorios:** marcados; los opcionales van en un bloque “Datos adicionales”.
+- **Validación:** al salir del campo y al enviar; nunca con `alert()`.
 
 ### 4.3 Cards (`.glass-card`)
 
@@ -150,14 +154,26 @@
 - **Neutral / Info:** fondo `cream-dark`, texto `stone-light`.
 - **Cortesía / Descuento:** fondo `gold/10`, texto `gold-dark`.
 
-### 4.6 Modales
+### 4.6 Modales y drawers
 
 - **Overlay:** `navy-dark` con opacidad 70%.
-- **Contenedor:** fondo `cream`, `rounded-lg`, sombra `shadow-xl`.
-- **Header:** título en `Inter`, `text-xl`, color `stone`.
+- **Modal:** para acciones cortas (cobrar, agregar cargo, abonar, confirmar).
+- **Drawer:** panel lateral derecho de 480–560px, fondo `cream`, `shadow-2xl`, scroll interno.
+- **Drawer en móvil:** ocupa el 100% del ancho.
+- **Header:** título corto en `Inter`, `text-sm` mayúsculas, botón Cerrar a la derecha.
 - **Footer:** botones alineados a la derecha (Outline + Primary).
+- **Formularios largos:** reserva nueva, editar reserva, check-in desde reserva y cliente nuevo van en drawer; no en modal.
+- **Cierre:** overlay, botón Cerrar y Escape; al guardar con éxito se cierra.
 
-### 4.7 Divisores editoriales (`.gold-divider`)
+### 4.7 Notificaciones (toasts)
+
+- **Posición:** abajo a la derecha; en móvil ancho completo menos 32px.
+- **Duración:** éxito 4s, información 5s, advertencia 6s, error 8s.
+- **Cierre:** botón × en cada toast.
+- **Uso:** confirmaciones de acciones; los errores de validación van junto al campo.
+- **No usar:** banners de éxito permanentes dentro de la página.
+
+### 4.8 Divisores editoriales (`.gold-divider`)
 
 - Línea de 1px con gradiente de `transparent` → `gold` → `transparent`.
 - Uso: separar secciones en el dashboard, separar grupos de campos en formularios largos.
@@ -173,7 +189,7 @@
   - Duración: 0.7s.
   - Uso: cards de dashboard, modales, toasts.
 - **Marquee móvil (si se necesita para anuncios):** carrusel continuo infinito de 18s linear, con máscara de degradado en los extremos.
-- **Feedback de acciones:** toasts de 3s para confirmaciones (success, error, warning).
+- **Feedback de acciones:** toasts de 4s para confirmaciones (success, error, warning).
 
 ---
 

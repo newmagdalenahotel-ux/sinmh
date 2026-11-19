@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { MoneyInput } from '../components/MoneyInput';
+import { useToast } from '../components/Toast';
 import {
   abrirCajaApi,
   cajaCambioTurnoApi,
@@ -37,6 +39,7 @@ function formatoTipo(valor: string) {
 
 export function CajaPage() {
   const { token } = useAuth();
+  const toast = useToast();
   const [sesion, setSesion] = useState<SesionCaja | null>(null);
   const [cierre, setCierre] = useState<SesionCaja | null>(null);
   const [sesionesAbiertas, setSesionesAbiertas] = useState<SesionAbierta[]>([]);
@@ -45,21 +48,20 @@ export function CajaPage() {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
-  const [montoApertura, setMontoApertura] = useState('');
-  const [montoDeclarado, setMontoDeclarado] = useState('');
+  const [montoApertura, setMontoApertura] = useState<number | ''>('');
+  const [montoDeclarado, setMontoDeclarado] = useState<number | ''>('');
   const [movTipo, setMovTipo] = useState<
     'GASTO_EFECTIVO' | 'RETIRO_DUENO' | 'APORTE' | 'AJUSTE_FALTANTE' | 'AJUSTE_SOBRANTE'
   >('GASTO_EFECTIVO');
-  const [movMonto, setMovMonto] = useState('');
+  const [movMonto, setMovMonto] = useState<number | ''>('');
   const [movDescripcion, setMovDescripcion] = useState('');
   const [movCuenta, setMovCuenta] = useState('6105');
   const [movSoporte, setMovSoporte] = useState('');
   const [registrando, setRegistrando] = useState(false);
-  const [exito, setExito] = useState('');
-  const [montoCambio, setMontoCambio] = useState('');
+  const [montoCambio, setMontoCambio] = useState<number | ''>('');
   const [trasladoOrigen, setTrasladoOrigen] = useState('');
   const [trasladoDestino, setTrasladoDestino] = useState('');
-  const [trasladoMonto, setTrasladoMonto] = useState('');
+  const [trasladoMonto, setTrasladoMonto] = useState<number | ''>('');
   const [trasladoDescripcion, setTrasladoDescripcion] = useState('Traslado a caja central');
   const [trasladando, setTrasladando] = useState(false);
 
@@ -83,7 +85,7 @@ export function CajaPage() {
       setSesion(actual.sesion);
       setPuntosVenta(respuestaPuntos.puntos_venta);
       setSesionesAbiertas(respuestaAbiertas.sesiones);
-      if (actual.sesion) setMontoDeclarado(String(actual.sesion.efectivo_esperado));
+      if (actual.sesion) setMontoDeclarado(actual.sesion.efectivo_esperado);
 
       if (respuestaAbiertas.sesiones.length >= 2) {
         setTrasladoOrigen((actualOrigen) =>
@@ -113,7 +115,7 @@ export function CajaPage() {
       await abrirCajaApi(token, Number(montoApertura || 0), undefined, puntoVentaCodigo);
       setCierre(null);
       setMontoApertura('');
-      setExito(`Caja ${puntoVentaCodigo} abierta`);
+      toast.success(`Caja ${puntoVentaCodigo} abierta`);
       await cargarTodo();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo abrir la caja');
@@ -155,7 +157,6 @@ export function CajaPage() {
 
     setRegistrando(true);
     setError('');
-    setExito('');
 
     try {
       await cajaMovimientoApi(token, {
@@ -168,7 +169,7 @@ export function CajaPage() {
 
       const actual = await sesionActualApi(token);
       setSesion(actual.sesion);
-      setExito('Movimiento registrado');
+      toast.success('Movimiento registrado');
       setMovMonto('');
       setMovDescripcion('');
       setMovSoporte('');
@@ -186,11 +187,10 @@ export function CajaPage() {
     const monto = Number(montoCambio || montoDeclarado || 0);
     setProcesando(true);
     setError('');
-    setExito('');
 
     try {
       const respuesta = await cajaCambioTurnoApi(token, sesion.id, monto);
-      setExito(
+      toast.success(
         `Cambio de turno: cierre #${respuesta.cierre.id}, nuevo turno #${respuesta.nueva.id}, diferencia ${formatoMoneda(respuesta.diferencia)}`
       );
       setMontoCambio('');
@@ -216,7 +216,6 @@ export function CajaPage() {
 
     setTrasladando(true);
     setError('');
-    setExito('');
 
     try {
       await cajaTrasladoApi(token, {
@@ -225,7 +224,7 @@ export function CajaPage() {
         monto: Number(trasladoMonto),
         descripcion: trasladoDescripcion.trim() || 'Traslado entre cajas',
       });
-      setExito('Traslado registrado');
+      toast.success('Traslado registrado');
       setTrasladoMonto('');
       await cargarTodo();
     } catch (err) {
@@ -264,7 +263,6 @@ export function CajaPage() {
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-      {exito && <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{exito}</div>}
 
       {cierre && (
         <section className="card border-success/30 bg-success/5">
@@ -336,14 +334,10 @@ export function CajaPage() {
             </div>
             <div>
               <label className="label" htmlFor="monto_apertura">Monto inicial en efectivo</label>
-              <input
+              <MoneyInput
                 id="monto_apertura"
-                type="number"
-                min="0"
-                className="input"
                 value={montoApertura}
-                onChange={(event) => setMontoApertura(event.target.value)}
-                placeholder="0"
+                onChange={setMontoApertura}
               />
             </div>
           </div>
@@ -467,14 +461,7 @@ export function CajaPage() {
               </div>
               <div>
                 <label className="label" htmlFor="mov_monto">Monto</label>
-                <input
-                  id="mov_monto"
-                  type="number"
-                  min="0"
-                  className="input"
-                  value={movMonto}
-                  onChange={(event) => setMovMonto(event.target.value)}
-                />
+                <MoneyInput id="mov_monto" value={movMonto} onChange={setMovMonto} />
               </div>
             </div>
 
@@ -537,13 +524,10 @@ export function CajaPage() {
 
             <div className="mt-4">
               <label className="label" htmlFor="monto_cambio">Efectivo contado por el entrante</label>
-              <input
+              <MoneyInput
                 id="monto_cambio"
-                type="number"
-                min="0"
-                className="input"
                 value={montoCambio}
-                onChange={(event) => setMontoCambio(event.target.value)}
+                onChange={setMontoCambio}
                 placeholder={String(sesion.efectivo_esperado)}
               />
             </div>
@@ -565,13 +549,10 @@ export function CajaPage() {
 
             <div className="mt-4">
               <label className="label" htmlFor="monto_declarado">Efectivo declarado</label>
-              <input
+              <MoneyInput
                 id="monto_declarado"
-                type="number"
-                min="0"
-                className="input"
                 value={montoDeclarado}
-                onChange={(event) => setMontoDeclarado(event.target.value)}
+                onChange={setMontoDeclarado}
               />
               <p className="mt-2 text-xs text-stone-light">
                 Esperado por el sistema: {formatoMoneda(sesion.efectivo_esperado)}
@@ -633,13 +614,10 @@ export function CajaPage() {
                 </div>
                 <div>
                   <label className="label" htmlFor="otro_monto">Monto inicial</label>
-                  <input
+                  <MoneyInput
                     id="otro_monto"
-                    type="number"
-                    min="0"
-                    className="input"
                     value={montoApertura}
-                    onChange={(event) => setMontoApertura(event.target.value)}
+                    onChange={setMontoApertura}
                   />
                 </div>
               </div>
@@ -689,13 +667,10 @@ export function CajaPage() {
                 </div>
                 <div>
                   <label className="label" htmlFor="traslado_monto">Monto</label>
-                  <input
+                  <MoneyInput
                     id="traslado_monto"
-                    type="number"
-                    min="0"
-                    className="input"
                     value={trasladoMonto}
-                    onChange={(event) => setTrasladoMonto(event.target.value)}
+                    onChange={setTrasladoMonto}
                   />
                 </div>
                 <div>

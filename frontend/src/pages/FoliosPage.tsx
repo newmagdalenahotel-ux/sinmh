@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { MoneyInput } from '../components/MoneyInput';
+import { useToast } from '../components/Toast';
 import {
   centrosApi,
   checkoutApi,
@@ -36,6 +38,7 @@ function formatoFechaHora(valor: string) {
 
 export function FoliosPage() {
   const { token } = useAuth();
+  const toast = useToast();
   const [folios, setFolios] = useState<FolioResumen[]>([]);
   const [centros, setCentros] = useState<Centro[]>([]);
   const [seleccion, setSeleccion] = useState<FolioDetalle | null>(null);
@@ -44,13 +47,12 @@ export function FoliosPage() {
   const [procesando, setProcesando] = useState(false);
   const [agregando, setAgregando] = useState(false);
   const [error, setError] = useState('');
-  const [exito, setExito] = useState('');
   const [ultimoCobroId, setUltimoCobroId] = useState<number | null>(null);
   const [cargo, setCargo] = useState({
     concepto: '',
     centro_codigo: 'ALOJAMIENTO',
     cantidad: '1',
-    precio_unitario: '0',
+    precio_unitario: 0 as number | '',
     es_cortesia: false,
     motivo_cortesia: '',
   });
@@ -89,7 +91,6 @@ export function FoliosPage() {
     if (!token) return;
     setCargandoDetalle(true);
     setError('');
-    setExito('');
     setUltimoCobroId(null);
 
     try {
@@ -105,7 +106,6 @@ export function FoliosPage() {
     if (!token || !seleccion) return;
     setProcesando(true);
     setError('');
-    setExito('');
 
     try {
       const saldo = seleccion.totales.saldo;
@@ -114,7 +114,7 @@ export function FoliosPage() {
         tipo_documento: tipoDocumento,
       });
 
-      setExito(
+      toast.success(
         `Check-out de ${seleccion.folio.huesped ?? 'huésped'} · reserva ${respuesta.reserva.codigo} · saldo ${formatoMoneda(0)}`
       );
       setUltimoCobroId(respuesta.cobro?.id ?? null);
@@ -153,7 +153,6 @@ export function FoliosPage() {
 
     setAgregando(true);
     setError('');
-    setExito('');
 
     try {
       await crearCargoApi(token, seleccion.folio.id, {
@@ -171,11 +170,11 @@ export function FoliosPage() {
         ...cargo,
         concepto: '',
         cantidad: '1',
-        precio_unitario: '0',
+        precio_unitario: 0,
         es_cortesia: false,
         motivo_cortesia: '',
       });
-      setExito('Cargo agregado al folio');
+      toast.success('Cargo agregado al folio');
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo agregar el cargo');
@@ -195,17 +194,14 @@ export function FoliosPage() {
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-      {exito && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-success/10 px-4 py-3 text-sm text-success">
-          <span>{exito}</span>
-          {ultimoCobroId && (
-            <button
-              className="rounded-lg border border-gold/40 px-3 py-1 text-xs text-gold-dark transition hover:bg-gold hover:text-navy-dark"
-              onClick={() => void imprimirRecibo(ultimoCobroId)}
-            >
-              Imprimir recibo
-            </button>
-          )}
+      {ultimoCobroId && (
+        <div className="flex justify-end">
+          <button
+            className="btn-secondary"
+            onClick={() => void imprimirRecibo(ultimoCobroId)}
+          >
+            Imprimir recibo del último cobro
+          </button>
         </div>
       )}
 
@@ -291,7 +287,7 @@ export function FoliosPage() {
                         <td className="py-2 pr-3">{cargo.concepto}</td>
                         <td className="py-2 pr-3 text-stone-light">{Number(cargo.cantidad)}</td>
                         <td className="py-2 pr-3 text-stone-light">
-                          {formatoMoneda(Number(cargo.precio_unitario))}
+                          {formatoMoneda(Number(cargo.precio_unitario || 0))}
                         </td>
                         <td className="py-2 font-medium">{formatoMoneda(Number(cargo.monto))}</td>
                       </tr>
@@ -391,15 +387,10 @@ export function FoliosPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <label className="label" htmlFor="cargo_precio">Precio unitario</label>
-                      <input
+                      <MoneyInput
                         id="cargo_precio"
-                        type="number"
-                        min="0"
-                        className="input"
-                        value={cargo.es_cortesia ? '0' : cargo.precio_unitario}
-                        onChange={(event) =>
-                          setCargo({ ...cargo, precio_unitario: event.target.value })
-                        }
+                        value={cargo.es_cortesia ? 0 : cargo.precio_unitario}
+                        onChange={(value) => setCargo({ ...cargo, precio_unitario: value })}
                         disabled={cargo.es_cortesia}
                       />
                     </div>

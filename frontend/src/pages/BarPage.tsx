@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useToast } from '../components/Toast';
 import {
   foliosApi,
   productosApi,
@@ -30,6 +31,7 @@ type CarritoItem = { producto: Producto; cantidad: number };
 
 export function BarPage() {
   const { token } = useAuth();
+  const toast = useToast();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [ventas, setVentas] = useState<VentaBar[]>([]);
   const [folios, setFolios] = useState<FolioResumen[]>([]);
@@ -46,7 +48,6 @@ export function BarPage() {
   const [cargando, setCargando] = useState(true);
   const [vendiendo, setVendiendo] = useState(false);
   const [error, setError] = useState('');
-  const [exito, setExito] = useState('');
 
   useEffect(() => {
     if (token) void cargar();
@@ -135,7 +136,6 @@ export function BarPage() {
 
     setVendiendo(true);
     setError('');
-    setExito('');
 
     try {
       const respuesta = await venderBarApi(token, {
@@ -149,7 +149,7 @@ export function BarPage() {
         notas: notas.trim() || undefined,
       });
 
-      setExito(
+      toast.success(
         `Venta #${respuesta.venta.ventaId} por ${formatoMoneda(respuesta.venta.total)} · ${respuesta.venta.estado}`
       );
       setCarrito([]);
@@ -174,7 +174,6 @@ export function BarPage() {
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-      {exito && <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{exito}</div>}
       {cajaAbierta === false && (
         <div className="rounded-xl bg-warning/10 px-4 py-3 text-sm text-warning">
           No hay caja abierta. Para vender en efectivo, <Link to="/caja" className="font-semibold underline">abre la caja</Link>.

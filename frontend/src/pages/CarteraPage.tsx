@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { MoneyInput } from '../components/MoneyInput';
+import { useToast } from '../components/Toast';
 import {
   abonarCuentaApi,
   cuentasCobrarApi,
@@ -23,10 +25,11 @@ function formatoFecha(valor: string | null) {
 
 export function CarteraPage() {
   const { token } = useAuth();
+  const toast = useToast();
   const [cuentas, setCuentas] = useState<CuentaCobrar[]>([]);
   const [total, setTotal] = useState(0);
   const [seleccion, setSeleccion] = useState<CuentaCobrar | null>(null);
-  const [monto, setMonto] = useState('');
+  const [monto, setMonto] = useState<number | ''>('');
   const [metodo, setMetodo] = useState<'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'>('EFECTIVO');
   const [documento, setDocumento] = useState<'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA'>(
     'RECIBO_CAJA'
@@ -34,7 +37,6 @@ export function CarteraPage() {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
-  const [exito, setExito] = useState('');
 
   useEffect(() => {
     if (token) void cargar();
@@ -59,11 +61,10 @@ export function CarteraPage() {
 
   function abrirAbono(cuenta: CuentaCobrar) {
     setSeleccion(cuenta);
-    setMonto(String(Number(cuenta.saldo)));
+    setMonto(Number(cuenta.saldo));
     setMetodo('EFECTIVO');
     setDocumento('RECIBO_CAJA');
     setError('');
-    setExito('');
   }
 
   async function abonar() {
@@ -77,7 +78,6 @@ export function CarteraPage() {
 
     setProcesando(true);
     setError('');
-    setExito('');
 
     try {
       const respuesta = await abonarCuentaApi(token, seleccion.id, {
@@ -85,7 +85,7 @@ export function CarteraPage() {
         metodo_pago: metodo,
         tipo_documento: documento,
       });
-      setExito(
+      toast.success(
         `Abono registrado. Saldo ${formatoMoneda(respuesta.abono.saldo)} · ${respuesta.abono.estado}`
       );
       setSeleccion(null);
@@ -110,7 +110,6 @@ export function CarteraPage() {
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-      {exito && <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{exito}</div>}
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="card">
@@ -184,13 +183,10 @@ export function CarteraPage() {
               <div className="mt-4 space-y-3">
                 <div>
                   <label className="label" htmlFor="abono_monto">Monto</label>
-                  <input
+                  <MoneyInput
                     id="abono_monto"
-                    type="number"
-                    min="0"
-                    className="input"
                     value={monto}
-                    onChange={(event) => setMonto(event.target.value)}
+                    onChange={setMonto}
                   />
                 </div>
                 <div>

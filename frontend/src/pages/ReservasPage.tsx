@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { MoneyInput } from '../components/MoneyInput';
+import { useToast } from '../components/Toast';
 import {
   actualizarReservaApi,
   cancelarReservaApi,
@@ -75,6 +77,7 @@ const formularioInicial: ReservaPayload = {
 
 export function ReservasPage() {
   const { token } = useAuth();
+  const toast = useToast();
   const [reservas, setReservas] = useState<ReservaResumen[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([]);
@@ -94,7 +97,7 @@ export function ReservasPage() {
   const [filtroEstado, setFiltroEstado] = useState('');
   const [buscar, setBuscar] = useState('');
   const [form, setForm] = useState<ReservaPayload>(formularioInicial);
-  const [anticipoMonto, setAnticipoMonto] = useState('');
+  const [anticipoMonto, setAnticipoMonto] = useState<number | ''>('');
   const [anticipoMetodo, setAnticipoMetodo] = useState<'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'>(
     'EFECTIVO'
   );
@@ -102,9 +105,9 @@ export function ReservasPage() {
   const [cargando, setCargando] = useState(true);
   const [creando, setCreando] = useState(false);
   const [error, setError] = useState('');
-  const [exito, setExito] = useState('');
+  const [drawerAbierto, setDrawerAbierto] = useState(false);
   const [reservaCheckin, setReservaCheckin] = useState<ReservaResumen | null>(null);
-  const [pagoMonto, setPagoMonto] = useState('');
+  const [pagoMonto, setPagoMonto] = useState<number | ''>('');
   const [pagoMetodo, setPagoMetodo] = useState<
     'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CREDITO'
   >('EFECTIVO');
@@ -112,6 +115,18 @@ export function ReservasPage() {
     'NINGUNO' | 'RECIBO_CAJA' | 'FACTURA_ELECTRONICA'
   >('NINGUNO');
   const [procesandoCheckin, setProcesandoCheckin] = useState(false);
+
+  useEffect(() => {
+    if (!drawerAbierto) return;
+
+    const cerrarConEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') cerrarDrawer();
+    };
+    window.addEventListener('keydown', cerrarConEscape);
+
+    return () => window.removeEventListener('keydown', cerrarConEscape);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drawerAbierto]);
 
   useEffect(() => {
     if (token) void cargar();
@@ -206,7 +221,6 @@ export function ReservasPage() {
 
     setCreando(true);
     setError('');
-    setExito('');
 
     try {
       const respuesta = await crearReservaApi(token, {
@@ -226,7 +240,10 @@ export function ReservasPage() {
             : undefined,
         notas: form.notas?.trim() || undefined,
       });
-      setExito(`Reserva ${respuesta.reserva.codigo} creada por ${formatoMoneda(Number(respuesta.reserva.total))}`);
+      toast.success(
+        `Reserva ${respuesta.reserva.codigo} creada por ${formatoMoneda(Number(respuesta.reserva.total))}`
+      );
+      setDrawerAbierto(false);
       setForm({
         ...formularioInicial,
         fecha_entrada: form.fecha_entrada,
@@ -247,10 +264,9 @@ export function ReservasPage() {
     if (!window.confirm(`¿Cancelar la reserva ${reserva.codigo}?`)) return;
 
     setError('');
-    setExito('');
     try {
       await cancelarReservaApi(token, reserva.id);
-      setExito(`Reserva ${reserva.codigo} cancelada`);
+      toast.success(`Reserva ${reserva.codigo} cancelada`);
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cancelar la reserva');
@@ -258,12 +274,27 @@ export function ReservasPage() {
   }
 
   function abrirCheckin(reserva: ReservaResumen) {
+    setEdicion(null);
     setReservaCheckin(reserva);
-    setPagoMonto(String(Number(reserva.saldo)));
+    setPagoMonto(Number(reserva.saldo));
     setPagoMetodo('EFECTIVO');
     setPagoDocumento('NINGUNO');
     setError('');
-    setExito('');
+    setDrawerAbierto(true);
+  }
+
+  function abrirNuevaReserva() {
+    setEdicion(null);
+    setReservaCheckin(null);
+    setError('');
+    setDrawerAbierto(true);
+  }
+
+  function cerrarDrawer() {
+    setDrawerAbierto(false);
+    setEdicion(null);
+    setReservaCheckin(null);
+    setError('');
   }
 
   async function hacerCheckin() {
@@ -272,7 +303,6 @@ export function ReservasPage() {
     const monto = pagoMetodo === 'CREDITO' ? 0 : Number(pagoMonto || 0);
     setProcesandoCheckin(true);
     setError('');
-    setExito('');
 
     try {
       const respuesta = await checkinReservaApi(token, reservaCheckin.id, {
@@ -282,10 +312,11 @@ export function ReservasPage() {
           tipo_documento: pagoDocumento,
         },
       });
-      setExito(
+      toast.success(
         `Check-in de ${respuesta.reserva.codigo} · folio #${respuesta.folio.id} · saldo ${formatoMoneda(respuesta.reserva.saldo)}`
       );
       setReservaCheckin(null);
+      setDrawerAbierto(false);
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo hacer el check-in');
@@ -297,11 +328,12 @@ export function ReservasPage() {
   async function abrirEdicion(reserva: ReservaResumen) {
     if (!token) return;
     setError('');
-    setExito('');
+    setReservaCheckin(null);
 
     try {
       const detalle = await reservaApi(token, reserva.id);
       setEdicion(detalle.reserva);
+      setDrawerAbierto(true);
       setEditForm({
         fecha_entrada: detalle.reserva.fecha_entrada.slice(0, 10),
         fecha_salida: detalle.reserva.fecha_salida.slice(0, 10),
@@ -332,9 +364,9 @@ export function ReservasPage() {
   }
 
   async function guardarEdicion() {
-    if (!token || !edicion) return;    setGuardandoEdicion(true);
+    if (!token || !edicion) return;
+    setGuardandoEdicion(true);
     setError('');
-    setExito('');
 
     try {
       await actualizarReservaApi(token, edicion.id, {
@@ -347,8 +379,9 @@ export function ReservasPage() {
         desayuno: editForm.desayuno,
         notas: editForm.notas || undefined,
       });
-      setExito(`Reserva ${edicion.codigo} actualizada`);
+      toast.success(`Reserva ${edicion.codigo} actualizada`);
       setEdicion(null);
+      setDrawerAbierto(false);
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo actualizar la reserva');
@@ -374,14 +407,16 @@ export function ReservasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <button className="btn-primary" onClick={abrirNuevaReserva}>
+          Nueva reserva
+        </button>
         <Link to="/checkin" className="btn-secondary">Check-in directo</Link>
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-      {exito && <div className="rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{exito}</div>}
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="space-y-6">
         <section className="card">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-xl text-stone">Reservas</h2>
@@ -492,11 +527,37 @@ export function ReservasPage() {
           )}
         </section>
 
-        <div className="space-y-6">
+        {drawerAbierto && (
+          <button
+            type="button"
+            aria-label="Cerrar formulario"
+            className="fixed inset-0 z-40 bg-navy-dark/60"
+            onClick={cerrarDrawer}
+          />
+        )}
+
+        <div
+          className={
+            drawerAbierto
+              ? 'fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-cream p-4 shadow-2xl sm:p-6'
+              : 'hidden'
+          }
+          role="dialog"
+          aria-modal="true"
+          aria-label={edicion ? 'Editar reserva' : reservaCheckin ? 'Check-in de reserva' : 'Nueva reserva'}
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wide text-stone-light">
+              {edicion ? 'Editar reserva' : reservaCheckin ? 'Check-in de reserva' : 'Nueva reserva'}
+            </p>
+            <button type="button" className="btn-secondary px-3 py-1.5 text-xs" onClick={cerrarDrawer}>
+              Cerrar
+            </button>
+          </div>
+
           {edicion && (
             <section className="card border-gold/40">
-              <h2 className="font-display text-xl text-stone">Editar reserva {edicion.codigo}</h2>
-              <p className="mt-1 text-sm text-stone-light">
+              <p className="text-sm text-stone-light">
                 {edicion.cliente} · {edicion.habitacion}
               </p>
 
@@ -633,7 +694,7 @@ export function ReservasPage() {
                 </button>
                 <button
                   className="btn-secondary"
-                  onClick={() => setEdicion(null)}
+                  onClick={cerrarDrawer}
                   disabled={guardandoEdicion}
                 >
                   Cerrar
@@ -644,7 +705,6 @@ export function ReservasPage() {
 
           {reservaCheckin && (
             <section className="card border-gold/40">
-              <h2 className="font-display text-xl text-stone">Check-in de reserva</h2>
               <p className="mt-1 text-sm text-stone-light">
                 {reservaCheckin.codigo} · Hab. {reservaCheckin.habitacion} · {reservaCheckin.cliente}
               </p>
@@ -652,12 +712,10 @@ export function ReservasPage() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="label" htmlFor="pago_monto">Monto a cobrar</label>
-                  <input
+                  <MoneyInput
                     id="pago_monto"
-                    type="number"
-                    className="input"
                     value={pagoMonto}
-                    onChange={(event) => setPagoMonto(event.target.value)}
+                    onChange={setPagoMonto}
                     disabled={pagoMetodo === 'CREDITO'}
                   />
                 </div>
@@ -709,7 +767,7 @@ export function ReservasPage() {
                 </button>
                 <button
                   className="btn-secondary"
-                  onClick={() => setReservaCheckin(null)}
+                  onClick={cerrarDrawer}
                   disabled={procesandoCheckin}
                 >
                   Volver
@@ -719,8 +777,6 @@ export function ReservasPage() {
           )}
 
           <section className="card">
-            <h2 className="font-display text-xl text-stone">Nueva reserva</h2>
-
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="label" htmlFor="fecha_entrada">Entrada</label>
@@ -825,14 +881,10 @@ export function ReservasPage() {
               </div>
               <div>
                 <label className="label" htmlFor="anticipo">Anticipo</label>
-                <input
+                <MoneyInput
                   id="anticipo"
-                  type="number"
-                  min="0"
-                  className="input"
                   value={anticipoMonto}
-                  onChange={(event) => setAnticipoMonto(event.target.value)}
-                  placeholder="0"
+                  onChange={setAnticipoMonto}
                 />
               </div>
               <div>
