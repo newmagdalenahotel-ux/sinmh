@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { MoneyInput } from '../components/MoneyInput';
-import { useToast } from '../components/Toast';
+import { useErrorToast, useToast } from '../components/Toast';
 import {
   abrirCajaApi,
   cajaCambioTurnoApi,
@@ -48,6 +48,7 @@ export function CajaPage() {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
+  useErrorToast(error);
   const [montoApertura, setMontoApertura] = useState<number | ''>('');
   const [montoDeclarado, setMontoDeclarado] = useState<number | ''>('');
   const [movTipo, setMovTipo] = useState<
@@ -261,8 +262,6 @@ export function CajaPage() {
           Ir a check-in
         </Link>
       </div>
-
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
 
       {cierre && (
         <section className="card border-success/30 bg-success/5">

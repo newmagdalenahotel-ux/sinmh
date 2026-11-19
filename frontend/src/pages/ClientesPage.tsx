@@ -120,6 +120,11 @@ export function ClientesPage() {
     setDrawerAbierto(true);
   }
 
+  useEffect(() => {
+    if (error) toast.error(error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
+
   async function crear() {
     if (!token) return;
     if (!form.razon_social.trim()) {
@@ -178,8 +183,6 @@ export function ClientesPage() {
           Nuevo cliente
         </button>
       </div>
-
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
 
       <div className="space-y-6">
         <section className="card">

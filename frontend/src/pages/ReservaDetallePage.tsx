@@ -388,6 +388,9 @@ export function ReservaDetalleContenido({
                   {reserva.como_llego ?? 'Sin datos de llegada'}
                   {reserva.placa_vehiculo ? ` · ${reserva.placa_vehiculo}` : ''}
                 </p>
+                {reserva.origen_reserva && (
+                  <p className="text-xs text-stone-light">Origen: {reserva.origen_reserva}</p>
+                )}
               </div>
             </div>
           </section>

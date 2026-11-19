@@ -22,7 +22,6 @@ const navegacion: SeccionNavegacion[] = [
     titulo: 'Alojamiento',
     items: [
       { to: '/reservas', label: 'Reservas', activo: true },
-      { to: '/checkin', label: 'Check-in', activo: true },
       { to: '/folios', label: 'Huéspedes y folios', activo: true },
       { to: '/clientes', label: 'Clientes', activo: true },
       { to: '/habitaciones', label: 'Habitaciones', activo: true },

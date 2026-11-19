@@ -671,6 +671,7 @@ export type ReservaResumen = {
   maestra_codigo: string | null;
   motivo_visita: string | null;
   como_llego: string | null;
+  origen_reserva: 'WHATSAPP' | 'TELEFONO' | 'DIRECTO' | 'CORREO' | 'WEB' | 'OTA' | null;
   tarifa_plan: 'PUBLICA' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO';
   tarifa_negociada: string | null;
   cliente: string | null;
@@ -720,6 +721,7 @@ export type ReservaPayload = {
   motivo_visita?: string;
   como_llego?: string;
   placa_vehiculo?: string;
+  origen_reserva?: 'WHATSAPP' | 'TELEFONO' | 'DIRECTO' | 'CORREO' | 'WEB' | 'OTA';
   anticipo?: {
     monto: number;
     metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
@@ -839,8 +841,11 @@ export type ReservaMaestraPayload = {
     habitacion_id: number;
     pax: number;
     desayuno: 'NO' | 'PAGADO' | 'INCLUIDO';
+    huesped_nombre?: string;
+    huesped_documento?: string;
   }>;
   notas?: string;
+  origen_reserva?: 'WHATSAPP' | 'TELEFONO' | 'DIRECTO' | 'CORREO' | 'WEB' | 'OTA';
 };
 
 export type ReservaMaestra = {
@@ -900,6 +905,8 @@ export type ReservaMaestraDetalle = {
     saldo: string;
     pax: number;
     precio_noche: string;
+    huesped_nombre: string | null;
+    huesped_documento: string | null;
     habitacion: string;
     habitacion_id: number;
   }>;

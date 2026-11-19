@@ -207,6 +207,7 @@ const formularioInicial: ReservaPayload = {
   motivo_visita: '',
   como_llego: '',
   placa_vehiculo: '',
+  origen_reserva: 'DIRECTO',
 };
 
 export function ReservasPage() {
@@ -243,6 +244,7 @@ export function ReservasPage() {
   const [creando, setCreando] = useState(false);
   const [error, setError] = useState('');
   const [drawerAbierto, setDrawerAbierto] = useState(false);
+  const [pasoReserva, setPasoReserva] = useState(1);
   const [drawerGrupo, setDrawerGrupo] = useState(false);
   const [reservaVer, setReservaVer] = useState<ReservaResumen | null>(null);
   const [grupoVer, setGrupoVer] = useState<number | null>(null);
@@ -255,9 +257,22 @@ export function ReservasPage() {
     cliente_nombre: '',
     cliente_documento: '',
     notas: '',
+    origen_reserva: 'DIRECTO' as 'WHATSAPP' | 'TELEFONO' | 'DIRECTO' | 'CORREO' | 'WEB' | 'OTA',
     habitaciones: [
-      { habitacion_id: 0, pax: 2, desayuno: 'NO' as 'NO' | 'PAGADO' | 'INCLUIDO' },
-      { habitacion_id: 0, pax: 2, desayuno: 'NO' as 'NO' | 'PAGADO' | 'INCLUIDO' },
+      {
+        habitacion_id: 0,
+        pax: 2,
+        desayuno: 'NO' as 'NO' | 'PAGADO' | 'INCLUIDO',
+        huesped_nombre: '',
+        huesped_documento: '',
+      },
+      {
+        habitacion_id: 0,
+        pax: 2,
+        desayuno: 'NO' as 'NO' | 'PAGADO' | 'INCLUIDO',
+        huesped_nombre: '',
+        huesped_documento: '',
+      },
     ],
   });
   const [reservaCheckin, setReservaCheckin] = useState<ReservaResumen | null>(null);
@@ -310,6 +325,11 @@ export function ReservasPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buscar, filtroEstado, token]);
 
+  useEffect(() => {
+    if (error) toast.error(error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
+
   async function cargar() {
     if (!token) return;
     setPagina(1);
@@ -317,10 +337,15 @@ export function ReservasPage() {
     setError('');
 
     try {
-      const estadoApi =
-        filtroEstado === 'ACTIVAS' || filtroEstado === 'HISTORICO'
-          ? undefined
-          : filtroEstado || undefined;
+      const grupos: Record<string, string[]> = {
+        RESERVADAS: ['PENDIENTE', 'CONFIRMADA'],
+        EN_CASA: ['CHECKIN'],
+        SALIERON: ['CHECKOUT'],
+        CANCELADAS: ['CANCELADA', 'NO_SHOW'],
+        HISTORICO: ['CHECKOUT', 'CANCELADA', 'NO_SHOW'],
+      };
+      const estadoGrupo = grupos[filtroEstado];
+      const estadoApi = estadoGrupo ? undefined : filtroEstado || undefined;
       const [respuesta, respuestaClientes, respuestaHabitaciones] = await Promise.all([
         reservasApi(token, {
           estado: estadoApi,
@@ -329,16 +354,9 @@ export function ReservasPage() {
         clientesApi(token),
         habitacionesApi(token),
       ]);
-      const filtradas =
-        filtroEstado === 'ACTIVAS'
-          ? respuesta.reservas.filter((reserva) =>
-              ['PENDIENTE', 'CONFIRMADA', 'CHECKIN'].includes(reserva.estado)
-            )
-          : filtroEstado === 'HISTORICO'
-            ? respuesta.reservas.filter((reserva) =>
-                ['CHECKOUT', 'CANCELADA', 'NO_SHOW'].includes(reserva.estado)
-              )
-            : respuesta.reservas;
+      const filtradas = estadoGrupo
+        ? respuesta.reservas.filter((reserva) => estadoGrupo.includes(reserva.estado))
+        : respuesta.reservas;
 
       setReservas(filtradas);
       setClientes(respuestaClientes.clientes);
@@ -483,6 +501,7 @@ export function ReservasPage() {
     setReservaCheckin(null);
     setReservaVer(null);
     setGrupoVer(null);
+    setPasoReserva(1);
     setError('');
     setDrawerAbierto(true);
   }
@@ -554,6 +573,7 @@ export function ReservasPage() {
         fecha_salida: grupoForm.fecha_salida,
         habitaciones,
         notas: grupoForm.notas.trim() || undefined,
+        origen_reserva: grupoForm.origen_reserva,
       });
 
       toast.success(
@@ -702,8 +722,6 @@ export function ReservasPage() {
 
   return (
     <div className="space-y-6">
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-
       <div className="space-y-6">
         <section className="overflow-hidden rounded-2xl border border-cream-dark bg-white shadow-sm">
           <div className="flex flex-wrap items-center gap-3 border-b border-cream-dark p-4">
@@ -727,13 +745,11 @@ export function ReservasPage() {
               aria-label="Filtrar por estado"
             >
               <option value="">Todas las reservas</option>
-              <option value="ACTIVAS">Activas</option>
+              <option value="RESERVADAS">Reservadas</option>
+              <option value="EN_CASA">En casa</option>
               <option value="HISTORICO">Histórico</option>
-              <option value="CONFIRMADA">Confirmadas</option>
-              <option value="PENDIENTE">Pendientes</option>
-              <option value="CHECKIN">En casa</option>
-              <option value="CHECKOUT">Check-out</option>
-              <option value="CANCELADA">Canceladas</option>
+              <option value="SALIERON">Salieron</option>
+              <option value="CANCELADAS">Canceladas</option>
             </select>
 
             <button className="btn-secondary flex items-center gap-2 px-3 py-2 text-sm" onClick={abrirGrupo}>
@@ -745,7 +761,7 @@ export function ReservasPage() {
               className="btn-secondary flex items-center gap-2 px-3 py-2 text-sm"
             >
               <Icono nombre="checkin" />
-              Check-in directo
+              Check-in sin reserva
             </Link>
             <button
               className="flex items-center gap-2 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-cream transition hover:bg-navy-dark"
@@ -1256,303 +1272,427 @@ export function ReservasPage() {
 
           {!edicion && !reservaCheckin && (
             <section className="card">
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="label" htmlFor="fecha_entrada">Entrada</label>
-                <input
-                  id="fecha_entrada"
-                  type="date"
-                  className="input"
-                  value={form.fecha_entrada}
-                  onChange={(event) => setForm({ ...form, fecha_entrada: event.target.value })}
-                />
+              <div className="mb-5 flex flex-wrap gap-2">
+                {[
+                  { numero: 1, texto: 'Estadía' },
+                  { numero: 2, texto: 'Huésped y origen' },
+                  { numero: 3, texto: 'Pago' },
+                ].map((etapa) => (
+                  <div
+                    key={etapa.numero}
+                    className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs ${
+                      pasoReserva === etapa.numero
+                        ? 'bg-gold/20 font-semibold text-gold-dark'
+                        : 'bg-cream text-stone-light'
+                    }`}
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px]">
+                      {etapa.numero}
+                    </span>
+                    {etapa.texto}
+                  </div>
+                ))}
               </div>
-              <div>
-                <label className="label" htmlFor="fecha_salida">Salida</label>
-                <input
-                  id="fecha_salida"
-                  type="date"
-                  className="input"
-                  value={form.fecha_salida}
-                  onChange={(event) => setForm({ ...form, fecha_salida: event.target.value })}
-                />
-              </div>
-              <div>
-                <label className="label" htmlFor="pax">Pax</label>
-                <input
-                  id="pax"
-                  type="number"
-                  min="1"
-                  max="6"
-                  className="input"
-                  value={form.pax}
-                  onChange={(event) => setForm({ ...form, pax: Number(event.target.value) })}
-                />
-              </div>
-              <div>
-                <label className="label" htmlFor="habitacion">Habitación</label>
-                <select
-                  id="habitacion"
-                  className="input"
-                  value={form.habitacion_id || ''}
-                  onChange={(event) =>
-                    setForm({ ...form, habitacion_id: Number(event.target.value) })
-                  }
-                >
-                  <option value="">Selecciona</option>
-                  {habitaciones.map((habitacion) => (
-                    <option key={habitacion.id} value={habitacion.id}>
-                      {habitacion.numero} · {habitacion.clima} · {habitacion.capacidad_max} pax
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="label" htmlFor="temporada">Temporada</label>
-                <select
-                  id="temporada"
-                  className="input"
-                  value={form.temporada}
-                  onChange={(event) =>
-                    setForm({ ...form, temporada: event.target.value as 'BAJA' | 'ALTA' })
-                  }
-                >
-                  <option value="BAJA">Baja</option>
-                  <option value="ALTA">Alta</option>
-                </select>
-              </div>
-              <div>
-                <label className="label" htmlFor="escenario">Escenario</label>
-                <select
-                  id="escenario"
-                  className="input"
-                  value={form.escenario}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      escenario: event.target.value as 'NORMAL' | 'A' | 'B' | 'C',
-                    })
-                  }
-                >
-                  <option value="NORMAL">Normal</option>
-                  <option value="A">A · llegada tarde</option>
-                  <option value="B">B · 2+ noches</option>
-                  <option value="C">C · grupo</option>
-                </select>
-              </div>
-              <div>
-                <label className="label" htmlFor="desayuno">Desayuno</label>
-                <select
-                  id="desayuno"
-                  className="input"
-                  value={form.desayuno}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      desayuno: event.target.value as 'NO' | 'PAGADO' | 'INCLUIDO',
-                    })
-                  }
-                >
-                  <option value="NO">No incluye</option>
-                  <option value="PAGADO">Pagado</option>
-                  <option value="INCLUIDO">Incluido</option>
-                </select>
-              </div>
-              <div>
-                <label className="label" htmlFor="anticipo">Anticipo</label>
-                <MoneyInput
-                  id="anticipo"
-                  value={anticipoMonto}
-                  onChange={setAnticipoMonto}
-                />
-              </div>
-              <div>
-                <label className="label" htmlFor="anticipo_metodo">Método del anticipo</label>
-                <select
-                  id="anticipo_metodo"
-                  className="input"
-                  value={anticipoMetodo}
-                  onChange={(event) =>
-                    setAnticipoMetodo(
-                      event.target.value as 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'
-                    )
-                  }
-                >
-                  <option value="EFECTIVO">Efectivo</option>
-                  <option value="TARJETA">Tarjeta</option>
-                  <option value="TRANSFERENCIA">Transferencia</option>
-                </select>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="label" htmlFor="cliente_existente">Cliente existente</label>
-                <select
-                  id="cliente_existente"
-                  className="input"
-                  value={form.cliente_id ?? ''}
-                  onChange={(event) => {
-                    const id = Number(event.target.value);
-                    const cliente = clientes.find((item) => item.id === id);
-                    setForm({
-                      ...form,
-                      cliente_id: id || undefined,
-                      cliente: cliente
-                        ? {
-                            ...form.cliente,
-                            nombre: cliente.razon_social,
-                            tipo_documento: cliente.tipo_documento ?? 'CC',
-                            numero_documento: cliente.numero_documento ?? '',
-                            telefono: cliente.telefono ?? '',
-                            email: cliente.email ?? '',
-                          }
-                        : { ...form.cliente, nombre: '', numero_documento: '' },
-                    });
-                  }}
-                >
-                  <option value="">Nuevo cliente particular</option>
-                  {clientes.map((cliente) => (
-                    <option key={cliente.id} value={cliente.id}>
-                      {cliente.razon_social} · {cliente.tipo}
-                      {cliente.tarifa_plan !== 'PUBLICA'
-                        ? ` · ${cliente.tarifa_plan} ${formatoMoneda(Number(cliente.tarifa_precio_noche ?? 0))}`
-                        : ''}
-                    </option>
-                  ))}
-                </select>
-                {clienteSeleccionado && tarifaNegociada > 0 && (
-                  <p className="mt-2 rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold-dark">
-                    Tarifa {clienteSeleccionado.tarifa_plan}:{' '}
-                    {formatoMoneda(Number(clienteSeleccionado.tarifa_precio_noche ?? 0))} por noche
-                    {clienteSeleccionado.tarifa_desayuno_incluido ? ' · incluye desayuno' : ''}.
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="label" htmlFor="cliente">Cliente</label>
-                <input
-                  id="cliente"
-                  className="input"
-                  value={form.cliente.nombre}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      cliente: { ...form.cliente, nombre: event.target.value },
-                    })
-                  }
-                  placeholder="Nombre completo"
-                />
-              </div>
-              <div>
-                <label className="label" htmlFor="documento">Documento</label>
-                <input
-                  id="documento"
-                  className="input"
-                  value={form.cliente.numero_documento ?? ''}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      cliente: { ...form.cliente, numero_documento: event.target.value },
-                    })
-                  }
-                />
-              </div>
-              <div>
-                <label className="label" htmlFor="telefono">Teléfono</label>
-                <input
-                  id="telefono"
-                  className="input"
-                  value={form.cliente.telefono ?? ''}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      cliente: { ...form.cliente, telefono: event.target.value },
-                    })
-                  }
-                />
-              </div>
-            </div>
 
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="label" htmlFor="motivo_visita">Motivo de visita</label>
-                <input
-                  id="motivo_visita"
-                  className="input"
-                  value={form.motivo_visita ?? ''}
-                  onChange={(event) => setForm({ ...form, motivo_visita: event.target.value })}
-                />
-              </div>
-              <div>
-                <label className="label" htmlFor="como_llego">Cómo llegó</label>
-                <select
-                  id="como_llego"
-                  className="input"
-                  value={form.como_llego ?? ''}
-                  onChange={(event) => setForm({ ...form, como_llego: event.target.value })}
-                >
-                  <option value="">Sin dato</option>
-                  <option value="CAMINANDO">Caminando</option>
-                  <option value="CARRO">Carro</option>
-                  <option value="TAXI">Taxi</option>
-                  <option value="BUS">Bus</option>
-                  <option value="TRANSFER">Transfer</option>
-                  <option value="RECOMENDACION">Recomendación</option>
-                </select>
-              </div>
-            </div>
+              {pasoReserva === 1 && (
+                <div className="space-y-3">
+                  <h2 className="font-display text-xl text-stone">1. Fechas, personas y habitación</h2>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="fecha_entrada">Entrada</label>
+                      <input
+                        id="fecha_entrada"
+                        type="date"
+                        className="input"
+                        value={form.fecha_entrada}
+                        onChange={(event) => setForm({ ...form, fecha_entrada: event.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="fecha_salida">Salida</label>
+                      <input
+                        id="fecha_salida"
+                        type="date"
+                        className="input"
+                        value={form.fecha_salida}
+                        onChange={(event) => setForm({ ...form, fecha_salida: event.target.value })}
+                      />
+                    </div>
+                  </div>
 
-            <div className="mt-3">
-              <label className="label" htmlFor="placa_vehiculo">Placa del vehículo (opcional)</label>
-              <input
-                id="placa_vehiculo"
-                className="input"
-                value={form.placa_vehiculo ?? ''}
-                onChange={(event) => setForm({ ...form, placa_vehiculo: event.target.value })}
-              />
-            </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="pax">Personas</label>
+                      <input
+                        id="pax"
+                        type="number"
+                        min="1"
+                        max="6"
+                        className="input"
+                        value={form.pax}
+                        onChange={(event) => setForm({ ...form, pax: Number(event.target.value) })}
+                      />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="habitacion">Habitación disponible</label>
+                      <select
+                        id="habitacion"
+                        className="input"
+                        value={form.habitacion_id || ''}
+                        onChange={(event) =>
+                          setForm({ ...form, habitacion_id: Number(event.target.value) })
+                        }
+                      >
+                        <option value="">Selecciona una habitación</option>
+                        {habitaciones.map((habitacion) => (
+                          <option key={habitacion.id} value={habitacion.id}>
+                            {habitacion.numero} · {habitacion.capacidad_max} pax · {habitacion.clima}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-            <div className="mt-3">
-              <label className="label" htmlFor="notas_reserva">Notas</label>
-              <input
-                id="notas_reserva"
-                className="input"
-                value={form.notas ?? ''}
-                onChange={(event) => setForm({ ...form, notas: event.target.value })}
-              />
-            </div>
+                  {habitaciones.length === 0 && (
+                    <p className="rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">
+                      No hay habitaciones disponibles para esas fechas y personas.
+                    </p>
+                  )}
 
-            <div className="mt-4 rounded-xl border border-cream-dark bg-cream/50 p-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-stone-light">Alojamiento</span>
-                <span>{formatoMoneda(totalAlojamientoMostrado)}</span>
-              </div>
-              <div className="mt-1 flex justify-between">
-                <span className="text-stone-light">Desayuno</span>
-                <span>{formatoMoneda(totalDesayuno)}</span>
-              </div>
-              <div className="mt-2 flex justify-between border-t border-cream-dark pt-2 font-semibold">
-                <span>Total estimado</span>
-                <span>{formatoMoneda(totalAlojamientoMostrado + totalDesayuno)}</span>
-              </div>
-              {Number(anticipoMonto || 0) > 0 && (
-                <div className="mt-1 flex justify-between text-gold-dark">
-                  <span>Saldo con anticipo</span>
-                  <span>
-                    {formatoMoneda(
-                      Math.max(0, totalAlojamientoMostrado + totalDesayuno - Number(anticipoMonto || 0))
-                    )}
-                  </span>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="temporada">Temporada</label>
+                      <select
+                        id="temporada"
+                        className="input"
+                        value={form.temporada}
+                        onChange={(event) =>
+                          setForm({ ...form, temporada: event.target.value as 'BAJA' | 'ALTA' })
+                        }
+                      >
+                        <option value="BAJA">Baja</option>
+                        <option value="ALTA">Alta</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="escenario">Escenario</label>
+                      <select
+                        id="escenario"
+                        className="input"
+                        value={form.escenario}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            escenario: event.target.value as 'NORMAL' | 'A' | 'B' | 'C',
+                          })
+                        }
+                      >
+                        <option value="NORMAL">Normal</option>
+                        <option value="A">A · llegada tarde</option>
+                        <option value="B">B · 2+ noches</option>
+                        <option value="C">C · grupo</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label" htmlFor="desayuno">Desayuno</label>
+                    <select
+                      id="desayuno"
+                      className="input"
+                      value={form.desayuno}
+                      onChange={(event) =>
+                        setForm({
+                          ...form,
+                          desayuno: event.target.value as 'NO' | 'PAGADO' | 'INCLUIDO',
+                        })
+                      }
+                    >
+                      <option value="NO">No incluye</option>
+                      <option value="PAGADO">Pagado</option>
+                      <option value="INCLUIDO">Incluido</option>
+                    </select>
+                  </div>
+
+                  {precioNocheMostrado > 0 && (
+                    <p className="rounded-lg bg-cream px-3 py-2 text-sm text-stone-light">
+                      Precio por noche: <strong>{formatoMoneda(precioNocheMostrado)}</strong> · Total
+                      alojamiento: <strong>{formatoMoneda(totalAlojamientoMostrado)}</strong>
+                    </p>
+                  )}
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => setPasoReserva(2)}
+                      disabled={!form.habitacion_id || noches < 1}
+                    >
+                      Continuar
+                    </button>
+                  </div>
                 </div>
               )}
-            </div>
 
-            <button
-              className="btn-primary mt-3 w-full"
-              onClick={() => void crear()}
-              disabled={creando || !form.cliente.nombre || !form.habitacion_id || noches < 1}
-            >
-              {creando ? 'Creando…' : 'Crear reserva'}
-            </button>
-          </section>
+              {pasoReserva === 2 && (
+                <div className="space-y-3">
+                  <h2 className="font-display text-xl text-stone">2. Huésped y origen</h2>
+
+                  <div>
+                    <label className="label" htmlFor="cliente_existente">Cliente existente</label>
+                    <select
+                      id="cliente_existente"
+                      className="input"
+                      value={form.cliente_id ?? ''}
+                      onChange={(event) => {
+                        const id = Number(event.target.value);
+                        const cliente = clientes.find((item) => item.id === id);
+                        setForm({
+                          ...form,
+                          cliente_id: id || undefined,
+                          cliente: cliente
+                            ? {
+                                ...form.cliente,
+                                nombre: cliente.razon_social,
+                                tipo_documento: cliente.tipo_documento ?? 'CC',
+                                numero_documento: cliente.numero_documento ?? '',
+                                telefono: cliente.telefono ?? '',
+                                email: cliente.email ?? '',
+                              }
+                            : { ...form.cliente, nombre: '', numero_documento: '' },
+                        });
+                      }}
+                    >
+                      <option value="">Nuevo cliente particular</option>
+                      {clientes.map((cliente) => (
+                        <option key={cliente.id} value={cliente.id}>
+                          {cliente.razon_social} · {cliente.tipo}
+                          {cliente.tarifa_plan !== 'PUBLICA'
+                            ? ` · ${cliente.tarifa_plan} ${formatoMoneda(Number(cliente.tarifa_precio_noche ?? 0))}`
+                            : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {clienteSeleccionado && tarifaNegociada > 0 && (
+                      <p className="mt-2 rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold-dark">
+                        Tarifa {clienteSeleccionado.tarifa_plan}:{' '}
+                        {formatoMoneda(tarifaNegociada)} por noche
+                        {clienteSeleccionado.tarifa_desayuno_incluido ? ' · incluye desayuno' : ''}.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="cliente">Nombre completo</label>
+                      <input
+                        id="cliente"
+                        className="input"
+                        value={form.cliente.nombre}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            cliente: { ...form.cliente, nombre: event.target.value },
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="documento">Documento</label>
+                      <input
+                        id="documento"
+                        className="input"
+                        value={form.cliente.numero_documento ?? ''}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            cliente: { ...form.cliente, numero_documento: event.target.value },
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="telefono">Teléfono</label>
+                      <input
+                        id="telefono"
+                        className="input"
+                        value={form.cliente.telefono ?? ''}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            cliente: { ...form.cliente, telefono: event.target.value },
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="email">Correo</label>
+                      <input
+                        id="email"
+                        type="email"
+                        className="input"
+                        value={form.cliente.email ?? ''}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            cliente: { ...form.cliente, email: event.target.value },
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="motivo_visita">Motivo</label>
+                      <select
+                        id="motivo_visita"
+                        className="input"
+                        value={form.motivo_visita ?? ''}
+                        onChange={(event) =>
+                          setForm({ ...form, motivo_visita: event.target.value })
+                        }
+                      >
+                        <option value="">Selecciona</option>
+                        <option value="TURISMO">Turismo</option>
+                        <option value="CORPORATIVO">Corporativo</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="origen_reserva">Origen</label>
+                      <select
+                        id="origen_reserva"
+                        className="input"
+                        value={form.origen_reserva ?? 'DIRECTO'}
+                        onChange={(event) =>
+                          setForm({
+                            ...form,
+                            origen_reserva: event.target.value as typeof form.origen_reserva,
+                          })
+                        }
+                      >
+                        <option value="DIRECTO">Directo</option>
+                        <option value="WHATSAPP">WhatsApp</option>
+                        <option value="TELEFONO">Teléfono</option>
+                        <option value="CORREO">Correo</option>
+                        <option value="WEB">Web</option>
+                        <option value="OTA">OTA</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between gap-2 pt-2">
+                    <button type="button" className="btn-secondary" onClick={() => setPasoReserva(1)}>
+                      Atrás
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => setPasoReserva(3)}
+                      disabled={!form.cliente.nombre.trim()}
+                    >
+                      Continuar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {pasoReserva === 3 && (
+                <div className="space-y-3">
+                  <h2 className="font-display text-xl text-stone">3. Pago y confirmación</h2>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor="anticipo">Anticipo</label>
+                      <MoneyInput
+                        id="anticipo"
+                        value={anticipoMonto}
+                        onChange={setAnticipoMonto}
+                      />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="anticipo_metodo">Método del anticipo</label>
+                      <select
+                        id="anticipo_metodo"
+                        className="input"
+                        value={anticipoMetodo}
+                        onChange={(event) =>
+                          setAnticipoMetodo(
+                            event.target.value as 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'
+                          )
+                        }
+                      >
+                        <option value="EFECTIVO">Efectivo</option>
+                        <option value="TARJETA">Tarjeta</option>
+                        <option value="TRANSFERENCIA">Transferencia</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label" htmlFor="notas_reserva">Notas</label>
+                    <input
+                      id="notas_reserva"
+                      className="input"
+                      value={form.notas ?? ''}
+                      onChange={(event) => setForm({ ...form, notas: event.target.value })}
+                    />
+                  </div>
+
+                  <div className="rounded-xl border border-cream-dark bg-cream/50 p-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-stone-light">Alojamiento</span>
+                      <span>{formatoMoneda(totalAlojamientoMostrado)}</span>
+                    </div>
+                    <div className="mt-1 flex justify-between">
+                      <span className="text-stone-light">Desayuno</span>
+                      <span>{formatoMoneda(totalDesayuno)}</span>
+                    </div>
+                    <div className="mt-2 flex justify-between border-t border-cream-dark pt-2 font-semibold">
+                      <span>Total estimado</span>
+                      <span>{formatoMoneda(totalAlojamientoMostrado + totalDesayuno)}</span>
+                    </div>
+                    {Number(anticipoMonto || 0) > 0 && (
+                      <div className="mt-1 flex justify-between text-gold-dark">
+                        <span>Saldo con anticipo</span>
+                        <span>
+                          {formatoMoneda(
+                            Math.max(
+                              0,
+                              totalAlojamientoMostrado +
+                                totalDesayuno -
+                                Number(anticipoMonto || 0)
+                            )
+                          )}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-between gap-2 pt-2">
+                    <button type="button" className="btn-secondary" onClick={() => setPasoReserva(2)}>
+                      Atrás
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => void crear()}
+                      disabled={
+                        creando ||
+                        !form.cliente.nombre ||
+                        !form.habitacion_id ||
+                        noches < 1
+                      }
+                    >
+                      {creando ? 'Creando…' : 'Crear reserva'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
           )}
         </SlideOver>
 
@@ -1667,7 +1807,13 @@ export function ReservasPage() {
                     ...grupoForm,
                     habitaciones: [
                       ...grupoForm.habitaciones,
-                      { habitacion_id: 0, pax: 2, desayuno: 'NO' },
+                      {
+                        habitacion_id: 0,
+                        pax: 2,
+                        desayuno: 'NO',
+                        huesped_nombre: '',
+                        huesped_documento: '',
+                      },
                     ],
                   })
                 }
@@ -1757,8 +1903,69 @@ export function ReservasPage() {
                       </select>
                     </div>
                   </div>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label" htmlFor={`grupo_huesped_${indice}`}>Huésped de la habitación</label>
+                      <input
+                        id={`grupo_huesped_${indice}`}
+                        className="input"
+                        value={item.huesped_nombre ?? ''}
+                        onChange={(event) =>
+                          setGrupoForm({
+                            ...grupoForm,
+                            habitaciones: grupoForm.habitaciones.map((fila, posicion) =>
+                              posicion === indice
+                                ? { ...fila, huesped_nombre: event.target.value }
+                                : fila
+                            ),
+                          })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor={`grupo_doc_${indice}`}>Documento</label>
+                      <input
+                        id={`grupo_doc_${indice}`}
+                        className="input"
+                        value={item.huesped_documento ?? ''}
+                        onChange={(event) =>
+                          setGrupoForm({
+                            ...grupoForm,
+                            habitaciones: grupoForm.habitaciones.map((fila, posicion) =>
+                              posicion === indice
+                                ? { ...fila, huesped_documento: event.target.value }
+                                : fila
+                            ),
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-4">
+              <label className="label" htmlFor="grupo_origen">Origen</label>
+              <select
+                id="grupo_origen"
+                className="input"
+                value={grupoForm.origen_reserva}
+                onChange={(event) =>
+                  setGrupoForm({
+                    ...grupoForm,
+                    origen_reserva: event.target.value as typeof grupoForm.origen_reserva,
+                  })
+                }
+              >
+                <option value="DIRECTO">Directo</option>
+                <option value="WHATSAPP">WhatsApp</option>
+                <option value="TELEFONO">Teléfono</option>
+                <option value="CORREO">Correo</option>
+                <option value="WEB">Web</option>
+                <option value="OTA">OTA</option>
+              </select>
             </div>
 
             <div className="mt-4">

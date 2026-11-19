@@ -341,13 +341,18 @@ la información principal del día.
 **Descripción:** Crear y consultar reservas desde Alojamiento, no solo check-in.
 
 **Aceptación:**
-- Formulario de reserva con fechas, pax, habitación, tarifa y abono.
+- Formulario en 3 pasos: estadía, huésped/origen y pago.
+- Paso 1: fechas, pax, habitación disponible, temporada, escenario y desayuno.
+- Paso 2: huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
+- Paso 3: anticipo, método, notas y resumen.
+- La placa del vehículo se registra en el check-in, no en la reserva.
 - Calendario o lista de reservas.
 - Convertir reserva en check-in.
 - Editar y cancelar.
-- Lista con búsqueda por código, cliente o documento, filtro por estado y paginación.
+- Lista con búsqueda por código, cliente o documento, filtro y paginación.
+- Filtros: Reservadas, En casa, Histórico, Salieron y Canceladas.
 - Columnas de huésped, habitación con ocupantes, estancia, valor/anticipo/saldo, estado y acciones.
-- Acciones por fila para contrato, check-in, editar, cancelar o ver folio.
+- Acciones por fila para ver, contrato, check-in, editar, cancelar o ver folio.
 
 ### FR-39 — Tablero de habitaciones en la pantalla
 **Fase:** actual · **Estado:** Hecho
@@ -425,10 +430,12 @@ pagador del grupo.
 **Aceptación:**
 - Crear una reserva maestra con fechas, pagador y varias habitaciones.
 - Cada habitación genera una reserva hija con su código y habitación.
+- Cada habitación puede registrar huésped, documento, pax y desayuno.
 - Todas las hijas comparten el pagador y el código maestro `G-...`.
 - La lista muestra el código del grupo en cada reserva.
 - El grupo se puede consultar y cancelar mientras no haya check-in.
 - Cada habitación conserva su check-in, folio y check-out.
+- El anticipo consolidado del grupo queda pendiente para fase 1B.
 
 ### FR-47 — Detalle e histórico de la reserva
 **Fase:** actual · **Estado:** Hecho

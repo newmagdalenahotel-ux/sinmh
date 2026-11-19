@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { MoneyInput } from '../components/MoneyInput';
+import { useErrorToast } from '../components/Toast';
 import {
   checkinApi,
   cotizarApi,
@@ -70,6 +71,7 @@ export function CheckinPage() {
   const [notas, setNotas] = useState('');
 
   const [error, setError] = useState('');
+  useErrorToast(error);
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState<CheckinResultado | null>(null);
   const [cajaAbierta, setCajaAbierta] = useState<boolean | null>(null);
@@ -281,8 +283,6 @@ export function CheckinPage() {
 
   return (
     <div className="space-y-6">
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-
       {cajaAbierta === false && (
         <div className="rounded-xl bg-warning/10 px-4 py-3 text-sm text-warning">
           No hay caja abierta. Para cobrar en efectivo,{' '}

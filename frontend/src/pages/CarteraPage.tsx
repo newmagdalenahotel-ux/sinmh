@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { MoneyInput } from '../components/MoneyInput';
-import { useToast } from '../components/Toast';
+import { useErrorToast, useToast } from '../components/Toast';
 import {
   abonarCuentaApi,
   cuentasCobrarApi,
@@ -37,6 +37,7 @@ export function CarteraPage() {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
+  useErrorToast(error);
 
   useEffect(() => {
     if (token) void cargar();
@@ -108,8 +109,6 @@ export function CarteraPage() {
           <p className="font-display text-xl text-gold">{formatoMoneda(total)}</p>
         </div>
       </div>
-
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="card">

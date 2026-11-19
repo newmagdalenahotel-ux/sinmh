@@ -71,7 +71,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ mostrar }}>
       {children}
       <div
-        className="fixed bottom-4 right-4 z-[70] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2"
+        className="fixed bottom-4 right-4 z-[120] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2"
         role="status"
         aria-live="polite"
       >
@@ -106,4 +106,13 @@ export function useToast() {
     warning: (mensaje: string) => contexto.mostrar('warning', mensaje),
     info: (mensaje: string) => contexto.mostrar('info', mensaje),
   };
+}
+
+export function useErrorToast(error: string) {
+  const toast = useToast();
+
+  useEffect(() => {
+    if (error) toast.error(error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
 }

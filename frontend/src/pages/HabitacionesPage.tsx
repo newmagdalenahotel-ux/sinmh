@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { useToast } from '../components/Toast';
+import { useErrorToast, useToast } from '../components/Toast';
 import {
   actualizarEstadoHabitacionApi,
   tableroHabitacionesApi,
@@ -33,6 +33,7 @@ export function HabitacionesPage() {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState<number | null>(null);
   const [error, setError] = useState('');
+  useErrorToast(error);
 
   useEffect(() => {
     if (token) void cargar();
@@ -100,8 +101,6 @@ export function HabitacionesPage() {
       <div className="flex justify-end">
         <Link to="/checkin" className="btn-primary">Nuevo check-in</Link>
       </div>
-
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="card"><p className="text-sm text-stone-light">Libres</p><p className="mt-1 font-display text-2xl text-success">{resumen.libres}</p></div>

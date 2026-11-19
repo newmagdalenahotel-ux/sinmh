@@ -8,8 +8,9 @@ traslados y cambio de turno, contabilidad, reportes, usuarios, bar recepción,
 clientes con crédito, cuentas por cobrar, abonos, cuenta socio, tablero de
 habitaciones, dashboard, menú desplegable y móvil, formularios en panel lateral, montos
 con separador de miles, notificaciones auto-descartables, tarifas negociadas para
-empresas/empleados, reserva grupal con pagador y cuadre de caja en PDF.
-Falta la validación manual y compras/inventario del bar.
+empresas/empleados, reserva grupal con pagador y rooming list, formulario de reserva
+en 3 pasos y cuadre de caja en PDF.
+Falta la validación manual, el anticipo consolidado del grupo y compras/inventario del bar.
 
 ## Documentos
 

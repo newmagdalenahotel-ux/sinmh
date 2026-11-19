@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { useToast } from '../components/Toast';
+import { useErrorToast, useToast } from '../components/Toast';
 import {
   foliosApi,
   productosApi,
@@ -48,6 +48,7 @@ export function BarPage() {
   const [cargando, setCargando] = useState(true);
   const [vendiendo, setVendiendo] = useState(false);
   const [error, setError] = useState('');
+  useErrorToast(error);
 
   useEffect(() => {
     if (token) void cargar();
@@ -173,7 +174,6 @@ export function BarPage() {
         <Link to="/folios" className="btn-primary">Ver huéspedes</Link>
       </div>
 
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
       {cajaAbierta === false && (
         <div className="rounded-xl bg-warning/10 px-4 py-3 text-sm text-warning">
           No hay caja abierta. Para vender en efectivo, <Link to="/caja" className="font-semibold underline">abre la caja</Link>.

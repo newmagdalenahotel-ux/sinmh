@@ -153,7 +153,8 @@ reservasRouter.get('/', async (req, res) => {
     `SELECT r.id, r.codigo, r.estado, r.created_at, r.fecha_entrada, r.fecha_salida,
             r.total, r.saldo, r.anticipo, r.desayuno_modo, r.desayunos_total,
             r.temporada, r.escenario, r.maestra_id, rm.codigo AS maestra_codigo,
-            r.motivo_visita, r.como_llego, r.tarifa_plan, r.tarifa_negociada,
+            r.motivo_visita, r.como_llego, r.origen_reserva,
+            r.tarifa_plan, r.tarifa_negociada,
             c.razon_social AS cliente, c.tipo_documento, c.numero_documento,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche,
             h.id AS habitacion_id, h.numero AS habitacion
@@ -183,7 +184,7 @@ reservasRouter.get('/:id', async (req, res) => {
             r.modalidad, r.total, r.saldo, r.anticipo, r.notas,
             r.incluye_desayuno, r.desayuno_modo, r.desayunos_pax, r.desayunos_total,
             r.total_desayuno, r.temporada, r.escenario, r.maestra_id,
-            r.motivo_visita, r.como_llego, r.placa_vehiculo,
+            r.motivo_visita, r.como_llego, r.placa_vehiculo, r.origen_reserva,
             r.tarifa_plan, r.tarifa_negociada, r.tarifa_motivo,
             rm.codigo AS maestra_codigo, rm.pagador_cliente_id,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche, rh.estado AS rh_estado,
@@ -240,7 +241,7 @@ reservasRouter.get('/:id/detalle', async (req, res) => {
             r.incluye_desayuno, r.desayuno_modo, r.desayunos_pax, r.desayunos_total,
             r.total_desayuno, r.temporada, r.escenario, r.maestra_id,
             rm.codigo AS maestra_codigo,
-            r.motivo_visita, r.como_llego, r.placa_vehiculo,
+            r.motivo_visita, r.como_llego, r.placa_vehiculo, r.origen_reserva,
             r.tarifa_plan, r.tarifa_negociada, r.tarifa_motivo,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche, rh.estado AS rh_estado,
             h.id AS habitacion_id, h.numero AS habitacion, h.clima, h.es_suite,
@@ -452,6 +453,9 @@ const crearSchema = z.object({
   motivo_visita: z.string().trim().max(120).optional(),
   como_llego: z.string().trim().max(60).optional(),
   placa_vehiculo: z.string().trim().max(20).optional(),
+  origen_reserva: z
+    .enum(['WHATSAPP', 'TELEFONO', 'DIRECTO', 'CORREO', 'WEB', 'OTA'])
+    .optional(),
 });
 
 reservasRouter.post('/', async (req, res) => {
@@ -580,9 +584,9 @@ reservasRouter.post('/', async (req, res) => {
           temporada, escenario, total, saldo, notas, incluye_desayuno, desayuno_modo,
           desayunos_pax, desayunos_total, total_desayuno,
           tarifa_plan, tarifa_negociada, tarifa_motivo, motivo_visita, como_llego,
-          placa_vehiculo)
+          placa_vehiculo, origen_reserva)
        VALUES ($1, $2, $3::date, $4::date, 'NOCHE', 'CONFIRMADA', $5, $6, $7, $7, $8, $9,
-               $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+               $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
        RETURNING id`,
       [
         codigo,
@@ -604,6 +608,7 @@ reservasRouter.post('/', async (req, res) => {
         datos.motivo_visita ?? null,
         datos.como_llego ?? null,
         datos.placa_vehiculo ?? null,
+        datos.origen_reserva ?? null,
       ]
     );
 
@@ -711,11 +716,16 @@ const grupoSchema = z.object({
         habitacion_id: z.coerce.number().int().positive(),
         pax: z.coerce.number().int().min(1).max(6),
         desayuno: z.enum(['NO', 'PAGADO', 'INCLUIDO']).default('NO'),
+        huesped_nombre: z.string().trim().max(200).optional(),
+        huesped_documento: z.string().trim().max(30).optional(),
       })
     )
     .min(1)
     .max(10),
   notas: z.string().trim().max(500).optional(),
+  origen_reserva: z
+    .enum(['WHATSAPP', 'TELEFONO', 'DIRECTO', 'CORREO', 'WEB', 'OTA'])
+    .optional(),
 });
 
 reservasRouter.post('/maestra', async (req, res) => {
@@ -753,6 +763,8 @@ reservasRouter.post('/maestra', async (req, res) => {
     habitacion_id: number;
     pax: number;
     desayuno: 'NO' | 'PAGADO' | 'INCLUIDO';
+    huesped_nombre?: string;
+    huesped_documento?: string;
     cotizacion: { habitacion: { numero: string; clima: string } };
     precioNoche: number;
     totalAlojamiento: number;
@@ -864,9 +876,9 @@ reservasRouter.post('/maestra', async (req, res) => {
            (codigo, titular_cliente_id, fecha_entrada, fecha_salida, modalidad, estado,
             temporada, escenario, total, saldo, notas, incluye_desayuno, desayuno_modo,
             desayunos_pax, desayunos_total, total_desayuno, tarifa_plan,
-            tarifa_negociada, tarifa_motivo, maestra_id)
+            tarifa_negociada, tarifa_motivo, maestra_id, origen_reserva)
          VALUES ($1, $2, $3::date, $4::date, 'NOCHE', 'CONFIRMADA', 'BAJA', 'NORMAL',
-                 $5, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                 $5, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
          RETURNING id`,
         [
           codigo,
@@ -884,6 +896,7 @@ reservasRouter.post('/maestra', async (req, res) => {
           tarifaCliente?.precio_noche ?? null,
           tarifaCliente ? `Tarifa ${tarifaCliente.plan} del pagador` : null,
           maestraId,
+          datos.origen_reserva ?? null,
         ]
       );
 
@@ -892,8 +905,9 @@ reservasRouter.post('/maestra', async (req, res) => {
 
       await tx.query(
         `INSERT INTO reserva_habitacion
-           (reserva_id, habitacion_id, pax, clima, precio_noche, fecha_entrada, fecha_salida, estado)
-         VALUES ($1, $2, $3, $4, $5, $6::date, $7::date, 'ACTIVA')`,
+           (reserva_id, habitacion_id, pax, clima, precio_noche, fecha_entrada, fecha_salida, estado,
+            huesped_nombre, huesped_documento)
+         VALUES ($1, $2, $3, $4, $5, $6::date, $7::date, 'ACTIVA', $8, $9)`,
         [
           reservaId,
           item.habitacion_id,
@@ -902,6 +916,8 @@ reservasRouter.post('/maestra', async (req, res) => {
           item.precioNoche,
           datos.fecha_entrada,
           datos.fecha_salida,
+          item.huesped_nombre ?? null,
+          item.huesped_documento ?? null,
         ]
       );
 
@@ -960,7 +976,8 @@ reservasRouter.get('/maestra/:id', async (req, res) => {
 
   const hijas = await db.query(
     `SELECT r.id, r.codigo, r.estado, r.total, r.saldo,
-            rh.pax, rh.precio_noche, h.numero AS habitacion, h.id AS habitacion_id
+            rh.pax, rh.precio_noche, rh.huesped_nombre, rh.huesped_documento,
+            h.numero AS habitacion, h.id AS habitacion_id
      FROM reserva r
      JOIN reserva_habitacion rh ON rh.reserva_id = r.id
      JOIN habitacion h ON h.id = rh.habitacion_id
@@ -1022,6 +1039,9 @@ const actualizarSchema = z.object({
   motivo_visita: z.string().trim().max(120).optional(),
   como_llego: z.string().trim().max(60).optional(),
   placa_vehiculo: z.string().trim().max(20).optional(),
+  origen_reserva: z
+    .enum(['WHATSAPP', 'TELEFONO', 'DIRECTO', 'CORREO', 'WEB', 'OTA'])
+    .optional(),
 });
 
 reservasRouter.put('/:id', async (req, res) => {
@@ -1126,8 +1146,9 @@ reservasRouter.put('/:id', async (req, res) => {
            temporada = $10, escenario = $11,
            motivo_visita = COALESCE($12, motivo_visita),
            como_llego = COALESCE($13, como_llego),
-           placa_vehiculo = COALESCE($14, placa_vehiculo)
-       WHERE id = $15`,
+           placa_vehiculo = COALESCE($14, placa_vehiculo),
+           origen_reserva = COALESCE($15, origen_reserva)
+       WHERE id = $16`,
       [
         fechaEntrada,
         fechaSalida,
@@ -1143,6 +1164,7 @@ reservasRouter.put('/:id', async (req, res) => {
         parsed.data.motivo_visita ?? null,
         parsed.data.como_llego ?? null,
         parsed.data.placa_vehiculo ?? null,
+        parsed.data.origen_reserva ?? null,
         reservaId,
       ]
     );
@@ -1254,12 +1276,15 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
     pax: number;
     precio_noche: string;
     clima: string;
+    huesped_nombre: string | null;
+    huesped_documento: string | null;
   }>(
     `SELECT r.id, r.codigo, r.estado, r.fecha_entrada, r.fecha_salida, r.total,
             r.total_desayuno, r.anticipo, r.desayuno_modo, r.desayunos_pax, r.desayunos_total,
             c.id AS cliente_id, c.razon_social AS cliente, c.tipo_documento,
             c.numero_documento, c.telefono, c.email,
-            rh.id AS rh_id, rh.habitacion_id, h.numero, rh.pax, rh.precio_noche, rh.clima
+            rh.id AS rh_id, rh.habitacion_id, h.numero, rh.pax, rh.precio_noche, rh.clima,
+            rh.huesped_nombre, rh.huesped_documento
      FROM reserva r
      JOIN reserva_habitacion rh ON rh.reserva_id = r.id
      JOIN habitacion h ON h.id = rh.habitacion_id
@@ -1345,9 +1370,9 @@ reservasRouter.post('/:id/checkin', async (req, res) => {
       [
         reserva.rh_id,
         reserva.cliente_id,
-        reserva.cliente,
+        reserva.huesped_nombre ?? reserva.cliente,
         reserva.tipo_documento,
-        reserva.numero_documento,
+        reserva.huesped_documento ?? reserva.numero_documento,
         reserva.telefono,
         reserva.email,
       ]

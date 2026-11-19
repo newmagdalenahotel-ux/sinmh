@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { MoneyInput } from '../components/MoneyInput';
-import { useToast } from '../components/Toast';
+import { useErrorToast, useToast } from '../components/Toast';
 import {
   centrosApi,
   checkoutApi,
@@ -47,6 +47,7 @@ export function FoliosPage() {
   const [procesando, setProcesando] = useState(false);
   const [agregando, setAgregando] = useState(false);
   const [error, setError] = useState('');
+  useErrorToast(error);
   const [ultimoCobroId, setUltimoCobroId] = useState<number | null>(null);
   const [cargo, setCargo] = useState({
     concepto: '',
@@ -193,7 +194,6 @@ export function FoliosPage() {
         </Link>
       </div>
 
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
       {ultimoCobroId && (
         <div className="flex justify-end">
           <button

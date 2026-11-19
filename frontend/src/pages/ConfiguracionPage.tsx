@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { useToast } from '../components/Toast';
+import { useErrorToast, useToast } from '../components/Toast';
 import {
   actualizarUsuarioApi,
   crearUsuarioApi,
@@ -29,6 +29,7 @@ export function ConfiguracionPage() {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
+  useErrorToast(error);
 
   useEffect(() => {
     if (token) void cargar();
@@ -125,8 +126,6 @@ export function ConfiguracionPage() {
 
   return (
     <div className="space-y-6">
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
-
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <section className="card">
           <div className="flex items-center justify-between">

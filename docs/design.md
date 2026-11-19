@@ -11,7 +11,7 @@
 
 Este documento contiene el mapa de módulos y pantallas del frontend y el esquema
 de base de datos organizado por migraciones. La implementación actual está
-consolidada en las migraciones 001–015; las migraciones 016–025 del diseño
+consolidada en las migraciones 001–017; las migraciones 018–025 del diseño
 original quedan como objetivo de las fases siguientes.
 
 ---
@@ -135,6 +135,8 @@ La implementación consolidó el esquema en estas migraciones:
 | `013_habitacion_estado.sql` | Estado operativo de habitaciones |
 | `014_anticipos.sql` | Anticipos de reserva y su aplicación |
 | `015_cliente_estadia_tarifas_grupo.sql` | Dirección/ciudad del cliente, tarifa negociada, datos de estadía y reserva maestra |
+| `016_reserva_origen.sql` | Canal de origen de la reserva |
+| `017_rooming_list.sql` | Huésped y documento por habitación en grupos |
 
 El diseño de las migraciones 001–025 sigue siendo el objetivo funcional. Cuando
 una tabla implementada se simplifica, la diferencia se registra en este documento
@@ -147,8 +149,10 @@ y en `tasks.md`; no se crea una tabla por fuera del diseño sin actualizarlo.
 - Los planes son `PUBLICA`, `EMPRESA`, `EMPLEADO` y `GRUPO`. Si el plan no es
   público y la tarifa está vigente, la reserva usa el precio negociado; si no,
   vuelve a la matriz pública.
-- `reserva` guarda `motivo_visita`, `como_llego`, `placa_vehiculo`, el plan y el
-  precio negociado aplicado, para conservar el histórico aunque el cliente cambie.
+- `reserva` guarda `motivo_visita`, `como_llego`, `placa_vehiculo`, `origen_reserva`,
+  el plan y el precio negociado aplicado, para conservar el histórico aunque el cliente cambie.
+- `reserva_habitacion` guarda `huesped_nombre` y `huesped_documento` para la rooming list
+  de una reserva grupal; el check-in usa esos datos si existen.
 - `reserva_maestra` agrupa una o varias reservas hijas con un solo
   `pagador_cliente_id`; cada hija conserva su habitación, huésped, folio y
   check-in/check-out. El código de la maestra es `G-AAAAMMDD-####`.

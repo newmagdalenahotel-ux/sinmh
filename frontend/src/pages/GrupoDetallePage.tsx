@@ -214,6 +214,7 @@ export function GrupoDetalleContenido({
                 <tr className="border-b border-cream-dark text-xs uppercase tracking-wide text-stone-light">
                   <th className="py-2 pr-3">Reserva</th>
                   <th className="py-2 pr-3">Habitación</th>
+                  <th className="py-2 pr-3">Huésped</th>
                   <th className="py-2 pr-3">Pax</th>
                   <th className="py-2 pr-3">Estado</th>
                   <th className="py-2 text-right">Total</th>
@@ -226,6 +227,10 @@ export function GrupoDetalleContenido({
                   <tr key={reserva.id} className="border-b border-cream-dark/60">
                     <td className="py-3 pr-3 font-medium">{reserva.codigo}</td>
                     <td className="py-3 pr-3">Hab. {reserva.habitacion}</td>
+                    <td className="py-3 pr-3">
+                      <p>{reserva.huesped_nombre ?? '—'}</p>
+                      <p className="text-xs text-stone-light">{reserva.huesped_documento ?? ''}</p>
+                    </td>
                     <td className="py-3 pr-3">{reserva.pax} pax</td>
                     <td className="py-3 pr-3">
                       <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] ${claseEstado(reserva.estado)}`}>

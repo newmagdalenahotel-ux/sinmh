@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useErrorToast } from '../components/Toast';
 import {
   reporteDesayunosApi,
   reporteIngresosApi,
@@ -51,6 +52,7 @@ export function ReportesPage() {
   const [resultado, setResultado] = useState<ResultadoCentro[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  useErrorToast(error);
 
   useEffect(() => {
     if (!token) return;
@@ -105,8 +107,7 @@ export function ReportesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <div className="flex flex-wrap items-end gap-2">
+      <div className="flex flex-wrap items-end gap-2">
           <div>
             <label className="label" htmlFor="fecha">Fecha</label>
             <input
@@ -119,9 +120,6 @@ export function ReportesPage() {
           </div>
           <Link to="/caja" className="btn-primary">Ver caja</Link>
         </div>
-      </div>
-
-      {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="card">

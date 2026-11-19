@@ -451,7 +451,8 @@ design, design-system y tasks.
 - [x] Éxito desaparece en 4 segundos.
 - [x] Error permanece más tiempo y se puede cerrar.
 - [x] No tapan los botones de acción principales.
-- [x] Reservas, clientes, caja, bar, folios, cartera y habitaciones usan toast.
+- [x] Reservas, clientes, caja, bar, folios, cartera, habitaciones, reportes y configuración usan toast.
+- [x] Los errores de formulario se muestran abajo a la derecha y por encima del panel.
 
 ### T10.3 — Formularios en panel ancho
 **Estado:** Hecho
@@ -475,7 +476,7 @@ design, design-system y tasks.
 
 **Aceptación:**
 - [x] Cliente con dirección, ciudad, notas, email y teléfono.
-- [x] Reserva con motivo de visita, cómo llegó y placa.
+- [x] Reserva con motivo de visita y origen; la placa se registra en check-in.
 - [x] Panel de cliente para crear y editar.
 - [x] Los campos de estadía quedan en la reserva.
 
@@ -497,9 +498,11 @@ design, design-system y tasks.
 - [x] Endpoint para crear grupo con varias habitaciones.
 - [x] Código maestro y código independiente por habitación.
 - [x] Payer único para todas las hijas.
+- [x] Huésped, documento, pax y desayuno por habitación.
+- [x] Origen de la reserva.
 - [x] Consulta y cancelación del grupo.
 - [x] Check-in y check-out por habitación.
-- [ ] Factura consolidada única del grupo (fase 1B).
+- [ ] Anticipo consolidado y factura única del grupo (fase 1B).
 
 ### T11.4 — Pantalla compacta de reservas
 **Estado:** Hecho
@@ -513,8 +516,11 @@ design, design-system y tasks.
 - [x] Búsqueda con espera de 350 ms.
 - [x] Se retiraron las ayudas contextuales.
 - [x] Fecha de creación con hora.
-- [x] Filtros activas, histórico y todas.
-- [x] Acción “Ver” hacia el detalle.
+- [x] Filtros Reservadas, En casa, Histórico, Salieron y Canceladas.
+- [x] Check-in fuera del menú; queda como acción y “Check-in sin reserva”.
+- [x] Formulario de reserva en 3 pasos.
+- [x] Motivo turismo/corporativo y origen de la reserva.
+- [x] Acción “Ver” abre el detalle en el panel.
 
 ### T11.5 — Vista completa de la reserva
 **Estado:** Hecho
