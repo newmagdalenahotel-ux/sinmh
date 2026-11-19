@@ -657,6 +657,7 @@ export type ReservaResumen = {
   id: number;
   codigo: string;
   estado: string;
+  created_at: string;
   fecha_entrada: string;
   fecha_salida: string;
   total: string;
@@ -673,6 +674,7 @@ export type ReservaResumen = {
   tarifa_plan: 'PUBLICA' | 'EMPRESA' | 'EMPLEADO' | 'GRUPO';
   tarifa_negociada: string | null;
   cliente: string | null;
+  tipo_documento: string | null;
   numero_documento: string | null;
   reserva_habitacion_id: number;
   pax: number;

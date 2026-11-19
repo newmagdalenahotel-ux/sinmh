@@ -345,6 +345,9 @@ la información principal del día.
 - Calendario o lista de reservas.
 - Convertir reserva en check-in.
 - Editar y cancelar.
+- Lista con búsqueda por código, cliente o documento, filtro por estado y paginación.
+- Columnas de huésped, habitación, estancia, ocupantes, tarifa, anticipo, estado y acciones.
+- Acciones por fila para contrato, check-in, editar, cancelar o ver folio.
 
 ### FR-39 — Tablero de habitaciones en la pantalla
 **Fase:** actual · **Estado:** Hecho
@@ -424,16 +427,6 @@ pagador del grupo.
 - La lista muestra el código del grupo en cada reserva.
 - El grupo se puede consultar y cancelar mientras no haya check-in.
 - Cada habitación conserva su check-in, folio y check-out.
-
-### FR-46 — Ayudas contextuales por submódulo
-**Fase:** actual · **Estado:** Hecho
-**Descripción:** Explicar en dos o tres bullets qué se hace en cada pantalla, sin
-llenar el contenido de párrafos permanentes.
-
-**Aceptación:**
-- Cada ruta principal tiene una ayuda plegable “¿Cómo funciona …?”.
-- La ayuda tiene 2–3 bullets operativos.
-- El dashboard sigue mostrando la información general.
 
 ---
 

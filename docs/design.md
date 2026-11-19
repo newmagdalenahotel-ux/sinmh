@@ -67,15 +67,12 @@ overlay y cierre al elegir una pantalla o al presionar Escape.
 - Alertas: caja cerrada, habitaciones sucias, stock bajo, folios con saldo.
 
 **Alojamiento**
-- `/alojamiento/reservas`: lista con acciones; nueva reserva, edición y reserva grupal en drawer.
+- `/alojamiento/reservas`: lista compacta con búsqueda, filtro por estado, paginación, acciones por fila y botones de reserva/grupo/check-in.
 - `/alojamiento/clientes`: ficha con contacto, dirección, ciudad y tarifa negociada.
 - `/alojamiento/tablero`: estado visual de las 31 habitaciones.
 - `/alojamiento/checkin`: check-in de reserva o walk-in, con cobro en el mismo panel.
 - `/alojamiento/huespedes`: folios abiertos y huéspedes en casa.
 - `/alojamiento/folios/:id`: detalle, cargos, pagos y check-out.
-
-Cada ruta principal incluye una ayuda plegable con 2–3 bullets operativos. El
-dashboard conserva la información general; las ayudas no lo reemplazan.
 
 **Bar y servicios**
 - `/bar/venta`: catálogo, carrito y cobro.

@@ -498,13 +498,16 @@ design, design-system y tasks.
 - [x] Check-in y check-out por habitación.
 - [ ] Factura consolidada única del grupo (fase 1B).
 
-### T11.4 — Ayudas contextuales
+### T11.4 — Pantalla compacta de reservas
 **Estado:** Hecho
 
 **Aceptación:**
-- [x] Ayuda plegable por ruta principal.
-- [x] Bullets operativos de 2–3 líneas.
-- [x] No reemplaza la información general del dashboard.
+- [x] Barra con búsqueda, filtro, reserva grupal, check-in directo y nueva reserva.
+- [x] Tabla con huésped, habitación, estancia, ocupantes, tarifa, anticipo y estado.
+- [x] Acciones por fila con iconos y etiquetas accesibles.
+- [x] Paginación de 10, 20 o 50 filas.
+- [x] Búsqueda con espera de 350 ms.
+- [x] Se retiraron las ayudas contextuales.
 
 ---
 

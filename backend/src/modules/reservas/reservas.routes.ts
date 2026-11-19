@@ -150,11 +150,11 @@ reservasRouter.get('/', async (req, res) => {
   const where = filtros.length > 0 ? `WHERE ${filtros.join(' AND ')}` : '';
 
   const { rows } = await db.query(
-    `SELECT r.id, r.codigo, r.estado, r.fecha_entrada, r.fecha_salida,
+    `SELECT r.id, r.codigo, r.estado, r.created_at, r.fecha_entrada, r.fecha_salida,
             r.total, r.saldo, r.anticipo, r.desayuno_modo, r.desayunos_total,
             r.temporada, r.escenario, r.maestra_id, rm.codigo AS maestra_codigo,
             r.motivo_visita, r.como_llego, r.tarifa_plan, r.tarifa_negociada,
-            c.razon_social AS cliente, c.numero_documento,
+            c.razon_social AS cliente, c.tipo_documento, c.numero_documento,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche,
             h.id AS habitacion_id, h.numero AS habitacion
      FROM reserva r
