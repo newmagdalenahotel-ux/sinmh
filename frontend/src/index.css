@@ -44,3 +44,16 @@
     @apply rounded-2xl border border-gold/20 bg-white/80 p-6 shadow-sm;
   }
 }
+
+@keyframes slide-over-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-over {
+  animation: slide-over-in 220ms ease-out;
+}

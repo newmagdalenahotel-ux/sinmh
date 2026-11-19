@@ -453,15 +453,17 @@ design, design-system y tasks.
 - [x] No tapan los botones de acción principales.
 - [x] Reservas, clientes, caja, bar, folios, cartera y habitaciones usan toast.
 
-### T10.3 — Formularios en drawer
+### T10.3 — Formularios en panel ancho
 **Estado:** Hecho
 
 **Aceptación:**
-- [x] Nueva reserva, editar reserva y check-in desde reserva en drawer.
-- [x] Cliente nuevo en drawer.
-- [x] Overlay, botón Cerrar y cierre al guardar.
-- [x] Formulario en una columna, labels arriba y acciones claras.
-- [x] En móvil el drawer ocupa el ancho completo.
+- [x] Nueva reserva, editar reserva y check-in desde reserva en slide-over.
+- [x] Cliente nuevo y edición en slide-over.
+- [x] Reserva grupal en slide-over.
+- [x] Fondo oscurecido con desenfoque.
+- [x] Flecha atrás, título y botón Cerrar.
+- [x] En móvil ocupa el ancho completo.
+- [x] Cierra con Escape o clic en el fondo.
 
 ---
 
@@ -473,7 +475,7 @@ design, design-system y tasks.
 **Aceptación:**
 - [x] Cliente con dirección, ciudad, notas, email y teléfono.
 - [x] Reserva con motivo de visita, cómo llegó y placa.
-- [x] Drawer de cliente para crear y editar.
+- [x] Panel de cliente para crear y editar.
 - [x] Los campos de estadía quedan en la reserva.
 
 ### T11.2 — Planes de tarifa

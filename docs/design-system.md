@@ -82,7 +82,7 @@
 - **Grid:** 12 columnas en desktop, 1 columna en móvil.
 - **Detalle (`RecordLayout`):** contenido principal flexible + panel derecho de 280–360px, sticky en desktop. En móvil el panel baja debajo. Se usa en reserva, grupo y cliente.
 - **Listas:** tabla ancha con filtros, búsqueda y paginación; no usan panel lateral.
-- **Formularios:** una columna, sin panel lateral; drawer para formularios medianos.
+- **Formularios:** contenido interno máximo 768px, sin panel lateral; panel lateral ancho para formularios medianos.
 - **Breakpoints:** `sm: 640px`, `md: 768px`, `lg: 1024px`, `xl: 1280px`.
 
 ---
@@ -157,16 +157,15 @@
 - **Neutral / Info:** fondo `cream-dark`, texto `stone-light`.
 - **Cortesía / Descuento:** fondo `gold/10`, texto `gold-dark`.
 
-### 4.6 Modales y drawers
+### 4.6 Modales y paneles laterales
 
-- **Overlay:** `navy-dark` con opacidad 70%.
-- **Modal:** para acciones cortas (cobrar, agregar cargo, abonar, confirmar).
-- **Drawer:** panel lateral derecho de 480–560px, fondo `cream`, `shadow-2xl`, scroll interno.
-- **Drawer en móvil:** ocupa el 100% del ancho.
-- **Header:** título corto en `Inter`, `text-sm` mayúsculas, botón Cerrar a la derecha.
-- **Footer:** botones alineados a la derecha (Outline + Primary).
-- **Formularios largos:** reserva nueva, editar reserva, check-in desde reserva y cliente nuevo van en drawer; no en modal.
-- **Cierre:** overlay, botón Cerrar y Escape; al guardar con éxito se cierra.
+- **Overlay:** `navy-dark` con opacidad 55% y desenfoque suave.
+- **Modal:** para confirmaciones cortas (cancelar, cerrar caja).
+- **Panel lateral (slide-over):** se abre desde la derecha, 70% del ancho en escritorio, máximo 1280px, 100% en móvil; fondo `cream`, `shadow-2xl`, animación de 220 ms.
+- **Header del panel:** flecha atrás, título, subtítulo y botón Cerrar.
+- **Contenido:** scroll interno, ancho máximo 768px, padding 24px.
+- **Cierre:** Escape, flecha atrás, botón Cerrar o clic en el overlay.
+- **Formularios largos:** reserva, edición, check-in, cliente y grupo van en panel lateral; no en modal.
 
 ### 4.7 Notificaciones (toasts)
 

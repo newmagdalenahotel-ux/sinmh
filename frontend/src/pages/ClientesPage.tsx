@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { MoneyInput } from '../components/MoneyInput';
+import { SlideOver } from '../components/SlideOver';
 import { useToast } from '../components/Toast';
 import {
   actualizarClienteApi,
@@ -242,38 +243,12 @@ export function ClientesPage() {
           )}
         </section>
 
-        {drawerAbierto && (
-          <button
-            type="button"
-            aria-label="Cerrar formulario"
-            className="fixed inset-0 z-40 bg-navy-dark/60"
-            onClick={() => setDrawerAbierto(false)}
-          />
-        )}
-
-        <div
-          className={
-            drawerAbierto
-              ? 'fixed inset-y-0 right-0 z-50 w-full max-w-lg overflow-y-auto bg-cream p-4 shadow-2xl sm:p-6'
-              : 'hidden'
-          }
-          role="dialog"
-          aria-modal="true"
-          aria-label={clienteEditando ? 'Editar cliente' : 'Nuevo cliente'}
+        <SlideOver
+          open={drawerAbierto}
+          onClose={() => setDrawerAbierto(false)}
+          title={clienteEditando ? 'Editar cliente' : 'Nuevo cliente'}
+          subtitle="Datos de contacto, crédito y tarifa."
         >
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-stone-light">
-              {clienteEditando ? 'Editar cliente' : 'Nuevo cliente'}
-            </p>
-            <button
-              type="button"
-              className="btn-secondary px-3 py-1.5 text-xs"
-              onClick={() => setDrawerAbierto(false)}
-            >
-              Cerrar
-            </button>
-          </div>
-
           <section className="card">
             <h2 className="font-display text-xl text-stone">Datos del cliente</h2>
 
@@ -493,7 +468,7 @@ export function ClientesPage() {
             </button>
           </div>
         </section>
-        </div>
+        </SlideOver>
       </div>
     </div>
   );

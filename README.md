@@ -6,7 +6,7 @@ Sistema para reemplazar el SIMP (reservas y check-in) y las planillas de Excel (
 anticipo, edición y contrato, check-in, folios, cargos, check-out, caja con
 traslados y cambio de turno, contabilidad, reportes, usuarios, bar recepción,
 clientes con crédito, cuentas por cobrar, abonos, cuenta socio, tablero de
-habitaciones, dashboard, menú desplegable y móvil, formularios en drawer, montos
+habitaciones, dashboard, menú desplegable y móvil, formularios en panel lateral, montos
 con separador de miles, notificaciones auto-descartables, tarifas negociadas para
 empresas/empleados, reserva grupal con pagador y cuadre de caja en PDF.
 Falta la validación manual y compras/inventario del bar.
@@ -90,7 +90,7 @@ npm run dev
 
 ![Detalle de grupo](docs/capturas/grupo-detalle.png)
 
-![Nueva reserva en drawer](docs/capturas/reservas-drawer.png)
+![Formulario en panel ancho](docs/capturas/reserva-panel.png)
 
 ![Reserva grupal con pagador](docs/capturas/reserva-grupal.png)
 

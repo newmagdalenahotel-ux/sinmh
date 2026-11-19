@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { MoneyInput } from '../components/MoneyInput';
+import { SlideOver } from '../components/SlideOver';
 import { useToast } from '../components/Toast';
 import {
   actualizarReservaApi,
@@ -983,33 +984,18 @@ export function ReservasPage() {
           )}
         </section>
 
-        {drawerAbierto && (
-          <button
-            type="button"
-            aria-label="Cerrar formulario"
-            className="fixed inset-0 z-40 bg-navy-dark/60"
-            onClick={cerrarDrawer}
-          />
-        )}
-
-        <div
-          className={
-            drawerAbierto
-              ? 'fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-cream p-4 shadow-2xl sm:p-6'
-              : 'hidden'
+        <SlideOver
+          open={drawerAbierto}
+          onClose={cerrarDrawer}
+          title={edicion ? 'Editar reserva' : reservaCheckin ? 'Check-in de reserva' : 'Nueva reserva'}
+          subtitle={
+            edicion
+              ? `${edicion.codigo} · ${edicion.cliente}`
+              : reservaCheckin
+                ? `${reservaCheckin.codigo} · Hab. ${reservaCheckin.habitacion}`
+                : 'Registra la estadía, el huésped y el pago.'
           }
-          role="dialog"
-          aria-modal="true"
-          aria-label={edicion ? 'Editar reserva' : reservaCheckin ? 'Check-in de reserva' : 'Nueva reserva'}
         >
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-stone-light">
-              {edicion ? 'Editar reserva' : reservaCheckin ? 'Check-in de reserva' : 'Nueva reserva'}
-            </p>
-            <button type="button" className="btn-secondary px-3 py-1.5 text-xs" onClick={cerrarDrawer}>
-              Cerrar
-            </button>
-          </div>
 
           {edicion && (
             <section className="card border-gold/40">
@@ -1530,42 +1516,14 @@ export function ReservasPage() {
               {creando ? 'Creando…' : 'Crear reserva'}
             </button>
           </section>
-        </div>
+        </SlideOver>
 
-        {drawerGrupo && (
-          <button
-            type="button"
-            aria-label="Cerrar reserva grupal"
-            className="fixed inset-0 z-40 bg-navy-dark/60"
-            onClick={() => setDrawerGrupo(false)}
-          />
-        )}
-
-        <div
-          className={
-            drawerGrupo
-              ? 'fixed inset-y-0 right-0 z-50 w-full max-w-xl overflow-y-auto bg-cream p-4 shadow-2xl sm:p-6'
-              : 'hidden'
-          }
-          role="dialog"
-          aria-modal="true"
-          aria-label="Reserva grupal"
+        <SlideOver
+          open={drawerGrupo}
+          onClose={() => setDrawerGrupo(false)}
+          title="Reserva grupal"
+          subtitle="Un pagador, varias habitaciones."
         >
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-stone-light">
-                Reserva grupal
-              </p>
-              <p className="text-xs text-stone-light">Un pagador, varias habitaciones.</p>
-            </div>
-            <button
-              type="button"
-              className="btn-secondary px-3 py-1.5 text-xs"
-              onClick={() => setDrawerGrupo(false)}
-            >
-              Cerrar
-            </button>
-          </div>
 
           {grupoError && (
             <div className="mb-3 rounded-xl bg-error/10 px-4 py-3 text-sm text-error">
@@ -1787,7 +1745,7 @@ export function ReservasPage() {
               {creandoGrupo ? 'Creando grupo…' : 'Crear reserva grupal'}
             </button>
           </section>
-        </div>
+        </SlideOver>
       </div>
     </div>
   );
