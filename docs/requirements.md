@@ -387,6 +387,7 @@ de trabajo, para mantener el contexto de la lista y tener espacio cómodo.
 **Aceptación:**
 - Reserva nueva, edición, check-in desde reserva, cliente y grupo se abren en panel lateral.
 - El panel ocupa 70% en escritorio, máximo 1280px, y 100% en móvil.
+- El panel ocupa toda la altura de la pantalla y se monta en un portal sobre `body`.
 - Tiene flecha atrás, título, subtítulo y botón Cerrar.
 - El fondo queda oscurecido con desenfoque suave.
 - El contenido interno se limita a 768px para no estirar los campos.

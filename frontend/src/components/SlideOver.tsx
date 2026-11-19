@@ -1,10 +1,12 @@
 import { useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 type SlideOverProps = {
   open: boolean;
   onClose: () => void;
   title: string;
   subtitle?: string;
+  size?: 'form' | 'detail';
   children: ReactNode;
 };
 
@@ -26,7 +28,14 @@ function IconoAtras() {
   );
 }
 
-export function SlideOver({ open, onClose, title, subtitle, children }: SlideOverProps) {
+export function SlideOver({
+  open,
+  onClose,
+  title,
+  subtitle,
+  size = 'form',
+  children,
+}: SlideOverProps) {
   useEffect(() => {
     if (!open) return;
 
@@ -46,8 +55,8 @@ export function SlideOver({ open, onClose, title, subtitle, children }: SlideOve
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={title}>
+  return createPortal(
+    <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label={title}>
       <button
         type="button"
         aria-label="Cerrar panel"
@@ -55,7 +64,7 @@ export function SlideOver({ open, onClose, title, subtitle, children }: SlideOve
         onClick={onClose}
       />
 
-      <section className="absolute inset-y-0 right-0 flex w-full flex-col bg-cream shadow-2xl animate-slide-over sm:w-[70vw] sm:max-w-[1280px]">
+      <section className="fixed inset-y-0 right-0 z-[101] flex h-dvh w-full flex-col bg-cream shadow-2xl animate-slide-over sm:w-[70vw] sm:max-w-[1280px]">
         <header className="flex items-start justify-between gap-4 border-b border-cream-dark bg-white/70 px-4 py-4 sm:px-6">
           <div className="flex min-w-0 items-start gap-3">
             <button
@@ -81,9 +90,12 @@ export function SlideOver({ open, onClose, title, subtitle, children }: SlideOve
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-          <div className="mx-auto w-full max-w-3xl">{children}</div>
+          <div className={`mx-auto w-full ${size === 'detail' ? 'max-w-6xl' : 'max-w-3xl'}`}>
+            {children}
+          </div>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

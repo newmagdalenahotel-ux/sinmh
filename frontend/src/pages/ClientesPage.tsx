@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { MoneyInput } from '../components/MoneyInput';
 import { SlideOver } from '../components/SlideOver';
 import { useToast } from '../components/Toast';
+import { ClienteDetalleContenido } from './ClienteDetallePage';
 import {
   actualizarClienteApi,
   clientesApi,
@@ -48,6 +48,7 @@ export function ClientesPage() {
   const [error, setError] = useState('');
   const [drawerAbierto, setDrawerAbierto] = useState(false);
   const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
+  const [clienteVer, setClienteVer] = useState<Cliente | null>(null);
 
   useEffect(() => {
     if (!drawerAbierto) return;
@@ -82,13 +83,21 @@ export function ClientesPage() {
 
   function abrirNuevo() {
     setClienteEditando(null);
+    setClienteVer(null);
     setForm(formularioInicial);
     setError('');
     setDrawerAbierto(true);
   }
 
+  function abrirVer(cliente: Cliente) {
+    setDrawerAbierto(false);
+    setClienteEditando(null);
+    setClienteVer(cliente);
+  }
+
   function abrirEditar(cliente: Cliente) {
     setClienteEditando(cliente);
+    setClienteVer(null);
     setForm({
       tipo: cliente.tipo as typeof formularioInicial.tipo,
       razon_social: cliente.razon_social,
@@ -221,12 +230,13 @@ export function ClientesPage() {
                       <td className="py-3 pr-3 text-right">{cliente.dias_credito}</td>
                       <td className="py-3 text-right">
                         <div className="flex justify-end gap-1">
-                          <Link
-                            to={`/clientes/${cliente.id}`}
+                          <button
+                            type="button"
                             className="rounded-lg border border-cream-dark px-2 py-1 text-xs text-stone-light hover:bg-cream"
+                            onClick={() => abrirVer(cliente)}
                           >
                             Ver
-                          </Link>
+                          </button>
                           <button
                             className="rounded-lg border border-gold/40 px-2 py-1 text-xs text-gold-dark"
                             onClick={() => abrirEditar(cliente)}
@@ -468,6 +478,21 @@ export function ClientesPage() {
             </button>
           </div>
         </section>
+        </SlideOver>
+
+        <SlideOver
+          open={Boolean(clienteVer)}
+          onClose={() => setClienteVer(null)}
+          size="detail"
+          title="Detalle del cliente"
+          subtitle={clienteVer ? `${clienteVer.razon_social} · ${clienteVer.tipo}` : undefined}
+        >
+          {clienteVer && (
+            <ClienteDetalleContenido
+              clienteId={clienteVer.id}
+              onClose={() => setClienteVer(null)}
+            />
+          )}
         </SlideOver>
       </div>
     </div>

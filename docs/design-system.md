@@ -161,7 +161,7 @@
 
 - **Overlay:** `navy-dark` con opacidad 55% y desenfoque suave.
 - **Modal:** para confirmaciones cortas (cancelar, cerrar caja).
-- **Panel lateral (slide-over):** se abre desde la derecha, 70% del ancho en escritorio, máximo 1280px, 100% en móvil; fondo `cream`, `shadow-2xl`, animación de 220 ms.
+- **Panel lateral (slide-over):** se abre desde la derecha, 70% del ancho en escritorio, máximo 1280px, 100% en móvil; `height: 100dvh`, fondo `cream`, `shadow-2xl`, animación de 220 ms; se monta en un portal sobre `body`.
 - **Header del panel:** flecha atrás, título, subtítulo y botón Cerrar.
 - **Contenido:** scroll interno, ancho máximo 768px, padding 24px.
 - **Cierre:** Escape, flecha atrás, botón Cerrar o clic en el overlay.

@@ -49,10 +49,15 @@ function claseEstado(estado: string) {
   return clases[estado] ?? 'bg-cream-dark text-stone-light';
 }
 
-export function GrupoDetallePage() {
+export function GrupoDetalleContenido({
+  grupoId,
+  onClose,
+}: {
+  grupoId: number;
+  onClose?: () => void;
+}) {
   const { token } = useAuth();
   const toast = useToast();
-  const { id } = useParams();
   const [detalle, setDetalle] = useState<ReservaMaestraDetalle | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -60,11 +65,11 @@ export function GrupoDetallePage() {
 
   useEffect(() => {
     async function cargar() {
-      if (!token || !id) return;
+      if (!token || !grupoId) return;
       setCargando(true);
       setError('');
       try {
-        setDetalle(await reservaMaestraDetalleApi(token, Number(id)));
+        setDetalle(await reservaMaestraDetalleApi(token, grupoId));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'No se pudo cargar el grupo');
       } finally {
@@ -72,7 +77,7 @@ export function GrupoDetallePage() {
       }
     }
     void cargar();
-  }, [token, id]);
+  }, [token, grupoId]);
 
   async function cancelar() {
     if (!token || !detalle) return;
@@ -98,7 +103,13 @@ export function GrupoDetallePage() {
         <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">
           {error || 'Grupo no encontrado'}
         </div>
-        <Link to="/reservas" className="btn-secondary">Volver a reservas</Link>
+        {onClose ? (
+          <button type="button" className="btn-secondary" onClick={onClose}>
+            Volver a reservas
+          </button>
+        ) : (
+          <Link to="/reservas" className="btn-secondary">Volver a reservas</Link>
+        )}
       </div>
     );
   }
@@ -131,7 +142,15 @@ export function GrupoDetallePage() {
             {reservas.length} habitaciones · pagador {maestra.pagador}
           </p>
         </div>
-        <Link to="/reservas" className="btn-secondary">Volver</Link>
+        <div className="flex flex-wrap gap-2">
+          {onClose ? (
+            <button type="button" className="btn-secondary" onClick={onClose}>
+              Volver
+            </button>
+          ) : (
+            <Link to="/reservas" className="btn-secondary">Volver</Link>
+          )}
+        </div>
       </div>
 
       {error && <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">{error}</div>}
@@ -234,6 +253,17 @@ export function GrupoDetallePage() {
           </section>
         )}
       </RecordLayout>
+    </div>
+  );
+}
+
+export function GrupoDetallePage() {
+  const { id } = useParams();
+  if (!id) return null;
+
+  return (
+    <div className="space-y-6">
+      <GrupoDetalleContenido grupoId={Number(id)} />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { useAuth } from '../auth/AuthContext';
 import { MoneyInput } from '../components/MoneyInput';
 import { SlideOver } from '../components/SlideOver';
 import { useToast } from '../components/Toast';
+import { ReservaDetalleContenido } from './ReservaDetallePage';
+import { GrupoDetalleContenido } from './GrupoDetallePage';
 import {
   actualizarReservaApi,
   cancelarReservaApi,
@@ -242,6 +244,8 @@ export function ReservasPage() {
   const [error, setError] = useState('');
   const [drawerAbierto, setDrawerAbierto] = useState(false);
   const [drawerGrupo, setDrawerGrupo] = useState(false);
+  const [reservaVer, setReservaVer] = useState<ReservaResumen | null>(null);
+  const [grupoVer, setGrupoVer] = useState<number | null>(null);
   const [grupoError, setGrupoError] = useState('');
   const [creandoGrupo, setCreandoGrupo] = useState(false);
   const [grupoForm, setGrupoForm] = useState({
@@ -464,6 +468,8 @@ export function ReservasPage() {
 
   function abrirCheckin(reserva: ReservaResumen) {
     setEdicion(null);
+    setReservaVer(null);
+    setGrupoVer(null);
     setReservaCheckin(reserva);
     setPagoMonto(Number(reserva.saldo));
     setPagoMetodo('EFECTIVO');
@@ -475,8 +481,32 @@ export function ReservasPage() {
   function abrirNuevaReserva() {
     setEdicion(null);
     setReservaCheckin(null);
+    setReservaVer(null);
+    setGrupoVer(null);
     setError('');
     setDrawerAbierto(true);
+  }
+
+  function abrirVer(reserva: ReservaResumen) {
+    setDrawerAbierto(false);
+    setDrawerGrupo(false);
+    setEdicion(null);
+    setReservaCheckin(null);
+    setGrupoVer(null);
+    setReservaVer(reserva);
+  }
+
+  function cerrarVer() {
+    setReservaVer(null);
+  }
+
+  function abrirGrupoVer(maestraId: number) {
+    setDrawerAbierto(false);
+    setDrawerGrupo(false);
+    setEdicion(null);
+    setReservaCheckin(null);
+    setReservaVer(null);
+    setGrupoVer(maestraId);
   }
 
   function cerrarDrawer() {
@@ -490,6 +520,8 @@ export function ReservasPage() {
     setDrawerAbierto(false);
     setEdicion(null);
     setReservaCheckin(null);
+    setReservaVer(null);
+    setGrupoVer(null);
     setGrupoError('');
     setDrawerGrupo(true);
   }
@@ -568,6 +600,8 @@ export function ReservasPage() {
     if (!token) return;
     setError('');
     setReservaCheckin(null);
+    setReservaVer(null);
+    setGrupoVer(null);
 
     try {
       const detalle = await reservaApi(token, reserva.id);
@@ -765,13 +799,14 @@ export function ReservasPage() {
                             <p className="mt-0.5 whitespace-nowrap text-xs text-stone-light">
                               {formatoFechaCreacion(reserva.created_at)}
                             </p>
-                            {reserva.maestra_codigo && (
-                              <Link
-                                to={`/reservas/grupo/${reserva.maestra_id}`}
+                            {reserva.maestra_codigo && reserva.maestra_id && (
+                              <button
+                                type="button"
+                                onClick={() => abrirGrupoVer(reserva.maestra_id as number)}
                                 className="mt-1 inline-flex rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-medium text-gold-dark hover:bg-gold/20"
                               >
                                 Grupo {reserva.maestra_codigo}
-                              </Link>
+                              </button>
                             )}
                           </td>
 
@@ -831,14 +866,15 @@ export function ReservasPage() {
 
                           <td className="px-4 py-4 align-middle">
                             <div className="flex items-center justify-end gap-1">
-                              <Link
-                                to={`/reservas/${reserva.id}`}
+                              <button
+                                type="button"
                                 title="Ver detalle"
                                 aria-label={`Ver detalle de ${reserva.codigo}`}
                                 className="rounded-lg p-2 text-stone-light transition hover:bg-cream hover:text-navy"
+                                onClick={() => abrirVer(reserva)}
                               >
                                 <Icono nombre="ver" />
-                              </Link>
+                              </button>
 
                               <button
                                 type="button"
@@ -1218,8 +1254,9 @@ export function ReservasPage() {
             </section>
           )}
 
-          <section className="card">
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {!edicion && !reservaCheckin && (
+            <section className="card">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="label" htmlFor="fecha_entrada">Entrada</label>
                 <input
@@ -1516,6 +1553,7 @@ export function ReservasPage() {
               {creando ? 'Creando…' : 'Crear reserva'}
             </button>
           </section>
+          )}
         </SlideOver>
 
         <SlideOver
@@ -1745,6 +1783,33 @@ export function ReservasPage() {
               {creandoGrupo ? 'Creando grupo…' : 'Crear reserva grupal'}
             </button>
           </section>
+        </SlideOver>
+
+        <SlideOver
+          open={Boolean(reservaVer)}
+          onClose={cerrarVer}
+          size="detail"
+          title="Detalle de reserva"
+          subtitle={reservaVer ? `${reservaVer.codigo} · ${reservaVer.cliente ?? 'Sin titular'}` : undefined}
+        >
+          {reservaVer && (
+            <ReservaDetalleContenido reservaId={reservaVer.id} onClose={cerrarVer} />
+          )}
+        </SlideOver>
+
+        <SlideOver
+          open={grupoVer !== null}
+          onClose={() => setGrupoVer(null)}
+          size="detail"
+          title="Detalle del grupo"
+          subtitle="Pagador, habitaciones y saldos."
+        >
+          {grupoVer !== null && (
+            <GrupoDetalleContenido
+              grupoId={grupoVer}
+              onClose={() => setGrupoVer(null)}
+            />
+          )}
         </SlideOver>
       </div>
     </div>

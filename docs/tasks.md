@@ -461,9 +461,10 @@ design, design-system y tasks.
 - [x] Cliente nuevo y edición en slide-over.
 - [x] Reserva grupal en slide-over.
 - [x] Fondo oscurecido con desenfoque.
-- [x] Flecha atrás, título y botón Cerrar.
+- [x] Altura completa, portal a `body`, flecha atrás, título y botón Cerrar.
 - [x] En móvil ocupa el ancho completo.
 - [x] Cierra con Escape o clic en el fondo.
+- [x] Vista de reserva, grupo y cliente se abren en el mismo panel.
 
 ---
 

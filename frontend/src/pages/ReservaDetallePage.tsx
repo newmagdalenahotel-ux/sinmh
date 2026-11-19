@@ -61,21 +61,26 @@ function claseEstado(estado: string) {
   return clases[estado] ?? 'bg-cream-dark text-stone-light';
 }
 
-export function ReservaDetallePage() {
+export function ReservaDetalleContenido({
+  reservaId,
+  onClose,
+}: {
+  reservaId: number;
+  onClose?: () => void;
+}) {
   const { token } = useAuth();
-  const { id } = useParams();
   const [detalle, setDetalle] = useState<ReservaDetalleCompleto | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function cargar() {
-      if (!token || !id) return;
+      if (!token || !reservaId) return;
       setCargando(true);
       setError('');
 
       try {
-        setDetalle(await reservaDetalleApi(token, Number(id)));
+        setDetalle(await reservaDetalleApi(token, reservaId));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'No se pudo cargar la reserva');
       } finally {
@@ -84,7 +89,7 @@ export function ReservaDetallePage() {
     }
 
     void cargar();
-  }, [token, id]);
+  }, [token, reservaId]);
 
   async function abrirContrato() {
     if (!token || !detalle) return;
@@ -108,8 +113,13 @@ export function ReservaDetallePage() {
         <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">
           {error || 'Reserva no encontrada'}
         </div>
-        <Link to="/reservas" className="btn-secondary">Volver a reservas</Link>
-      </div>
+        {onClose ? (
+          <button type="button" className="btn-secondary" onClick={onClose}>
+            Volver a reservas
+          </button>
+        ) : (
+          <Link to="/reservas" className="btn-secondary">Volver a reservas</Link>
+        )}      </div>
     );
   }
 
@@ -143,7 +153,13 @@ export function ReservaDetallePage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Link to="/reservas" className="btn-secondary">Volver</Link>
+          {onClose ? (
+            <button type="button" className="btn-secondary" onClick={onClose}>
+              Volver
+            </button>
+          ) : (
+            <Link to="/reservas" className="btn-secondary">Volver</Link>
+          )}
           <button className="btn-secondary" onClick={() => void abrirContrato()}>
             Contrato
           </button>
@@ -400,6 +416,17 @@ export function ReservaDetallePage() {
           </section>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function ReservaDetallePage() {
+  const { id } = useParams();
+  if (!id) return null;
+
+  return (
+    <div className="space-y-6">
+      <ReservaDetalleContenido reservaId={Number(id)} />
     </div>
   );
 }

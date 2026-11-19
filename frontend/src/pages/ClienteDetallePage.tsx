@@ -23,20 +23,25 @@ function formatoFecha(valor: string | null) {
     .replace(/ de /g, ' ');
 }
 
-export function ClienteDetallePage() {
+export function ClienteDetalleContenido({
+  clienteId,
+  onClose,
+}: {
+  clienteId: number;
+  onClose?: () => void;
+}) {
   const { token } = useAuth();
-  const { id } = useParams();
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     async function cargar() {
-      if (!token || !id) return;
+      if (!token || !clienteId) return;
       setCargando(true);
       setError('');
       try {
-        setCliente((await clienteApi(token, Number(id))).cliente);
+        setCliente((await clienteApi(token, clienteId)).cliente);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'No se pudo cargar el cliente');
       } finally {
@@ -44,7 +49,7 @@ export function ClienteDetallePage() {
       }
     }
     void cargar();
-  }, [token, id]);
+  }, [token, clienteId]);
 
   if (cargando) return <p className="text-sm text-stone-light">Cargando cliente…</p>;
 
@@ -54,7 +59,13 @@ export function ClienteDetallePage() {
         <div className="rounded-xl bg-error/10 px-4 py-3 text-sm text-error">
           {error || 'Cliente no encontrado'}
         </div>
-        <Link to="/clientes" className="btn-secondary">Volver a clientes</Link>
+        {onClose ? (
+          <button type="button" className="btn-secondary" onClick={onClose}>
+            Volver a clientes
+          </button>
+        ) : (
+          <Link to="/clientes" className="btn-secondary">Volver a clientes</Link>
+        )}
       </div>
     );
   }
@@ -68,7 +79,13 @@ export function ClienteDetallePage() {
             {cliente.tipo} · {cliente.tipo_documento ?? ''} {cliente.numero_documento ?? ''}
           </p>
         </div>
-        <Link to="/clientes" className="btn-secondary">Volver</Link>
+        {onClose ? (
+          <button type="button" className="btn-secondary" onClick={onClose}>
+            Volver
+          </button>
+        ) : (
+          <Link to="/clientes" className="btn-secondary">Volver</Link>
+        )}
       </div>
 
       <RecordLayout
@@ -166,6 +183,17 @@ export function ClienteDetallePage() {
           </dl>
         </section>
       </RecordLayout>
+    </div>
+  );
+}
+
+export function ClienteDetallePage() {
+  const { id } = useParams();
+  if (!id) return null;
+
+  return (
+    <div className="space-y-6">
+      <ClienteDetalleContenido clienteId={Number(id)} />
     </div>
   );
 }
