@@ -346,7 +346,7 @@ la información principal del día.
 - Convertir reserva en check-in.
 - Editar y cancelar.
 - Lista con búsqueda por código, cliente o documento, filtro por estado y paginación.
-- Columnas de huésped, habitación, estancia, ocupantes, tarifa, anticipo, estado y acciones.
+- Columnas de huésped, habitación con ocupantes, estancia, valor/anticipo/saldo, estado y acciones.
 - Acciones por fila para contrato, check-in, editar, cancelar o ver folio.
 
 ### FR-39 — Tablero de habitaciones en la pantalla

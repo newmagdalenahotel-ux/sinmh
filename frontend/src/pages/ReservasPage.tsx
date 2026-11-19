@@ -64,16 +64,6 @@ function claseEstado(estado: string) {
   return clases[estado] ?? 'bg-cream-dark text-stone-light';
 }
 
-function iniciales(nombre: string | null) {
-  if (!nombre) return '??';
-  return nombre
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((parte) => parte[0]?.toUpperCase())
-    .join('');
-}
-
 function formatoFechaCorta(valor: string) {
   return new Intl.DateTimeFormat('es-CO', { day: '2-digit', month: 'short' })
     .format(new Date(`${valor.slice(0, 10)}T12:00:00`))
@@ -121,8 +111,7 @@ type NombreIcono =
   | 'editar'
   | 'cancelar'
   | 'folio'
-  | 'flecha'
-  | 'cama';
+  | 'flecha';
 
 function Icono({ nombre, className = 'h-4 w-4' }: { nombre: NombreIcono; className?: string }) {
   const contenido: Record<NombreIcono, ReactNode> = {
@@ -169,13 +158,6 @@ function Icono({ nombre, className = 'h-4 w-4' }: { nombre: NombreIcono; classNa
       </>
     ),
     flecha: <path d="m9 18 6-6-6-6" />,
-    cama: (
-      <>
-        <path d="M3 7v11M21 7v11" />
-        <path d="M3 12h18v6H3z" />
-        <path d="M6 12V9h5v3" />
-      </>
-    ),
   };
 
   return (
@@ -725,15 +707,14 @@ export function ReservasPage() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[1080px] text-left text-sm">
+                <table className="w-full min-w-[980px] text-left text-sm">
                   <thead>
                     <tr className="border-b border-cream-dark text-[11px] uppercase tracking-wide text-stone-light">
                       <th className="px-4 py-3 font-medium">Reserva / Fecha creación</th>
                       <th className="px-4 py-3 font-medium">Huésped titular</th>
                       <th className="px-4 py-3 font-medium">Habitación asignada</th>
                       <th className="px-4 py-3 font-medium">Estancia / Noches</th>
-                      <th className="px-4 py-3 font-medium">Ocupantes</th>
-                      <th className="px-4 py-3 font-medium">Tarifa / Anticipo</th>
+                      <th className="px-4 py-3 font-medium">Valor / Anticipo / Saldo</th>
                       <th className="px-4 py-3 font-medium">Estado</th>
                       <th className="px-4 py-3 text-right font-medium">Acciones</th>
                     </tr>
@@ -765,36 +746,24 @@ export function ReservasPage() {
                           </td>
 
                           <td className="px-4 py-4 align-middle">
-                            <div className="flex items-center gap-3">
-                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy/10 text-xs font-semibold text-navy">
-                                {iniciales(reserva.cliente)}
-                              </span>
-                              <div>
-                                <p className="whitespace-nowrap font-medium text-stone">
-                                  {reserva.cliente ?? 'Sin titular'}
-                                </p>
-                                <p className="whitespace-nowrap text-xs text-stone-light">
-                                  {reserva.tipo_documento ?? 'DOC'}{' '}
-                                  {reserva.numero_documento ?? '—'}
-                                </p>
-                              </div>
+                            <div>
+                              <p className="whitespace-nowrap font-medium text-stone">
+                                {reserva.cliente ?? 'Sin titular'}
+                              </p>
+                              <p className="whitespace-nowrap text-xs text-stone-light">
+                                {reserva.tipo_documento ?? 'DOC'}{' '}
+                                {reserva.numero_documento ?? '—'}
+                              </p>
                             </div>
                           </td>
 
                           <td className="px-4 py-4 align-middle">
-                            <div className="flex items-center gap-2">
-                              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-cream text-gold-dark">
-                                <Icono nombre="cama" />
-                              </span>
-                              <div>
-                                <p className="whitespace-nowrap font-medium text-stone">
-                                  Hab. {reserva.habitacion}
-                                </p>
-                                <p className="whitespace-nowrap text-xs text-stone-light">
-                                  {tipoHabitacion(habitacion)}
-                                </p>
-                              </div>
-                            </div>
+                            <p className="whitespace-nowrap font-medium text-stone">
+                              Hab. {reserva.habitacion}
+                            </p>
+                            <p className="whitespace-nowrap text-xs text-stone-light">
+                              {tipoHabitacion(habitacion)} · {reserva.pax} pax
+                            </p>
                           </td>
 
                           <td className="px-4 py-4 align-middle">
@@ -807,10 +776,6 @@ export function ReservasPage() {
                             </p>
                           </td>
 
-                          <td className="px-4 py-4 align-middle text-stone">
-                            {reserva.pax} pax
-                          </td>
-
                           <td className="px-4 py-4 align-middle">
                             <p className="font-semibold text-stone">
                               {formatoMoneda(Number(reserva.total))}
@@ -820,11 +785,9 @@ export function ReservasPage() {
                                 Anticipo: {formatoMoneda(Number(reserva.anticipo))}
                               </p>
                             )}
-                            {Number(reserva.saldo) > 0 && (
-                              <p className="text-xs text-stone-light">
-                                Saldo: {formatoMoneda(Number(reserva.saldo))}
-                              </p>
-                            )}
+                            <p className="text-xs text-stone-light">
+                              Saldo: {formatoMoneda(Number(reserva.saldo))}
+                            </p>
                           </td>
 
                           <td className="px-4 py-4 align-middle">

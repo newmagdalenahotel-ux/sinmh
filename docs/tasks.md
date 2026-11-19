@@ -503,7 +503,8 @@ design, design-system y tasks.
 
 **Aceptación:**
 - [x] Barra con búsqueda, filtro, reserva grupal, check-in directo y nueva reserva.
-- [x] Tabla con huésped, habitación, estancia, ocupantes, tarifa, anticipo y estado.
+- [x] Tabla con huésped, habitación y ocupantes, estancia, valor/anticipo/saldo y estado.
+- [x] Sin iniciales ni icono de cama; la ocupación va en la habitación.
 - [x] Acciones por fila con iconos y etiquetas accesibles.
 - [x] Paginación de 10, 20 o 50 filas.
 - [x] Búsqueda con espera de 350 ms.
