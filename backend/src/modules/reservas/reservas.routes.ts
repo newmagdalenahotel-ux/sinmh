@@ -943,8 +943,10 @@ reservasRouter.get('/maestra/:id', async (req, res) => {
   }
 
   const maestra = await db.query(
-    `SELECT rm.id, rm.codigo, rm.estado, rm.fecha_entrada, rm.fecha_salida, rm.notas,
-            c.id AS pagador_cliente_id, c.razon_social AS pagador
+    `SELECT rm.id, rm.codigo, rm.estado, rm.created_at, rm.fecha_entrada, rm.fecha_salida,
+            rm.notas, c.id AS pagador_cliente_id, c.razon_social AS pagador,
+            c.tipo AS pagador_tipo, c.tipo_documento, c.numero_documento,
+            c.telefono, c.email, c.tarifa_plan
      FROM reserva_maestra rm
      JOIN cliente c ON c.id = rm.pagador_cliente_id
      WHERE rm.id = $1`,

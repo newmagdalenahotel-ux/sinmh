@@ -88,6 +88,8 @@ npm run dev
 
 ![Detalle de reserva](docs/capturas/reserva-detalle.png)
 
+![Detalle de grupo](docs/capturas/grupo-detalle.png)
+
 ![Nueva reserva en drawer](docs/capturas/reservas-drawer.png)
 
 ![Reserva grupal con pagador](docs/capturas/reserva-grupal.png)
@@ -109,6 +111,8 @@ npm run dev
 ![Bar recepción](docs/capturas/bar-recepcion.png)
 
 ![Clientes](docs/capturas/clientes.png)
+
+![Detalle de cliente](docs/capturas/cliente-detalle.png)
 
 ![Cartera](docs/capturas/cartera.png)
 

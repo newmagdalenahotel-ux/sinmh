@@ -524,6 +524,15 @@ design, design-system y tasks.
 - [x] Cuentas por cobrar e historial.
 - [x] Check-in y check-out con hora.
 
+### T11.6 — Layout estándar de detalle
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Componente `RecordLayout` con contenido principal y panel derecho fijo.
+- [x] Reserva, grupo y cliente usan el mismo layout.
+- [x] El panel baja debajo del contenido en móvil.
+- [x] Listas y formularios conservan su propio layout.
+
 ---
 
 ## Orden de ejecución

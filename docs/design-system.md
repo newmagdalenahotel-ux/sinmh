@@ -80,6 +80,9 @@
   - `.section-pad`: `6rem` (96px) arriba/abajo — para páginas de dashboard.
   - `.section-pad-sm`: `4rem` (64px) — para páginas de formulario.
 - **Grid:** 12 columnas en desktop, 1 columna en móvil.
+- **Detalle (`RecordLayout`):** contenido principal flexible + panel derecho de 280–360px, sticky en desktop. En móvil el panel baja debajo. Se usa en reserva, grupo y cliente.
+- **Listas:** tabla ancha con filtros, búsqueda y paginación; no usan panel lateral.
+- **Formularios:** una columna, sin panel lateral; drawer para formularios medianos.
 - **Breakpoints:** `sm: 640px`, `md: 768px`, `lg: 1024px`, `xl: 1280px`.
 
 ---

@@ -302,7 +302,7 @@ export function ReservaDetallePage() {
           </section>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 self-start xl:sticky xl:top-6">
           <section className="card">
             <h2 className="font-display text-xl text-stone">Resumen financiero</h2>
             <dl className="mt-4 space-y-2 text-sm">

@@ -765,9 +765,12 @@ export function ReservasPage() {
                               {formatoFechaCreacion(reserva.created_at)}
                             </p>
                             {reserva.maestra_codigo && (
-                              <p className="mt-1 inline-flex rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-medium text-gold-dark">
+                              <Link
+                                to={`/reservas/grupo/${reserva.maestra_id}`}
+                                className="mt-1 inline-flex rounded-full bg-gold/10 px-2 py-0.5 text-[10px] font-medium text-gold-dark hover:bg-gold/20"
+                              >
                                 Grupo {reserva.maestra_codigo}
-                              </p>
+                              </Link>
                             )}
                           </td>
 

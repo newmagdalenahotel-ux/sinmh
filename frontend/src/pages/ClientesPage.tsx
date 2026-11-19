@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { MoneyInput } from '../components/MoneyInput';
 import { useToast } from '../components/Toast';
@@ -218,12 +219,20 @@ export function ClientesPage() {
                       </td>
                       <td className="py-3 pr-3 text-right">{cliente.dias_credito}</td>
                       <td className="py-3 text-right">
-                        <button
-                          className="rounded-lg border border-gold/40 px-2 py-1 text-xs text-gold-dark"
-                          onClick={() => abrirEditar(cliente)}
-                        >
-                          Editar
-                        </button>
+                        <div className="flex justify-end gap-1">
+                          <Link
+                            to={`/clientes/${cliente.id}`}
+                            className="rounded-lg border border-cream-dark px-2 py-1 text-xs text-stone-light hover:bg-cream"
+                          >
+                            Ver
+                          </Link>
+                          <button
+                            className="rounded-lg border border-gold/40 px-2 py-1 text-xs text-gold-dark"
+                            onClick={() => abrirEditar(cliente)}
+                          >
+                            Editar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

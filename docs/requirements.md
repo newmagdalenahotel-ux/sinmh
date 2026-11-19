@@ -435,6 +435,8 @@ pagador del grupo.
 - La fecha de creación muestra fecha y hora.
 - Cada reserva tiene una vista `/reservas/:id`.
 - La vista muestra estadía, huésped, tarifa, consumos, pagos, cuentas por cobrar e historial.
+- La reserva grupal tiene vista `/reservas/grupo/:id` con pagador y habitaciones.
+- El cliente tiene ficha `/clientes/:id` con contacto, crédito y tarifa.
 - Los check-in y check-out muestran fecha y hora.
 - El filtro permite ver activas, histórico o todas.
 - Las reservas con check-out o canceladas se conservan.

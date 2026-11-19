@@ -874,6 +874,49 @@ export function crearReservaMaestraApi(token: string, payload: ReservaMaestraPay
   );
 }
 
+export type ReservaMaestraDetalle = {
+  maestra: {
+    id: number;
+    codigo: string;
+    estado: string;
+    created_at: string;
+    fecha_entrada: string;
+    fecha_salida: string;
+    notas: string | null;
+    pagador_cliente_id: number;
+    pagador: string;
+    pagador_tipo: string;
+    tipo_documento: string | null;
+    numero_documento: string | null;
+    telefono: string | null;
+    email: string | null;
+    tarifa_plan: string;
+  };
+  reservas: Array<{
+    id: number;
+    codigo: string;
+    estado: string;
+    total: string;
+    saldo: string;
+    pax: number;
+    precio_noche: string;
+    habitacion: string;
+    habitacion_id: number;
+  }>;
+};
+
+export function reservaMaestraDetalleApi(token: string, id: number) {
+  return request<ReservaMaestraDetalle>(`/reservas/maestra/${id}`, {}, token);
+}
+
+export function cancelarReservaMaestraApi(token: string, id: number) {
+  return request<{ ok: boolean }>(
+    `/reservas/maestra/${id}/cancelar`,
+    { method: 'POST', body: JSON.stringify({}) },
+    token
+  );
+}
+
 export function actualizarReservaApi(
   token: string,
   reservaId: number,
@@ -970,6 +1013,10 @@ export function clientesApi(token: string, buscar?: string) {
     {},
     token
   );
+}
+
+export function clienteApi(token: string, clienteId: number) {
+  return request<{ cliente: Cliente }>(`/clientes/${clienteId}`, {}, token);
 }
 
 export function crearClienteApi(
