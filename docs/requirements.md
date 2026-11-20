@@ -343,7 +343,8 @@ la información principal del día.
 **Aceptación:**
 - Formulario en 3 pasos: estadía, huésped/origen y pago.
 - Paso 1: fechas, pax, tarjetas de habitaciones, temporada, escenario y desayuno.
-- Las tarjetas muestran ocupadas, mantenimiento y falta de acomodación con el motivo.
+- Las tarjetas muestran por defecto solo las disponibles.
+- Un enlace “Ver no disponibles” muestra ocupadas, mantenimiento y falta de acomodación con el motivo.
 - Las habitaciones sucias se muestran con advertencia de limpieza.
 - Paso 2: buscador de cliente existente, huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
 - Paso 3: pagos divididos, anticipo opcional, notas y resumen.

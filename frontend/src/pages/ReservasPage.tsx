@@ -217,6 +217,7 @@ export function ReservasPage() {
   const [reservas, setReservas] = useState<ReservaResumen[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [habitaciones, setHabitaciones] = useState<HabitacionDisponible[]>([]);
+  const [mostrarNoDisponibles, setMostrarNoDisponibles] = useState(false);
   const [habitacionesTodas, setHabitacionesTodas] = useState<Habitacion[]>([]);
   const [edicion, setEdicion] = useState<ReservaDetalle | null>(null);
   const [editForm, setEditForm] = useState({
@@ -541,6 +542,7 @@ export function ReservasPage() {
     setBusquedaCliente('');
     setListaClientesAbierta(false);
     setPagosExtra([]);
+    setMostrarNoDisponibles(false);
     setError('');
     setDrawerAbierto(true);
   }
@@ -793,6 +795,10 @@ export function ReservasPage() {
       form.motivo_visita &&
       (form.cliente.telefono?.trim() || form.cliente.email?.trim())
   );
+  const noDisponibles = habitaciones.filter((habitacion) => !habitacion.disponible).length;
+  const habitacionesVisibles = mostrarNoDisponibles
+    ? habitaciones
+    : habitaciones.filter((habitacion) => habitacion.disponible);
   const tarifaNegociada =
     clienteSeleccionado &&
     clienteSeleccionado.tarifa_plan !== 'PUBLICA' &&
@@ -1512,9 +1518,24 @@ export function ReservasPage() {
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="label">Habitaciones disponibles</label>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <label className="label mb-0">
+                          Habitaciones {mostrarNoDisponibles ? 'del período' : 'disponibles'}
+                        </label>
+                        {noDisponibles > 0 && (
+                          <button
+                            type="button"
+                            className="text-xs font-medium text-gold-dark underline"
+                            onClick={() => setMostrarNoDisponibles((actual) => !actual)}
+                          >
+                            {mostrarNoDisponibles
+                              ? 'Ver solo disponibles'
+                              : `Ver no disponibles (${noDisponibles})`}
+                          </button>
+                        )}
+                      </div>
                       <div className="mt-2 grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {habitaciones.map((habitacion) => {
+                        {habitacionesVisibles.map((habitacion) => {
                           const activa = form.habitacion_id === habitacion.id;
                           const bloqueada = !habitacion.disponible;
                           return (
@@ -1566,9 +1587,10 @@ export function ReservasPage() {
                           );
                         })}
                       </div>
-                      {habitaciones.length === 0 && (
+                      {habitacionesVisibles.length === 0 && (
                         <p className="mt-2 rounded-lg bg-warning/10 px-3 py-2 text-sm text-warning">
                           No hay habitaciones disponibles para esas fechas y personas.
+                          {noDisponibles > 0 ? ' Puedes revisar las no disponibles con el enlace de arriba.' : ''}
                         </p>
                       )}
                     </div>
