@@ -415,6 +415,11 @@ export function ReservaDetalleContenido({
               {reserva.tarifa_motivo && (
                 <p className="text-xs text-stone-light">{reserva.tarifa_motivo}</p>
               )}
+              {reserva.uso_parcial_autorizado && (
+                <p className="rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold-dark">
+                  Uso parcial autorizado: {reserva.motivo_uso_parcial ?? 'Sin motivo registrado'}
+                </p>
+              )}
             </div>
           </section>
         </div>

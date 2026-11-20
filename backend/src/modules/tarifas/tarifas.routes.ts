@@ -61,6 +61,7 @@ const cotizarSchema = z.object({
   pax: z.coerce.number().int().min(1).max(6),
   temporada: z.enum(['BAJA', 'ALTA']),
   escenario: z.enum(['NORMAL', 'A', 'B', 'C']).default('NORMAL'),
+  autorizacion_parcial: z.coerce.boolean().optional(),
 });
 
 tarifasRouter.get('/cotizar', async (req, res) => {
@@ -70,8 +71,14 @@ tarifasRouter.get('/cotizar', async (req, res) => {
     return;
   }
 
-  const { habitacion_id, pax, temporada, escenario } = parsed.data;
-  const resultado = await cotizarHabitacion(habitacion_id, pax, temporada, escenario);
+  const { habitacion_id, pax, temporada, escenario, autorizacion_parcial } = parsed.data;
+  const resultado = await cotizarHabitacion(
+    habitacion_id,
+    pax,
+    temporada,
+    escenario,
+    autorizacion_parcial === true
+  );
 
   if (!resultado.ok) {
     res.status(resultado.status).json({ error: resultado.error });

@@ -185,6 +185,7 @@ reservasRouter.get('/:id', async (req, res) => {
             r.incluye_desayuno, r.desayuno_modo, r.desayunos_pax, r.desayunos_total,
             r.total_desayuno, r.temporada, r.escenario, r.maestra_id,
             r.motivo_visita, r.como_llego, r.placa_vehiculo, r.origen_reserva,
+            r.uso_parcial_autorizado, r.motivo_uso_parcial,
             r.tarifa_plan, r.tarifa_negociada, r.tarifa_motivo,
             rm.codigo AS maestra_codigo, rm.pagador_cliente_id,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche, rh.estado AS rh_estado,
@@ -242,6 +243,7 @@ reservasRouter.get('/:id/detalle', async (req, res) => {
             r.total_desayuno, r.temporada, r.escenario, r.maestra_id,
             rm.codigo AS maestra_codigo,
             r.motivo_visita, r.como_llego, r.placa_vehiculo, r.origen_reserva,
+            r.uso_parcial_autorizado, r.motivo_uso_parcial,
             r.tarifa_plan, r.tarifa_negociada, r.tarifa_motivo,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche, rh.estado AS rh_estado,
             h.id AS habitacion_id, h.numero AS habitacion, h.clima, h.es_suite,
@@ -450,6 +452,8 @@ const crearSchema = z.object({
   desayuno: z.enum(['NO', 'PAGADO', 'INCLUIDO']).default('NO'),
   anticipo: anticipoSchema.optional(),
   pagos: z.array(anticipoSchema).min(1).max(5).optional(),
+  autorizacion_parcial: z.boolean().default(false),
+  motivo_uso_parcial: z.string().trim().max(200).optional(),
   notas: z.string().trim().max(500).optional(),
   motivo_visita: z.enum(['TURISMO', 'CORPORATIVO']),
   como_llego: z.string().trim().max(60).optional(),
@@ -473,6 +477,14 @@ reservasRouter.post('/', async (req, res) => {
     return;
   }
 
+  if (
+    datos.autorizacion_parcial &&
+    !['ADMIN', 'GERENTE'].includes(req.user?.rol ?? '')
+  ) {
+    res.status(403).json({ error: 'Solo administración o gerencia puede autorizar uso parcial' });
+    return;
+  }
+
   const noches = calcularNoches(datos.fecha_entrada, datos.fecha_salida);
   if (noches < 1) {
     res.status(400).json({ error: 'La fecha de salida debe ser posterior a la de entrada' });
@@ -488,7 +500,8 @@ reservasRouter.post('/', async (req, res) => {
     datos.habitacion_id,
     datos.pax,
     datos.temporada,
-    datos.escenario
+    datos.escenario,
+    datos.autorizacion_parcial
   );
 
   if (!cotizacion.ok) {
@@ -500,6 +513,10 @@ reservasRouter.post('/', async (req, res) => {
     res.status(409).json({ error: 'La habitación no está disponible en esas fechas' });
     return;
   }
+
+  const usoParcialAutorizado = Boolean(
+    datos.autorizacion_parcial && cotizacion.cotizacion.uso_parcial
+  );
 
   const precioNoche = tarifaCliente?.precio_noche ?? Number(cotizacion.cotizacion.precio);
   const desayuno =
@@ -590,9 +607,10 @@ reservasRouter.post('/', async (req, res) => {
           temporada, escenario, total, saldo, notas, incluye_desayuno, desayuno_modo,
           desayunos_pax, desayunos_total, total_desayuno,
           tarifa_plan, tarifa_negociada, tarifa_motivo, motivo_visita, como_llego,
-          placa_vehiculo, origen_reserva)
+          placa_vehiculo, origen_reserva, uso_parcial_autorizado, motivo_uso_parcial,
+          autorizado_por_id, autorizado_at)
        VALUES ($1, $2, $3::date, $4::date, 'NOCHE', 'CONFIRMADA', $5, $6, $7, $7, $8, $9,
-               $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+               $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
        RETURNING id`,
       [
         codigo,
@@ -615,6 +633,10 @@ reservasRouter.post('/', async (req, res) => {
         datos.como_llego ?? null,
         datos.placa_vehiculo ?? null,
         datos.origen_reserva ?? null,
+        usoParcialAutorizado,
+        usoParcialAutorizado ? datos.motivo_uso_parcial ?? 'Uso parcial autorizado' : null,
+        usoParcialAutorizado ? usuarioId : null,
+        usoParcialAutorizado ? new Date() : null,
       ]
     );
 

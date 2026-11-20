@@ -548,6 +548,18 @@ design, design-system y tasks.
 - [x] El panel baja debajo del contenido en móvil.
 - [x] Listas y formularios conservan su propio layout.
 
+### T11.6 — Uso parcial autorizado
+**Estado:** Hecho
+
+**Aceptación:**
+- [x] Migración `018_uso_parcial.sql`.
+- [x] La API marca habitaciones grandes que requieren autorización.
+- [x] Solo `ADMIN` y `GERENTE` autorizan.
+- [x] Motivo obligatorio.
+- [x] Se registra autorizador y fecha.
+- [x] Precio según pax reales.
+- [x] La reserva muestra el uso parcial en el detalle.
+
 ---
 
 ## Orden de ejecución

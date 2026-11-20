@@ -30,6 +30,7 @@ export type Cotizacion = {
   temporada: string;
   escenario: string;
   es_suite_premium: boolean;
+  uso_parcial: boolean;
   precio: number;
 };
 
@@ -95,6 +96,7 @@ export type HabitacionDisponible = Habitacion & {
   motivo: 'MANTENIMIENTO' | 'SIN_ACOMODACION' | 'OCUPADA' | null;
   advertencia: 'LIMPIEZA' | null;
   disponible: boolean;
+  permite_autorizacion: boolean;
 };
 
 type DisponibilidadResponse = {
@@ -186,7 +188,8 @@ export function cotizarApi(
   habitacionId: number,
   pax: number,
   temporada: 'BAJA' | 'ALTA',
-  escenario: 'NORMAL' | 'A' | 'B' | 'C'
+  escenario: 'NORMAL' | 'A' | 'B' | 'C',
+  autorizacionParcial = false
 ) {
   const params = new URLSearchParams({
     habitacion_id: String(habitacionId),
@@ -194,6 +197,7 @@ export function cotizarApi(
     temporada,
     escenario,
   });
+  if (autorizacionParcial) params.set('autorizacion_parcial', 'true');
   return request<Cotizacion>(`/tarifas/cotizar?${params.toString()}`, {}, token);
 }
 
@@ -730,6 +734,8 @@ export type ReservaPayload = {
   como_llego?: string;
   placa_vehiculo?: string;
   origen_reserva?: 'WHATSAPP' | 'TELEFONO' | 'DIRECTO' | 'CORREO' | 'WEB' | 'OTA';
+  autorizacion_parcial?: boolean;
+  motivo_uso_parcial?: string;
   anticipo?: {
     monto: number;
     metodo_pago: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA';
@@ -783,6 +789,8 @@ export type ReservaDetalleCompleto = {
     cliente_notas: string | null;
     placa_vehiculo: string | null;
     tarifa_motivo: string | null;
+    uso_parcial_autorizado: boolean;
+    motivo_uso_parcial: string | null;
     maestra_codigo: string | null;
     habitacion_notas: string | null;
     es_suite: boolean;

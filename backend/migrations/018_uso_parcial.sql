@@ -1,0 +1,11 @@
+ALTER TABLE reserva
+  ADD COLUMN IF NOT EXISTS uso_parcial_autorizado BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE reserva
+  ADD COLUMN IF NOT EXISTS motivo_uso_parcial VARCHAR(200);
+
+ALTER TABLE reserva
+  ADD COLUMN IF NOT EXISTS autorizado_por_id BIGINT REFERENCES usuario(id);
+
+ALTER TABLE reserva
+  ADD COLUMN IF NOT EXISTS autorizado_at TIMESTAMPTZ;

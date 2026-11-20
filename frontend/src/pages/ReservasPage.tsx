@@ -212,12 +212,16 @@ const formularioInicial: ReservaPayload = {
 };
 
 export function ReservasPage() {
-  const { token } = useAuth();
+  const { token, usuario } = useAuth();
   const toast = useToast();
   const [reservas, setReservas] = useState<ReservaResumen[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [habitaciones, setHabitaciones] = useState<HabitacionDisponible[]>([]);
   const [mostrarNoDisponibles, setMostrarNoDisponibles] = useState(false);
+  const [habitacionAutorizar, setHabitacionAutorizar] = useState<HabitacionDisponible | null>(null);
+  const [motivoAutorizacion, setMotivoAutorizacion] = useState('No hay habitaciones de menor capacidad');
+  const [autorizacionParcial, setAutorizacionParcial] = useState(false);
+  const [motivoUsoParcial, setMotivoUsoParcial] = useState('');
   const [habitacionesTodas, setHabitacionesTodas] = useState<Habitacion[]>([]);
   const [edicion, setEdicion] = useState<ReservaDetalle | null>(null);
   const [editForm, setEditForm] = useState({
@@ -394,6 +398,11 @@ export function ReservasPage() {
         if (!activo) return;
         setHabitaciones(respuesta.habitaciones);
         const disponibles = respuesta.habitaciones.filter((h) => h.disponible);
+        const seleccionada = respuesta.habitaciones.find((h) => h.id === form.habitacion_id);
+        if (seleccionada?.disponible) {
+          setAutorizacionParcial(false);
+          setMotivoUsoParcial('');
+        }
         const existe = disponibles.some((h) => h.id === form.habitacion_id);
         if (!existe) {
           setForm((actual) => ({
@@ -419,7 +428,14 @@ export function ReservasPage() {
     }
 
     let activo = true;
-    cotizarApi(token, form.habitacion_id, form.pax, form.temporada, form.escenario)
+    cotizarApi(
+      token,
+      form.habitacion_id,
+      form.pax,
+      form.temporada,
+      form.escenario,
+      autorizacionParcial
+    )
       .then((cotizacion) => {
         if (activo) setPrecioNoche(cotizacion.precio);
       })
@@ -430,7 +446,7 @@ export function ReservasPage() {
     return () => {
       activo = false;
     };
-  }, [token, form.habitacion_id, form.pax, form.temporada, form.escenario]);
+  }, [token, form.habitacion_id, form.pax, form.temporada, form.escenario, autorizacionParcial]);
 
   async function crear() {
     if (!token) return;
@@ -475,6 +491,8 @@ export function ReservasPage() {
     try {
       const respuesta = await crearReservaApi(token, {
         ...form,
+        autorizacion_parcial: autorizacionParcial,
+        motivo_uso_parcial: autorizacionParcial ? motivoUsoParcial : undefined,
         cliente: {
           ...form.cliente,
           email: form.cliente.email?.trim() || undefined,
@@ -543,6 +561,9 @@ export function ReservasPage() {
     setListaClientesAbierta(false);
     setPagosExtra([]);
     setMostrarNoDisponibles(false);
+    setHabitacionAutorizar(null);
+    setAutorizacionParcial(false);
+    setMotivoUsoParcial('');
     setError('');
     setDrawerAbierto(true);
   }
@@ -796,9 +817,24 @@ export function ReservasPage() {
       (form.cliente.telefono?.trim() || form.cliente.email?.trim())
   );
   const noDisponibles = habitaciones.filter((habitacion) => !habitacion.disponible).length;
+  const hayDisponibles = habitaciones.some((habitacion) => habitacion.disponible);
   const habitacionesVisibles = mostrarNoDisponibles
     ? habitaciones
     : habitaciones.filter((habitacion) => habitacion.disponible);
+
+  async function autorizarHabitacion() {
+    if (!habitacionAutorizar) return;
+
+    if (!['ADMIN', 'GERENTE'].includes(usuario?.rol ?? '')) {
+      toast.error('Solo administración o gerencia puede autorizar uso parcial');
+      return;
+    }
+
+    setForm({ ...form, habitacion_id: habitacionAutorizar.id });
+    setAutorizacionParcial(true);
+    setMotivoUsoParcial(motivoAutorizacion.trim() || 'Uso parcial autorizado');
+    setHabitacionAutorizar(null);
+  }
   const tarifaNegociada =
     clienteSeleccionado &&
     clienteSeleccionado.tarifa_plan !== 'PUBLICA' &&
@@ -1536,16 +1572,29 @@ export function ReservasPage() {
                       </div>
                       <div className="mt-2 grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {habitacionesVisibles.map((habitacion) => {
-                          const activa = form.habitacion_id === habitacion.id;
-                          const bloqueada = !habitacion.disponible;
+                          const activa =
+                            form.habitacion_id === habitacion.id ||
+                            (autorizacionParcial && form.habitacion_id === habitacion.id);
+                          const autorizable =
+                            !hayDisponibles && habitacion.permite_autorizacion;
+                          const bloqueada = !habitacion.disponible && !autorizable;
                           return (
                             <button
                               key={habitacion.id}
                               type="button"
                               disabled={bloqueada}
-                              onClick={() =>
-                                setForm({ ...form, habitacion_id: habitacion.id })
-                              }
+                              onClick={() => {
+                                if (habitacion.disponible) {
+                                  setForm({ ...form, habitacion_id: habitacion.id });
+                                  setAutorizacionParcial(false);
+                                  setMotivoUsoParcial('');
+                                } else if (autorizable) {
+                                  setHabitacionAutorizar(habitacion);
+                                  setMotivoAutorizacion(
+                                    'No hay habitaciones de menor capacidad'
+                                  );
+                                }
+                              }}
                               className={`rounded-xl border p-3 text-left transition ${
                                 bloqueada
                                   ? 'cursor-not-allowed border-cream-dark bg-cream/40 opacity-60'
@@ -1573,14 +1622,24 @@ export function ReservasPage() {
                                       : `No permite ${form.pax} pax`}
                                 </p>
                               )}
+                              {autorizable && !activa && (
+                                <p className="mt-1 text-[11px] font-medium text-warning">
+                                  Requiere autorización
+                                </p>
+                              )}
+                              {activa && autorizacionParcial && (
+                                <p className="mt-1 text-[11px] font-medium text-gold-dark">
+                                  Uso parcial autorizado
+                                </p>
+                              )}
+                              {activa && !autorizacionParcial && (
+                                <p className="mt-1 text-[11px] font-medium text-gold-dark">
+                                  Seleccionada
+                                </p>
+                              )}
                               {habitacion.advertencia === 'LIMPIEZA' && (
                                 <p className="mt-1 text-[11px] font-medium text-warning">
                                   Limpieza pendiente
-                                </p>
-                              )}
-                              {activa && (
-                                <p className="mt-1 text-[11px] font-medium text-gold-dark">
-                                  Seleccionada
                                 </p>
                               )}
                             </button>
@@ -2380,6 +2439,64 @@ export function ReservasPage() {
             />
           )}
         </SlideOver>
+
+        {habitacionAutorizar && (
+          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+            <button
+              type="button"
+              aria-label="Cerrar autorización"
+              className="absolute inset-0 bg-navy-dark/60 backdrop-blur-[2px]"
+              onClick={() => setHabitacionAutorizar(null)}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Autorizar uso parcial"
+              className="relative w-full max-w-md rounded-2xl border border-gold/20 bg-cream p-6 shadow-2xl"
+            >
+              <h2 className="font-display text-xl text-stone">Autorizar uso parcial</h2>
+              <p className="mt-1 text-sm text-stone-light">
+                Hab. {habitacionAutorizar.numero} · capacidad {habitacionAutorizar.capacidad_max}{' '}
+                pax · se usaría para {form.pax} pax.
+              </p>
+              <p className="mt-2 rounded-lg bg-gold/10 px-3 py-2 text-xs text-gold-dark">
+                Se cobrará la tarifa correspondiente a {form.pax} pax. Solo administración o
+                gerencia puede aprobar esta excepción.
+              </p>
+              <div className="mt-4">
+                <label className="label" htmlFor="motivo_autorizacion">Motivo</label>
+                <textarea
+                  id="motivo_autorizacion"
+                  className="input min-h-20"
+                  value={motivoAutorizacion}
+                  onChange={(event) => setMotivoAutorizacion(event.target.value)}
+                />
+              </div>
+              {!['ADMIN', 'GERENTE'].includes(usuario?.rol ?? '') && (
+                <p className="mt-2 text-xs text-error">
+                  Tu rol no puede autorizar. Pide autorización a gerencia.
+                </p>
+              )}
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setHabitacionAutorizar(null)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  disabled={!['ADMIN', 'GERENTE'].includes(usuario?.rol ?? '')}
+                  onClick={() => void autorizarHabitacion()}
+                >
+                  Autorizar y seleccionar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

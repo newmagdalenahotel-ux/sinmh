@@ -15,6 +15,7 @@ export type Cotizacion = {
   temporada: string;
   escenario: string;
   es_suite_premium: boolean;
+  uso_parcial: boolean;
   precio: number;
 };
 
@@ -26,7 +27,8 @@ export async function cotizarHabitacion(
   habitacionId: number,
   pax: number,
   temporada: TemporadaCodigo,
-  escenario: EscenarioCodigo
+  escenario: EscenarioCodigo,
+  permitirUsoParcial = false
 ): Promise<ResultadoCotizacion> {
   const consulta = await db.query<{
     id: number;
@@ -44,7 +46,7 @@ export async function cotizarHabitacion(
   );
 
   const habitacion = consulta.rows[0];
-  if (!habitacion || habitacion.permitido === null) {
+  if (!habitacion) {
     return {
       ok: false,
       status: 400,
@@ -52,7 +54,18 @@ export async function cotizarHabitacion(
     };
   }
 
-  const esSuitePremium = habitacion.es_suite && pax === 2;
+  const usoParcial =
+    permitirUsoParcial && habitacion.permitido === null && habitacion.capacidad_max >= pax;
+
+  if (habitacion.permitido === null && !usoParcial) {
+    return {
+      ok: false,
+      status: 400,
+      error: `La habitación no está disponible para ${pax} personas`,
+    };
+  }
+
+  const esSuitePremium = habitacion.es_suite && pax === 2 && !usoParcial;
   const acomodacion = esSuitePremium ? 6 : pax;
   const temporadaCodigo = habitacion.clima === 'VENTILADOR' ? 'UNICA' : temporada;
   const escenarioCodigo = habitacion.clima === 'VENTILADOR' ? 'NORMAL' : escenario;
@@ -84,6 +97,7 @@ export async function cotizarHabitacion(
       temporada: temporadaCodigo,
       escenario: escenarioCodigo,
       es_suite_premium: esSuitePremium,
+      uso_parcial: usoParcial,
       precio: Number(tarifa.rows[0].valor),
     },
   };

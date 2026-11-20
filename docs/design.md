@@ -11,7 +11,7 @@
 
 Este documento contiene el mapa de módulos y pantallas del frontend y el esquema
 de base de datos organizado por migraciones. La implementación actual está
-consolidada en las migraciones 001–017; las migraciones 018–025 del diseño
+consolidada en las migraciones 001–018; las migraciones 019–025 del diseño
 original quedan como objetivo de las fases siguientes.
 
 ---
@@ -137,6 +137,7 @@ La implementación consolidó el esquema en estas migraciones:
 | `015_cliente_estadia_tarifas_grupo.sql` | Dirección/ciudad del cliente, tarifa negociada, datos de estadía y reserva maestra |
 | `016_reserva_origen.sql` | Canal de origen de la reserva |
 | `017_rooming_list.sql` | Huésped y documento por habitación en grupos |
+| `018_uso_parcial.sql` | Autorización de habitación grande para menos pax |
 
 El diseño de las migraciones 001–025 sigue siendo el objetivo funcional. Cuando
 una tabla implementada se simplifica, la diferencia se registra en este documento
@@ -153,6 +154,8 @@ y en `tasks.md`; no se crea una tabla por fuera del diseño sin actualizarlo.
   el plan y el precio negociado aplicado, para conservar el histórico aunque el cliente cambie.
 - `reserva_habitacion` guarda `huesped_nombre` y `huesped_documento` para la rooming list
   de una reserva grupal; el check-in usa esos datos si existen.
+- `reserva` registra `uso_parcial_autorizado`, motivo, usuario autorizador y fecha cuando
+  se asigna una habitación de mayor capacidad a menos pax.
 - `reserva_maestra` agrupa una o varias reservas hijas con un solo
   `pagador_cliente_id`; cada hija conserva su habitación, huésped, folio y
   check-in/check-out. El código de la maestra es `G-AAAAMMDD-####`.

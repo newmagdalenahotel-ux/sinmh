@@ -464,6 +464,18 @@ pagador del grupo.
 - El anticipo puede ser cero; en ese caso la reserva queda con saldo total.
 - El formulario avisa cuando el anticipo es opcional.
 
+### FR-49 — Uso parcial autorizado de habitación grande
+**Fase:** actual · **Estado:** Hecho
+
+**Aceptación:**
+- Una habitación de mayor capacidad puede usarse para menos pax solo con autorización.
+- Solo `ADMIN` o `GERENTE` autorizan.
+- Se solicita un motivo.
+- Se registra usuario, fecha y motivo.
+- Se cobra la tarifa correspondiente a los pax reales.
+- La opción solo aparece cuando no hay habitaciones de menor capacidad disponibles.
+- La reserva muestra “Uso parcial autorizado” en el detalle.
+
 ---
 
 ## Módulo: Reportes
