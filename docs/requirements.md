@@ -347,6 +347,7 @@ la información principal del día.
 - Un enlace “Ver no disponibles” muestra ocupadas con el estado **En casa** o **Reservada**, mantenimiento y falta de acomodación con el motivo.
 - Las habitaciones sucias se muestran con advertencia de limpieza.
 - La validación es por campo, con borde y mensaje específico; no depende de un aviso general ni de deshabilitar el botón.
+- Los campos obligatorios llevan asterisco (*) y cada campo muestra su propio mensaje.
 - Paso 2: buscador de cliente existente, huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
 - Paso 3: pagos divididos, anticipo opcional, notas y resumen.
 - La placa del vehículo se registra en el check-in, no en la reserva.

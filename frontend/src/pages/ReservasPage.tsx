@@ -472,18 +472,17 @@ export function ReservasPage() {
     }
 
     const telefono = form.cliente.telefono?.trim() ?? '';
-    if (telefono && !/^[+\d\s()-]{7,20}$/.test(telefono)) {
+    if (!telefono) {
+      nuevos.telefono = 'Escribe un teléfono.';
+    } else if (!/^[+\d\s()-]{7,20}$/.test(telefono)) {
       nuevos.telefono = 'El teléfono debe tener entre 7 y 20 dígitos.';
     }
 
     const email = form.cliente.email?.trim() ?? '';
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email) {
+      nuevos.email = 'Escribe un correo.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       nuevos.email = 'Escribe un correo válido, por ejemplo nombre@hotel.com.';
-    }
-
-    if (!telefono && !email) {
-      nuevos.telefono = 'Escribe un teléfono o un correo.';
-      nuevos.email = 'Escribe un teléfono o un correo.';
     }
 
     if (!form.motivo_visita) {
@@ -1569,7 +1568,9 @@ export function ReservasPage() {
                   <h2 className="font-display text-xl text-stone">1. Fechas, personas y habitación</h2>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="label" htmlFor="fecha_entrada">Entrada</label>
+                      <label className="label" htmlFor="fecha_entrada">
+                        Entrada <span className="text-error">*</span>
+                      </label>
                       <input
                         id="fecha_entrada"
                         type="date"
@@ -1582,7 +1583,9 @@ export function ReservasPage() {
                       />
                     </div>
                     <div>
-                      <label className="label" htmlFor="fecha_salida">Salida</label>
+                      <label className="label" htmlFor="fecha_salida">
+                        Salida <span className="text-error">*</span>
+                      </label>
                       <input
                         id="fecha_salida"
                         type="date"
@@ -1601,7 +1604,9 @@ export function ReservasPage() {
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="label" htmlFor="pax">Personas</label>
+                      <label className="label" htmlFor="pax">
+                        Personas <span className="text-error">*</span>
+                      </label>
                       <input
                         id="pax"
                         type="number"
@@ -1615,7 +1620,8 @@ export function ReservasPage() {
                     <div className="sm:col-span-2">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <label className="label mb-0">
-                          Habitaciones {mostrarNoDisponibles ? 'del período' : 'disponibles'}
+                          Habitaciones {mostrarNoDisponibles ? 'del período' : 'disponibles'}{' '}
+                          <span className="text-error">*</span>
                         </label>
                         {noDisponibles > 0 && (
                           <button
@@ -1883,7 +1889,9 @@ export function ReservasPage() {
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="label" htmlFor="cliente">Nombre completo</label>
+                      <label className="label" htmlFor="cliente">
+                        Nombre completo <span className="text-error">*</span>
+                      </label>
                       <input
                         id="cliente"
                         className={`input ${erroresReserva.nombre ? 'border-error' : ''}`}
@@ -1927,7 +1935,9 @@ export function ReservasPage() {
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="label" htmlFor="telefono">Teléfono</label>
+                      <label className="label" htmlFor="telefono">
+                        Teléfono <span className="text-error">*</span>
+                      </label>
                       <input
                         id="telefono"
                         className={`input ${erroresReserva.telefono ? 'border-error' : ''}`}
@@ -1935,7 +1945,12 @@ export function ReservasPage() {
                         value={form.cliente.telefono ?? ''}
                         onBlur={() => {
                           const telefono = form.cliente.telefono?.trim() ?? '';
-                          if (telefono && !/^[+\d\s()-]{7,20}$/.test(telefono)) {
+                          if (!telefono) {
+                            setErroresReserva((actuales) => ({
+                              ...actuales,
+                              telefono: 'Escribe un teléfono.',
+                            }));
+                          } else if (!/^[+\d\s()-]{7,20}$/.test(telefono)) {
                             setErroresReserva((actuales) => ({
                               ...actuales,
                               telefono: 'El teléfono debe tener entre 7 y 20 dígitos.',
@@ -1950,7 +1965,6 @@ export function ReservasPage() {
                           setErroresReserva((actuales) => ({
                             ...actuales,
                             telefono: undefined,
-                            email: undefined,
                           }));
                         }}
                       />
@@ -1959,7 +1973,9 @@ export function ReservasPage() {
                       )}
                     </div>
                     <div>
-                      <label className="label" htmlFor="email">Correo</label>
+                      <label className="label" htmlFor="email">
+                        Correo <span className="text-error">*</span>
+                      </label>
                       <input
                         id="email"
                         type="email"
@@ -1968,7 +1984,12 @@ export function ReservasPage() {
                         value={form.cliente.email ?? ''}
                         onBlur={() => {
                           const email = form.cliente.email?.trim() ?? '';
-                          if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                          if (!email) {
+                            setErroresReserva((actuales) => ({
+                              ...actuales,
+                              email: 'Escribe un correo.',
+                            }));
+                          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                             setErroresReserva((actuales) => ({
                               ...actuales,
                               email: 'Escribe un correo válido, por ejemplo nombre@hotel.com.',
@@ -1982,7 +2003,6 @@ export function ReservasPage() {
                           });
                           setErroresReserva((actuales) => ({
                             ...actuales,
-                            telefono: undefined,
                             email: undefined,
                           }));
                         }}
@@ -1995,7 +2015,9 @@ export function ReservasPage() {
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="label" htmlFor="motivo_visita">Motivo</label>
+                      <label className="label" htmlFor="motivo_visita">
+                        Motivo <span className="text-error">*</span>
+                      </label>
                       <select
                         id="motivo_visita"
                         className={`input ${erroresReserva.motivo ? 'border-error' : ''}`}
@@ -2015,7 +2037,9 @@ export function ReservasPage() {
                       )}
                     </div>
                     <div>
-                      <label className="label" htmlFor="origen_reserva">Origen</label>
+                      <label className="label" htmlFor="origen_reserva">
+                        Origen <span className="text-error">*</span>
+                      </label>
                       <select
                         id="origen_reserva"
                         className={`input ${erroresReserva.origen ? 'border-error' : ''}`}
