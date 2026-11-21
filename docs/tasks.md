@@ -516,7 +516,7 @@ design, design-system y tasks.
 - [x] Búsqueda con espera de 350 ms.
 - [x] Se retiraron las ayudas contextuales.
 - [x] Fecha de creación con hora.
-- [x] Filtros Reservadas, En casa, Histórico, Salieron y Canceladas.
+- [x] Filtros Reservadas, En casa, Check-out, Canceladas y No show.
 - [x] Check-in fuera del menú; queda como acción y “Check-in sin reserva”.
 - [x] Formulario de reserva en 3 pasos.
 - [x] Tarjetas de habitaciones en 2–4 columnas, con disponibles y bloqueadas por motivo.

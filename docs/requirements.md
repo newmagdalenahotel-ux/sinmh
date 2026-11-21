@@ -356,7 +356,7 @@ la información principal del día.
 - Convertir reserva en check-in.
 - Editar y cancelar.
 - Lista con búsqueda por código, cliente o documento, filtro y paginación.
-- Filtros: Reservadas, En casa, Histórico, Salieron y Canceladas.
+- Filtros: Reservadas, En casa, Check-out, Canceladas y No show.
 - Columnas de huésped, habitación con ocupantes, estancia, valor/anticipo/saldo, estado y acciones.
 - Acciones por fila para ver, contrato, check-in, editar, cancelar o ver folio.
 
@@ -453,7 +453,7 @@ pagador del grupo.
 - La reserva grupal tiene vista `/reservas/grupo/:id` con pagador y habitaciones.
 - El cliente tiene ficha `/clientes/:id` con contacto, crédito y tarifa.
 - Los check-in y check-out muestran fecha y hora.
-- El filtro permite ver reservadas, en casa, histórico, salieron y canceladas.
+- El filtro permite ver reservadas, en casa, check-out, canceladas y no show.
 - Las reservas con check-out o canceladas se conservan.
 
 ### FR-48 — Pago dividido y anticipo opcional

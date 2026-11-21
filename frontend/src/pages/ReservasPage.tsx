@@ -366,9 +366,9 @@ export function ReservasPage() {
       const grupos: Record<string, string[]> = {
         RESERVADAS: ['PENDIENTE', 'CONFIRMADA'],
         EN_CASA: ['CHECKIN'],
-        SALIERON: ['CHECKOUT'],
-        CANCELADAS: ['CANCELADA', 'NO_SHOW'],
-        HISTORICO: ['CHECKOUT', 'CANCELADA', 'NO_SHOW'],
+        CHECKOUT: ['CHECKOUT'],
+        CANCELADAS: ['CANCELADA'],
+        NO_SHOW: ['NO_SHOW'],
       };
       const estadoGrupo = grupos[filtroEstado];
       const estadoApi = estadoGrupo ? undefined : filtroEstado || undefined;
@@ -937,9 +937,9 @@ export function ReservasPage() {
               <option value="">Todas las reservas</option>
               <option value="RESERVADAS">Reservadas</option>
               <option value="EN_CASA">En casa</option>
-              <option value="HISTORICO">Histórico</option>
-              <option value="SALIERON">Salieron</option>
+              <option value="CHECKOUT">Check-out</option>
               <option value="CANCELADAS">Canceladas</option>
+              <option value="NO_SHOW">No show</option>
             </select>
 
             <button className="btn-secondary flex items-center gap-2 px-3 py-2 text-sm" onClick={abrirGrupo}>
