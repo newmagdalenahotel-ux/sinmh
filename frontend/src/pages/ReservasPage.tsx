@@ -261,6 +261,7 @@ export function ReservasPage() {
     fechas?: string;
     habitacion?: string;
     nombre?: string;
+    documento?: string;
     telefono?: string;
     email?: string;
     motivo?: string;
@@ -469,6 +470,11 @@ export function ReservasPage() {
     const nuevos: typeof erroresReserva = {};
     if (form.cliente.nombre.trim().length < 3) {
       nuevos.nombre = 'Escribe el nombre completo (mínimo 3 caracteres).';
+    }
+
+    const documento = form.cliente.numero_documento?.trim() ?? '';
+    if (!documento) {
+      nuevos.documento = 'Escribe el documento.';
     }
 
     const telefono = form.cliente.telefono?.trim() ?? '';
@@ -1918,18 +1924,37 @@ export function ReservasPage() {
                       )}
                     </div>
                     <div>
-                      <label className="label" htmlFor="documento">Documento</label>
+                      <label className="label" htmlFor="documento">
+                        Documento <span className="text-error">*</span>
+                      </label>
                       <input
                         id="documento"
-                        className="input"
+                        className={`input ${erroresReserva.documento ? 'border-error' : ''}`}
+                        aria-invalid={Boolean(erroresReserva.documento)}
                         value={form.cliente.numero_documento ?? ''}
-                        onChange={(event) =>
+                        onBlur={() => {
+                          const documento = form.cliente.numero_documento?.trim() ?? '';
+                          if (!documento) {
+                            setErroresReserva((actuales) => ({
+                              ...actuales,
+                              documento: 'Escribe el documento.',
+                            }));
+                          }
+                        }}
+                        onChange={(event) => {
                           setForm({
                             ...form,
                             cliente: { ...form.cliente, numero_documento: event.target.value },
-                          })
-                        }
+                          });
+                          setErroresReserva((actuales) => ({
+                            ...actuales,
+                            documento: undefined,
+                          }));
+                        }}
                       />
+                      {erroresReserva.documento && (
+                        <p className="mt-1 text-xs text-error">{erroresReserva.documento}</p>
+                      )}
                     </div>
                   </div>
 

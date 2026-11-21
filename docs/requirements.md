@@ -351,7 +351,7 @@ la información principal del día.
 - Paso 2: buscador de cliente existente, huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
 - Paso 3: pagos divididos, anticipo opcional, notas y resumen.
 - La placa del vehículo se registra en el check-in, no en la reserva.
-- No se puede continuar sin nombre, motivo y teléfono o correo.
+- No se puede continuar sin nombre, documento, teléfono, correo y motivo.
 - Calendario o lista de reservas.
 - Convertir reserva en check-in.
 - Editar y cancelar.
