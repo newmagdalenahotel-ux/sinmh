@@ -362,13 +362,23 @@ export function ReservaDetalleContenido({
                   {reserva.numero_documento ?? ''}
                 </p>
               </div>
-              {huesped && (
+              {(huesped?.nombre_completo || reserva.huesped_nombre) && (
                 <div>
                   <p className="text-xs uppercase tracking-wide text-stone-light">Huésped</p>
-                  <p className="font-medium text-stone">{huesped.nombre_completo}</p>
-                  <p className="text-xs text-stone-light">
-                    {huesped.tipo_documento ?? ''} {huesped.numero_documento ?? ''}
+                  <p className="font-medium text-stone">
+                    {huesped?.nombre_completo ?? reserva.huesped_nombre}
                   </p>
+                  <p className="text-xs text-stone-light">
+                    {huesped?.tipo_documento ?? reserva.huesped_tipo_documento ?? ''}{' '}
+                    {huesped?.numero_documento ?? reserva.huesped_documento ?? ''}
+                  </p>
+                  {!huesped && (reserva.huesped_telefono || reserva.huesped_email) && (
+                    <p className="text-xs text-stone-light">
+                      {reserva.huesped_telefono ?? ''}
+                      {reserva.huesped_telefono && reserva.huesped_email ? ' · ' : ''}
+                      {reserva.huesped_email ?? ''}
+                    </p>
+                  )}
                 </div>
               )}
               <div>

@@ -189,6 +189,8 @@ reservasRouter.get('/:id', async (req, res) => {
             r.tarifa_plan, r.tarifa_negociada, r.tarifa_motivo,
             rm.codigo AS maestra_codigo, rm.pagador_cliente_id,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche, rh.estado AS rh_estado,
+            rh.huesped_nombre, rh.huesped_tipo_documento, rh.huesped_documento,
+            rh.huesped_telefono, rh.huesped_email,
             h.id AS habitacion_id, h.numero AS habitacion, h.clima,
             c.id AS cliente_id, c.razon_social AS cliente, c.tipo_documento, c.numero_documento,
             c.telefono, c.email
@@ -246,6 +248,8 @@ reservasRouter.get('/:id/detalle', async (req, res) => {
             r.uso_parcial_autorizado, r.motivo_uso_parcial,
             r.tarifa_plan, r.tarifa_negociada, r.tarifa_motivo,
             rh.id AS reserva_habitacion_id, rh.pax, rh.precio_noche, rh.estado AS rh_estado,
+            rh.huesped_nombre, rh.huesped_tipo_documento, rh.huesped_documento,
+            rh.huesped_telefono, rh.huesped_email,
             h.id AS habitacion_id, h.numero AS habitacion, h.clima, h.es_suite,
             h.capacidad_max, h.piso, h.notas AS habitacion_notas,
             c.id AS cliente_id, c.razon_social AS cliente, c.tipo AS cliente_tipo,
@@ -698,8 +702,9 @@ reservasRouter.post('/', async (req, res) => {
 
     await tx.query(
       `INSERT INTO reserva_habitacion
-         (reserva_id, habitacion_id, pax, clima, precio_noche, fecha_entrada, fecha_salida, estado)
-       VALUES ($1, $2, $3, $4, $5, $6::date, $7::date, 'ACTIVA')`,
+         (reserva_id, habitacion_id, pax, clima, precio_noche, fecha_entrada, fecha_salida, estado,
+          huesped_nombre, huesped_tipo_documento, huesped_documento, huesped_telefono, huesped_email)
+       VALUES ($1, $2, $3, $4, $5, $6::date, $7::date, 'ACTIVA', $8, $9, $10, $11, $12)`,
       [
         reservaId,
         datos.habitacion_id,
@@ -708,6 +713,11 @@ reservasRouter.post('/', async (req, res) => {
         precioNoche,
         datos.fecha_entrada,
         datos.fecha_salida,
+        datos.cliente.nombre,
+        datos.cliente.tipo_documento ?? null,
+        datos.cliente.numero_documento ?? null,
+        datos.cliente.telefono ?? null,
+        datos.cliente.email ?? null,
       ]
     );
 

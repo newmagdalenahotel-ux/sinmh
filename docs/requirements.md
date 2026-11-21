@@ -341,14 +341,16 @@ la información principal del día.
 **Descripción:** Crear y consultar reservas desde Alojamiento, no solo check-in.
 
 **Aceptación:**
-- Formulario en 3 pasos: estadía, huésped/origen y pago.
+- Formulario en 3 pasos: estadía, cliente/huésped/origen y pago.
 - Paso 1: fechas, pax, tarjetas de habitaciones, temporada, escenario y desayuno.
 - Las tarjetas muestran por defecto solo las disponibles.
 - Un enlace “Ver no disponibles” muestra ocupadas con el estado **En casa** o **Reservada**, mantenimiento y falta de acomodación con el motivo.
 - Las habitaciones sucias se muestran con advertencia de limpieza.
 - La validación es por campo, con borde y mensaje específico; no depende de un aviso general ni de deshabilitar el botón.
 - Los campos obligatorios llevan asterisco (*) y cada campo muestra su propio mensaje.
-- Paso 2: buscador de cliente existente, huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
+- Paso 2: buscador de cliente/pagador, datos del huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
+- El pagador (empresa o particular) y el huésped (quien se hospeda) son campos separados.
+- Si el pagador es particular, se puede marcar “El huésped es el mismo cliente”.
 - Paso 3: pagos divididos, anticipo opcional, notas y resumen.
 - La placa del vehículo se registra en el check-in, no en la reserva.
 - No se puede continuar sin nombre, documento, teléfono, correo y motivo.

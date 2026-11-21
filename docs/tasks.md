@@ -525,6 +525,7 @@ design, design-system y tasks.
 - [x] Aviso de limpieza pendiente.
 - [x] Validación por campo con mensaje y borde; correo y teléfono validados.
 - [x] Buscador de cliente existente.
+- [x] Pagador y huésped separados; para particular, “El huésped es el mismo cliente”.
 - [x] Pagos divididos y anticipo opcional.
 - [x] Validación de nombre, motivo y teléfono/correo.
 - [x] Motivo turismo/corporativo y origen de la reserva.

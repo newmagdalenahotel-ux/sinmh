@@ -269,6 +269,7 @@ export function ReservasPage() {
   }>({});
   const [busquedaCliente, setBusquedaCliente] = useState('');
   const [listaClientesAbierta, setListaClientesAbierta] = useState(false);
+  const [huespedEsPagador, setHuespedEsPagador] = useState(false);
   const [drawerGrupo, setDrawerGrupo] = useState(false);
   const [reservaVer, setReservaVer] = useState<ReservaResumen | null>(null);
   const [grupoVer, setGrupoVer] = useState<number | null>(null);
@@ -617,6 +618,7 @@ export function ReservasPage() {
     setPasoReserva(1);
     setBusquedaCliente('');
     setListaClientesAbierta(false);
+    setHuespedEsPagador(false);
     setPagosExtra([]);
     setMostrarNoDisponibles(false);
     setHabitacionAutorizar(null);
@@ -824,20 +826,30 @@ export function ReservasPage() {
   }
 
   function seleccionarCliente(cliente: Cliente) {
+    const esParticular = cliente.tipo === 'PARTICULAR';
     setForm({
       ...form,
       cliente_id: cliente.id,
-      cliente: {
-        ...form.cliente,
-        nombre: cliente.razon_social,
-        tipo_documento: cliente.tipo_documento ?? 'CC',
-        numero_documento: cliente.numero_documento ?? '',
-        telefono: cliente.telefono ?? '',
-        email: cliente.email ?? '',
-      },
+      cliente: esParticular
+        ? {
+            nombre: cliente.razon_social,
+            tipo_documento: cliente.tipo_documento ?? 'CC',
+            numero_documento: cliente.numero_documento ?? '',
+            telefono: cliente.telefono ?? '',
+            email: cliente.email ?? '',
+          }
+        : { nombre: '', tipo_documento: 'CC', numero_documento: '', telefono: '', email: '' },
     });
+    setHuespedEsPagador(esParticular);
     setBusquedaCliente(cliente.razon_social);
     setListaClientesAbierta(false);
+    setErroresReserva((actuales) => ({
+      ...actuales,
+      nombre: undefined,
+      documento: undefined,
+      telefono: undefined,
+      email: undefined,
+    }));
   }
 
   function limpiarCliente() {
@@ -846,6 +858,7 @@ export function ReservasPage() {
       cliente_id: undefined,
       cliente: { ...form.cliente, nombre: '', numero_documento: '' },
     });
+    setHuespedEsPagador(false);
     setBusquedaCliente('');
     setListaClientesAbierta(false);
   }
@@ -1813,10 +1826,12 @@ export function ReservasPage() {
 
               {pasoReserva === 2 && (
                 <div className="space-y-3">
-                  <h2 className="font-display text-xl text-stone">2. Huésped y origen</h2>
+                  <h2 className="font-display text-xl text-stone">2. Cliente, huésped y origen</h2>
 
                   <div>
-                    <label className="label" htmlFor="buscar_cliente">Buscar cliente existente</label>
+                    <label className="label" htmlFor="buscar_cliente">
+                      Cliente / pagador <span className="text-error">*</span>
+                    </label>
                     <div className="relative">
                       <input
                         id="buscar_cliente"
@@ -1828,6 +1843,7 @@ export function ReservasPage() {
                           setListaClientesAbierta(true);
                           if (form.cliente_id) {
                             setForm({ ...form, cliente_id: undefined });
+                            setHuespedEsPagador(false);
                           }
                         }}
                         onFocus={() => setListaClientesAbierta(true)}
@@ -1893,15 +1909,45 @@ export function ReservasPage() {
                     )}
                   </div>
 
+                  {clienteSeleccionado?.tipo === 'PARTICULAR' && (
+                    <label className="flex items-center gap-2 text-sm text-stone">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-cream-dark accent-gold"
+                        checked={huespedEsPagador}
+                        onChange={(event) => {
+                          const marcado = event.target.checked;
+                          setHuespedEsPagador(marcado);
+                          if (marcado) {
+                            setForm({
+                              ...form,
+                              cliente: {
+                                nombre: clienteSeleccionado.razon_social,
+                                tipo_documento: clienteSeleccionado.tipo_documento ?? 'CC',
+                                numero_documento: clienteSeleccionado.numero_documento ?? '',
+                                telefono: clienteSeleccionado.telefono ?? '',
+                                email: clienteSeleccionado.email ?? '',
+                              },
+                            });
+                          }
+                        }}
+                      />
+                      El huésped es el mismo cliente
+                    </label>
+                  )}
+
+                  <h3 className="pt-1 text-sm font-semibold text-stone">Datos del huésped</h3>
+
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <label className="label" htmlFor="cliente">
-                        Nombre completo <span className="text-error">*</span>
+                        Nombre del huésped <span className="text-error">*</span>
                       </label>
                       <input
                         id="cliente"
                         className={`input ${erroresReserva.nombre ? 'border-error' : ''}`}
                         aria-invalid={Boolean(erroresReserva.nombre)}
+                        disabled={huespedEsPagador}
                         value={form.cliente.nombre}
                         onBlur={() => {
                           if (form.cliente.nombre.trim().length < 3) {
@@ -1925,12 +1971,13 @@ export function ReservasPage() {
                     </div>
                     <div>
                       <label className="label" htmlFor="documento">
-                        Documento <span className="text-error">*</span>
+                        Documento del huésped <span className="text-error">*</span>
                       </label>
                       <input
                         id="documento"
                         className={`input ${erroresReserva.documento ? 'border-error' : ''}`}
                         aria-invalid={Boolean(erroresReserva.documento)}
+                        disabled={huespedEsPagador}
                         value={form.cliente.numero_documento ?? ''}
                         onBlur={() => {
                           const documento = form.cliente.numero_documento?.trim() ?? '';
@@ -1961,12 +2008,13 @@ export function ReservasPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
                       <label className="label" htmlFor="telefono">
-                        Teléfono <span className="text-error">*</span>
+                        Teléfono del huésped <span className="text-error">*</span>
                       </label>
                       <input
                         id="telefono"
                         className={`input ${erroresReserva.telefono ? 'border-error' : ''}`}
                         aria-invalid={Boolean(erroresReserva.telefono)}
+                        disabled={huespedEsPagador}
                         value={form.cliente.telefono ?? ''}
                         onBlur={() => {
                           const telefono = form.cliente.telefono?.trim() ?? '';
@@ -1999,13 +2047,14 @@ export function ReservasPage() {
                     </div>
                     <div>
                       <label className="label" htmlFor="email">
-                        Correo <span className="text-error">*</span>
+                        Correo del huésped <span className="text-error">*</span>
                       </label>
                       <input
                         id="email"
                         type="email"
                         className={`input ${erroresReserva.email ? 'border-error' : ''}`}
                         aria-invalid={Boolean(erroresReserva.email)}
+                        disabled={huespedEsPagador}
                         value={form.cliente.email ?? ''}
                         onBlur={() => {
                           const email = form.cliente.email?.trim() ?? '';

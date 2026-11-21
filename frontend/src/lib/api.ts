@@ -708,6 +708,11 @@ export type ReservaDetalle = ReservaResumen & {
   tipo_documento: string | null;
   telefono: string | null;
   email: string | null;
+  huesped_nombre: string | null;
+  huesped_tipo_documento: string | null;
+  huesped_documento: string | null;
+  huesped_telefono: string | null;
+  huesped_email: string | null;
   placa_vehiculo: string | null;
   tarifa_motivo: string | null;
   maestra_codigo: string | null;
