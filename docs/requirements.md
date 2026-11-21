@@ -344,8 +344,9 @@ la información principal del día.
 - Formulario en 3 pasos: estadía, huésped/origen y pago.
 - Paso 1: fechas, pax, tarjetas de habitaciones, temporada, escenario y desayuno.
 - Las tarjetas muestran por defecto solo las disponibles.
-- Un enlace “Ver no disponibles” muestra ocupadas, mantenimiento y falta de acomodación con el motivo.
+- Un enlace “Ver no disponibles” muestra ocupadas con el estado **En casa** o **Reservada**, mantenimiento y falta de acomodación con el motivo.
 - Las habitaciones sucias se muestran con advertencia de limpieza.
+- La validación es por campo, con borde y mensaje específico; no depende de un aviso general ni de deshabilitar el botón.
 - Paso 2: buscador de cliente existente, huésped, documento, teléfono, correo, motivo (turismo/corporativo) y origen (WhatsApp, teléfono, directo, correo, web u OTA).
 - Paso 3: pagos divididos, anticipo opcional, notas y resumen.
 - La placa del vehículo se registra en el check-in, no en la reserva.

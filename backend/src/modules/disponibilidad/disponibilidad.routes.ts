@@ -31,15 +31,9 @@ disponibilidadRouter.get('/', async (req, res) => {
             h.estado_operativo, ha.pax AS permitido,
             CASE
               WHEN h.estado_operativo = 'MANTENIMIENTO' THEN 'MANTENIMIENTO'
+              WHEN r.estado = 'CHECKIN' THEN 'EN_CASA'
+              WHEN r.estado = 'ACTIVA' THEN 'RESERVADA'
               WHEN ha.pax IS NULL THEN 'SIN_ACOMODACION'
-              WHEN EXISTS (
-                SELECT 1
-                FROM reserva_habitacion rh
-                WHERE rh.habitacion_id = h.id
-                  AND rh.estado IN ('ACTIVA', 'CHECKIN')
-                  AND rh.fecha_entrada < $2::date
-                  AND rh.fecha_salida > $1::date
-              ) THEN 'OCUPADA'
               ELSE NULL
             END AS motivo,
             CASE
@@ -48,31 +42,27 @@ disponibilidadRouter.get('/', async (req, res) => {
             END AS advertencia,
             (
               h.estado_operativo <> 'MANTENIMIENTO'
+              AND r.estado IS NULL
               AND ha.pax IS NULL
               AND h.capacidad_max >= $3
-              AND NOT EXISTS (
-                SELECT 1
-                FROM reserva_habitacion rh
-                WHERE rh.habitacion_id = h.id
-                  AND rh.estado IN ('ACTIVA', 'CHECKIN')
-                  AND rh.fecha_entrada < $2::date
-                  AND rh.fecha_salida > $1::date
-              )
             ) AS permite_autorizacion,
             (
               h.estado_operativo <> 'MANTENIMIENTO'
+              AND r.estado IS NULL
               AND ha.pax IS NOT NULL
-              AND NOT EXISTS (
-                SELECT 1
-                FROM reserva_habitacion rh
-                WHERE rh.habitacion_id = h.id
-                  AND rh.estado IN ('ACTIVA', 'CHECKIN')
-                  AND rh.fecha_entrada < $2::date
-                  AND rh.fecha_salida > $1::date
-              )
             ) AS disponible
      FROM habitacion h
      LEFT JOIN habitacion_acomodacion ha ON ha.habitacion_id = h.id AND ha.pax = $3
+     LEFT JOIN LATERAL (
+       SELECT rh.estado
+       FROM reserva_habitacion rh
+       WHERE rh.habitacion_id = h.id
+         AND rh.estado IN ('ACTIVA', 'CHECKIN')
+         AND rh.fecha_entrada < $2::date
+         AND rh.fecha_salida > $1::date
+       ORDER BY CASE WHEN rh.estado = 'CHECKIN' THEN 0 ELSE 1 END
+       LIMIT 1
+     ) r ON true
      WHERE h.activo = true
        AND h.tipo_uso = 'HABITACION'
      ORDER BY h.piso, h.numero`,

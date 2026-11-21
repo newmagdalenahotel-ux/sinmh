@@ -93,7 +93,7 @@ type MeResponse = {
 export type HabitacionDisponible = Habitacion & {
   estado_operativo: 'LIMPIA' | 'SUCIA' | 'MANTENIMIENTO';
   permitido: number | null;
-  motivo: 'MANTENIMIENTO' | 'SIN_ACOMODACION' | 'OCUPADA' | null;
+  motivo: 'MANTENIMIENTO' | 'SIN_ACOMODACION' | 'OCUPADA' | 'EN_CASA' | 'RESERVADA' | null;
   advertencia: 'LIMPIEZA' | null;
   disponible: boolean;
   permite_autorizacion: boolean;

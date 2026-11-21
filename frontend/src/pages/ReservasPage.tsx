@@ -257,6 +257,15 @@ export function ReservasPage() {
   const [error, setError] = useState('');
   const [drawerAbierto, setDrawerAbierto] = useState(false);
   const [pasoReserva, setPasoReserva] = useState(1);
+  const [erroresReserva, setErroresReserva] = useState<{
+    fechas?: string;
+    habitacion?: string;
+    nombre?: string;
+    telefono?: string;
+    email?: string;
+    motivo?: string;
+    origen?: string;
+  }>({});
   const [busquedaCliente, setBusquedaCliente] = useState('');
   const [listaClientesAbierta, setListaClientesAbierta] = useState(false);
   const [drawerGrupo, setDrawerGrupo] = useState(false);
@@ -448,21 +457,65 @@ export function ReservasPage() {
     };
   }, [token, form.habitacion_id, form.pax, form.temporada, form.escenario, autorizacionParcial]);
 
+  function validarPaso1() {
+    const nuevos: typeof erroresReserva = {};
+    if (noches < 1) nuevos.fechas = 'La fecha de salida debe ser posterior a la entrada.';
+    if (!form.habitacion_id) nuevos.habitacion = 'Selecciona una habitación.';
+    setErroresReserva((actuales) => ({ ...actuales, ...nuevos }));
+    return Object.keys(nuevos).length === 0;
+  }
+
+  function validarPaso2() {
+    const nuevos: typeof erroresReserva = {};
+    if (form.cliente.nombre.trim().length < 3) {
+      nuevos.nombre = 'Escribe el nombre completo (mínimo 3 caracteres).';
+    }
+
+    const telefono = form.cliente.telefono?.trim() ?? '';
+    if (telefono && !/^[+\d\s()-]{7,20}$/.test(telefono)) {
+      nuevos.telefono = 'El teléfono debe tener entre 7 y 20 dígitos.';
+    }
+
+    const email = form.cliente.email?.trim() ?? '';
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      nuevos.email = 'Escribe un correo válido, por ejemplo nombre@hotel.com.';
+    }
+
+    if (!telefono && !email) {
+      nuevos.telefono = 'Escribe un teléfono o un correo.';
+      nuevos.email = 'Escribe un teléfono o un correo.';
+    }
+
+    if (!form.motivo_visita) {
+      nuevos.motivo = 'Selecciona Turismo o Corporativo.';
+    }
+
+    if (!form.origen_reserva) {
+      nuevos.origen = 'Selecciona el origen de la reserva.';
+    }
+
+    setErroresReserva((actuales) => ({ ...actuales, ...nuevos }));
+    return Object.keys(nuevos).length === 0;
+  }
+
+  function continuarPaso1() {
+    if (validarPaso1()) setPasoReserva(2);
+  }
+
+  function continuarPaso2() {
+    if (validarPaso2()) setPasoReserva(3);
+  }
+
   async function crear() {
     if (!token) return;
 
-    if (!form.cliente.nombre.trim()) {
-      setError('Escribe el nombre del cliente');
+    if (!validarPaso1()) {
+      setPasoReserva(1);
       return;
     }
 
-    if (!form.habitacion_id) {
-      setError('Selecciona una habitación disponible');
-      return;
-    }
-
-    if (!datosHuespedCompletos) {
-      setError('Completa nombre, motivo y al menos un teléfono o correo');
+    if (!validarPaso2()) {
+      setPasoReserva(2);
       return;
     }
 
@@ -564,6 +617,7 @@ export function ReservasPage() {
     setHabitacionAutorizar(null);
     setAutorizacionParcial(false);
     setMotivoUsoParcial('');
+    setErroresReserva({});
     setError('');
     setDrawerAbierto(true);
   }
@@ -811,11 +865,6 @@ export function ReservasPage() {
         .includes(texto);
     })
     .slice(0, 8);
-  const datosHuespedCompletos = Boolean(
-    form.cliente.nombre.trim() &&
-      form.motivo_visita &&
-      (form.cliente.telefono?.trim() || form.cliente.email?.trim())
-  );
   const noDisponibles = habitaciones.filter((habitacion) => !habitacion.disponible).length;
   const hayDisponibles = habitaciones.some((habitacion) => habitacion.disponible);
   const habitacionesVisibles = mostrarNoDisponibles
@@ -833,6 +882,7 @@ export function ReservasPage() {
     setForm({ ...form, habitacion_id: habitacionAutorizar.id });
     setAutorizacionParcial(true);
     setMotivoUsoParcial(motivoAutorizacion.trim() || 'Uso parcial autorizado');
+    setErroresReserva((actuales) => ({ ...actuales, habitacion: undefined }));
     setHabitacionAutorizar(null);
   }
   const tarifaNegociada =
@@ -1525,7 +1575,10 @@ export function ReservasPage() {
                         type="date"
                         className="input"
                         value={form.fecha_entrada}
-                        onChange={(event) => setForm({ ...form, fecha_entrada: event.target.value })}
+                        onChange={(event) => {
+                          setForm({ ...form, fecha_entrada: event.target.value });
+                          setErroresReserva((actuales) => ({ ...actuales, fechas: undefined }));
+                        }}
                       />
                     </div>
                     <div>
@@ -1533,12 +1586,18 @@ export function ReservasPage() {
                       <input
                         id="fecha_salida"
                         type="date"
-                        className="input"
+                        className={`input ${erroresReserva.fechas ? 'border-error' : ''}`}
                         value={form.fecha_salida}
-                        onChange={(event) => setForm({ ...form, fecha_salida: event.target.value })}
+                        onChange={(event) => {
+                          setForm({ ...form, fecha_salida: event.target.value });
+                          setErroresReserva((actuales) => ({ ...actuales, fechas: undefined }));
+                        }}
                       />
                     </div>
                   </div>
+                  {erroresReserva.fechas && (
+                    <p className="text-xs text-error">{erroresReserva.fechas}</p>
+                  )}
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
@@ -1588,6 +1647,10 @@ export function ReservasPage() {
                                   setForm({ ...form, habitacion_id: habitacion.id });
                                   setAutorizacionParcial(false);
                                   setMotivoUsoParcial('');
+                                  setErroresReserva((actuales) => ({
+                                    ...actuales,
+                                    habitacion: undefined,
+                                  }));
                                 } else if (autorizable) {
                                   setHabitacionAutorizar(habitacion);
                                   setMotivoAutorizacion(
@@ -1617,9 +1680,13 @@ export function ReservasPage() {
                                 <p className="mt-1 text-[11px] font-medium text-error">
                                   {habitacion.motivo === 'MANTENIMIENTO'
                                     ? 'Mantenimiento'
-                                    : habitacion.motivo === 'OCUPADA'
-                                      ? 'Ocupada en esas fechas'
-                                      : `No permite ${form.pax} pax`}
+                                    : habitacion.motivo === 'EN_CASA'
+                                      ? 'En casa'
+                                      : habitacion.motivo === 'RESERVADA'
+                                        ? 'Reservada en estas fechas'
+                                        : habitacion.motivo === 'OCUPADA'
+                                          ? 'Ocupada en esas fechas'
+                                          : `No permite ${form.pax} pax`}
                                 </p>
                               )}
                               {autorizable && !activa && (
@@ -1651,6 +1718,9 @@ export function ReservasPage() {
                           No hay habitaciones disponibles para esas fechas y personas.
                           {noDisponibles > 0 ? ' Puedes revisar las no disponibles con el enlace de arriba.' : ''}
                         </p>
+                      )}
+                      {erroresReserva.habitacion && (
+                        <p className="mt-2 text-xs text-error">{erroresReserva.habitacion}</p>
                       )}
                     </div>
                   </div>
@@ -1721,8 +1791,7 @@ export function ReservasPage() {
                     <button
                       type="button"
                       className="btn-primary"
-                      onClick={() => setPasoReserva(2)}
-                      disabled={!form.habitacion_id || noches < 1}
+                      onClick={continuarPaso1}
                     >
                       Continuar
                     </button>
@@ -1817,15 +1886,28 @@ export function ReservasPage() {
                       <label className="label" htmlFor="cliente">Nombre completo</label>
                       <input
                         id="cliente"
-                        className="input"
+                        className={`input ${erroresReserva.nombre ? 'border-error' : ''}`}
+                        aria-invalid={Boolean(erroresReserva.nombre)}
                         value={form.cliente.nombre}
-                        onChange={(event) =>
+                        onBlur={() => {
+                          if (form.cliente.nombre.trim().length < 3) {
+                            setErroresReserva((actuales) => ({
+                              ...actuales,
+                              nombre: 'Escribe el nombre completo (mínimo 3 caracteres).',
+                            }));
+                          }
+                        }}
+                        onChange={(event) => {
                           setForm({
                             ...form,
                             cliente: { ...form.cliente, nombre: event.target.value },
-                          })
-                        }
+                          });
+                          setErroresReserva((actuales) => ({ ...actuales, nombre: undefined }));
+                        }}
                       />
+                      {erroresReserva.nombre && (
+                        <p className="mt-1 text-xs text-error">{erroresReserva.nombre}</p>
+                      )}
                     </div>
                     <div>
                       <label className="label" htmlFor="documento">Documento</label>
@@ -1848,30 +1930,66 @@ export function ReservasPage() {
                       <label className="label" htmlFor="telefono">Teléfono</label>
                       <input
                         id="telefono"
-                        className="input"
+                        className={`input ${erroresReserva.telefono ? 'border-error' : ''}`}
+                        aria-invalid={Boolean(erroresReserva.telefono)}
                         value={form.cliente.telefono ?? ''}
-                        onChange={(event) =>
+                        onBlur={() => {
+                          const telefono = form.cliente.telefono?.trim() ?? '';
+                          if (telefono && !/^[+\d\s()-]{7,20}$/.test(telefono)) {
+                            setErroresReserva((actuales) => ({
+                              ...actuales,
+                              telefono: 'El teléfono debe tener entre 7 y 20 dígitos.',
+                            }));
+                          }
+                        }}
+                        onChange={(event) => {
                           setForm({
                             ...form,
                             cliente: { ...form.cliente, telefono: event.target.value },
-                          })
-                        }
+                          });
+                          setErroresReserva((actuales) => ({
+                            ...actuales,
+                            telefono: undefined,
+                            email: undefined,
+                          }));
+                        }}
                       />
+                      {erroresReserva.telefono && (
+                        <p className="mt-1 text-xs text-error">{erroresReserva.telefono}</p>
+                      )}
                     </div>
                     <div>
                       <label className="label" htmlFor="email">Correo</label>
                       <input
                         id="email"
                         type="email"
-                        className="input"
+                        className={`input ${erroresReserva.email ? 'border-error' : ''}`}
+                        aria-invalid={Boolean(erroresReserva.email)}
                         value={form.cliente.email ?? ''}
-                        onChange={(event) =>
+                        onBlur={() => {
+                          const email = form.cliente.email?.trim() ?? '';
+                          if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                            setErroresReserva((actuales) => ({
+                              ...actuales,
+                              email: 'Escribe un correo válido, por ejemplo nombre@hotel.com.',
+                            }));
+                          }
+                        }}
+                        onChange={(event) => {
                           setForm({
                             ...form,
                             cliente: { ...form.cliente, email: event.target.value },
-                          })
-                        }
+                          });
+                          setErroresReserva((actuales) => ({
+                            ...actuales,
+                            telefono: undefined,
+                            email: undefined,
+                          }));
+                        }}
                       />
+                      {erroresReserva.email && (
+                        <p className="mt-1 text-xs text-error">{erroresReserva.email}</p>
+                      )}
                     </div>
                   </div>
 
@@ -1880,29 +1998,36 @@ export function ReservasPage() {
                       <label className="label" htmlFor="motivo_visita">Motivo</label>
                       <select
                         id="motivo_visita"
-                        className="input"
+                        className={`input ${erroresReserva.motivo ? 'border-error' : ''}`}
+                        aria-invalid={Boolean(erroresReserva.motivo)}
                         value={form.motivo_visita ?? ''}
-                        onChange={(event) =>
-                          setForm({ ...form, motivo_visita: event.target.value })
-                        }
+                        onChange={(event) => {
+                          setForm({ ...form, motivo_visita: event.target.value });
+                          setErroresReserva((actuales) => ({ ...actuales, motivo: undefined }));
+                        }}
                       >
                         <option value="">Selecciona</option>
                         <option value="TURISMO">Turismo</option>
                         <option value="CORPORATIVO">Corporativo</option>
                       </select>
+                      {erroresReserva.motivo && (
+                        <p className="mt-1 text-xs text-error">{erroresReserva.motivo}</p>
+                      )}
                     </div>
                     <div>
                       <label className="label" htmlFor="origen_reserva">Origen</label>
                       <select
                         id="origen_reserva"
-                        className="input"
+                        className={`input ${erroresReserva.origen ? 'border-error' : ''}`}
+                        aria-invalid={Boolean(erroresReserva.origen)}
                         value={form.origen_reserva ?? 'DIRECTO'}
-                        onChange={(event) =>
+                        onChange={(event) => {
                           setForm({
                             ...form,
                             origen_reserva: event.target.value as typeof form.origen_reserva,
-                          })
-                        }
+                          });
+                          setErroresReserva((actuales) => ({ ...actuales, origen: undefined }));
+                        }}
                       >
                         <option value="DIRECTO">Directo</option>
                         <option value="WHATSAPP">WhatsApp</option>
@@ -1911,14 +2036,11 @@ export function ReservasPage() {
                         <option value="WEB">Web</option>
                         <option value="OTA">OTA</option>
                       </select>
+                      {erroresReserva.origen && (
+                        <p className="mt-1 text-xs text-error">{erroresReserva.origen}</p>
+                      )}
                     </div>
                   </div>
-
-                  {!datosHuespedCompletos && (
-                    <p className="rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">
-                      Completa nombre, motivo y al menos un teléfono o correo para continuar.
-                    </p>
-                  )}
 
                   <div className="flex justify-between gap-2 pt-2">
                     <button type="button" className="btn-secondary" onClick={() => setPasoReserva(1)}>
@@ -1927,8 +2049,7 @@ export function ReservasPage() {
                     <button
                       type="button"
                       className="btn-primary"
-                      onClick={() => setPasoReserva(3)}
-                      disabled={!datosHuespedCompletos}
+                      onClick={continuarPaso2}
                     >
                       Continuar
                     </button>
@@ -2098,12 +2219,7 @@ export function ReservasPage() {
                       type="button"
                       className="btn-primary"
                       onClick={() => void crear()}
-                      disabled={
-                        creando ||
-                        !datosHuespedCompletos ||
-                        !form.habitacion_id ||
-                        noches < 1
-                      }
+                      disabled={creando}
                     >
                       {creando ? 'Creando…' : 'Crear reserva'}
                     </button>

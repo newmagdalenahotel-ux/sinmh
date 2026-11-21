@@ -521,7 +521,9 @@ design, design-system y tasks.
 - [x] Formulario de reserva en 3 pasos.
 - [x] Tarjetas de habitaciones en 2–4 columnas, con disponibles y bloqueadas por motivo.
 - [x] Por defecto solo disponibles; enlace para ver las no disponibles.
+- [x] Estados **En casa** y **Reservada** con prioridad sobre la falta de acomodación.
 - [x] Aviso de limpieza pendiente.
+- [x] Validación por campo con mensaje y borde; correo y teléfono validados.
 - [x] Buscador de cliente existente.
 - [x] Pagos divididos y anticipo opcional.
 - [x] Validación de nombre, motivo y teléfono/correo.
